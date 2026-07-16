@@ -1,0 +1,103 @@
+# ==========================================
+# Entorno y Configuración Sensible (.env)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.env
+*.local
+
+# ==========================================
+# Dependencias y Paquetes de Terceros
+# ==========================================
+/vendor/
+composer.phar
+/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# Archivos de Sistema y del OS
+# ==========================================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux/Unix
+*~
+.*.swp
+
+# ==========================================
+# Configuración de IDEs y Editores de Texto
+# ==========================================
+# VS Code
+.vscode/
+*.code-workspace
+
+# PhpStorm / JetBrains
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# NetBeans
+/nbproject/
+
+# ==========================================
+# Archivos Temporales, Logs y Caché
+# ==========================================
+/cache/*
+!/cache/.gitkeep
+
+/logs/*
+!/logs/.gitkeep
+
+# Caché de PHPUnit y herramientas de desarrollo
+.phpunit.result.cache
+/coverage/
+
+# ==========================================
+# Archivos Generados, Backups y Dumps
+# ==========================================
+# Comprimir archivos
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+
+# Base de datos (Ignorar dumps locales, pero mantener el schema estructurado)
+*.sql
+*.sqlite
+!/database/schema/**/*.sql
+
+# ==========================================
+# Uploads / Contenido de Usuarios
+# ==========================================
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# ==========================================
+# Asistentes de IA y Herramientas Locales
+# ==========================================
+.claude/
+
+#carpeta temporal de pruebas
+/pruebas/
+
+#carpeta de cursos
+/cursos/

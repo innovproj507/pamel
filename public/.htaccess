@@ -1,0 +1,76 @@
+RewriteEngine On
+
+# HTTPS + www redirect
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+# Block common exploit patterns in query strings
+RewriteCond %{QUERY_STRING} (\.\./|%2e%2e%2f|%2e%2e/|\.\.%2f) [NC,OR]
+RewriteCond %{QUERY_STRING} (base64_encode|eval\(|GLOBALS|_REQUEST|localhost|loopback) [NC,OR]
+RewriteCond %{QUERY_STRING} (<script|<iframe|javascript:) [NC]
+RewriteRule .* - [F,L]
+
+# Block null bytes
+RewriteCond %{QUERY_STRING} (%00|%0d%0a) [NC]
+RewriteRule .* - [F,L]
+
+# Serve static files directly (images, css, js, fonts, documents)
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^ - [L]
+
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Missing upload images → placeholder
+RewriteCond %{REQUEST_URI} ^/uploads/.*\.(jpg|jpeg|png|gif|webp)$ [NC]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^ /assets/images/logo.png [L]
+
+# All other requests → entry point
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    Header always unset X-Powered-By
+    Header always unset Server
+</IfModule>
+
+# Disable directory browsing
+Options -Indexes
+
+# Hide PHP version
+<IfModule mod_php7.c>
+    php_flag expose_php Off
+</IfModule>
+<IfModule mod_php8.c>
+    php_flag expose_php Off
+</IfModule>
+
+# Block bad bots
+<IfModule mod_rewrite.c>
+    RewriteCond %{HTTP_USER_AGENT} (libwww-perl|wget|python|nikto|curl|scan|java|winhttp|clshttp|loader) [NC,OR]
+    RewriteCond %{HTTP_USER_AGENT} (%0A|%0D|%27|%3C|%3E|%00) [NC]
+    RewriteRule .* - [F,L]
+</IfModule>
+
+# Cache static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg  "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png  "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType text/css              "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+</IfModule>
+
+# Block direct access to PHP files other than index.php
+<FilesMatch "^(?!index\.php$).*\.php$">
+    Require all denied
+</FilesMatch>

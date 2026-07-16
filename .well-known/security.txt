@@ -1,0 +1,5 @@
+# Security contact for pamel.edu.pa
+Contact: mailto:security@pamel.edu.pa
+Expires: 2027-04-22T00:00:00Z
+Policy: https://pamel.edu.pa/security-policy
+Canonical: https://pamel.edu.pa/.well-known/security.txt

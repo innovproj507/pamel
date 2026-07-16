@@ -1,0 +1,4 @@
+# Este directorio NO es el document root.
+# El virtualhost debe apuntar a cms/public/.
+# Si ves este archivo activo, la configuración del servidor es incorrecta.
+Require all denied

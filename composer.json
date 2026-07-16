@@ -1,0 +1,27 @@
+{
+    "name": "custom/cms",
+    "description": "Custom PHP CMS with Plugin Architecture",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "paypal/rest-api-sdk-php": "^1.14",
+        "phpoffice/phpword": "^1.4",
+        "phpmailer/phpmailer": "^7.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Core\\": "Core/",
+            "Controllers\\": "Controllers/",
+            "Admin\\": "admin/",
+            "Plugins\\": "plugins/",
+            "Plugins\\Ecommerce\\": "plugins/ecommerce/",
+            "Plugins\\Paypal\\": "plugins/paypal/",
+            "Plugins\\Seo\\": "plugins/seo/",
+            "Plugins\\Maintenance\\": "plugins/maintenance/",
+            "Plugins\\Elearning\\": "plugins/elearning/"
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    }
+}

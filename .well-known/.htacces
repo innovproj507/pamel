@@ -1,0 +1,11 @@
+<IfModule mod_autoindex.c>
+    Options -Indexes
+</IfModule>
+
+# Permite acceso a security.txt y otros archivos válidos
+<FilesMatch "^(security.txt|security.md|security.html)$">
+    Require all granted
+</FilesMatch>
+
+# Silencia errores para directorios sin index
+ErrorDocument 403 /403.html
