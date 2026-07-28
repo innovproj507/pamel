@@ -531,6 +531,7 @@ return [
         'enroll' => 'Enroll',
         'no_products' => 'No products found.',
         'showing_results' => 'Showing :count courses',
+        'price_on_request' => 'Price on request',
         'filters' => [
             'title' => 'Filters',
             'clear' => 'Clear all',
@@ -572,7 +573,8 @@ return [
             'checkout' => 'Proceed to Checkout',
             'or' => 'or',
             'continue' => 'Continue Shopping',
-            'shipping_info' => 'Shipping calculated at checkout.'
+            'shipping_info' => 'Shipping calculated at checkout.',
+            'request_quote' => 'Request a Quote'
         ],
         'checkout' => [
             'title' => 'Checkout',
@@ -581,9 +583,12 @@ return [
             'email' => 'Email',
             'phone' => 'Phone',
             'address' => 'Shipping Address',
+            'message' => 'Additional Comments (optional)',
             'summary' => 'Order Summary',
             'total' => 'Total',
-            'place_order' => 'Place Order'
+            'place_order' => 'Place Order',
+            'request_quote_cta' => 'Request a Quote',
+            'quote_notice' => 'Prices are not shown here. Submit your request and our team will email you a quote shortly.'
         ],
         'success' => [
             'title' => 'Order Successful!',
@@ -592,6 +597,11 @@ return [
             'email_conf' => '📧 You will receive a confirmation email shortly with your order details.',
             'continue' => 'Continue Shopping',
             'home' => 'Return to Home'
+        ],
+        'quote_success' => [
+            'title' => 'Quote Request Received!',
+            'message' => 'Thank you! We have received your quote request.',
+            'email_conf' => '📧 Our team will review it and email you the pricing shortly.'
         ]
     ],
     'auth' => [

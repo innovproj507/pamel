@@ -161,10 +161,10 @@ class AccountController
     private function getRecommendedCourses()
     {
         $sql = "
-            SELECT id as ID, name as post_title, price, price as regular_price, image
-            FROM products 
-            WHERE status = 'active' 
-            ORDER BY RAND() 
+            SELECT id as ID, name as post_title, image
+            FROM products
+            WHERE status = 'active'
+            ORDER BY RAND()
             LIMIT 3
         ";
         return $this->db->fetchAll($sql);

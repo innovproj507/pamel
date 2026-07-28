@@ -26,11 +26,7 @@
                 </span>
             </h1>
             
-            <p class="text-xl md:text-2xl mb-10 text-blue-100 max-w-3xl mx-auto leading-relaxed">
-                <?php echo __('home.hero.subtitle'); ?>
-            </p>
-            
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
                 <a href="https://pamel.edu.pa/shop?category=pamel&subcategory=omi" class="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 transition-all transform hover:scale-105 shadow-2xl shine-effect w-full sm:w-auto">
                     <span class="flex items-center justify-center">
                         <i class="fas fa-shopping-cart mr-2"></i>

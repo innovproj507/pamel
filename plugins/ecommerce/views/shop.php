@@ -175,12 +175,18 @@
                             
                             <!-- Price & Action -->
                             <div class="flex items-center justify-between pt-6 border-t border-gray-200 mt-auto gap-2">
+                                <?php if ($priceVisible): ?>
                                 <div class="flex flex-col">
                                     <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Price</span>
                                     <p class="text-2xl font-black text-gray-900 leading-none">
                                         $<?php echo number_format($product['price'] ?? 0, 2); ?>
                                     </p>
                                 </div>
+                                <?php else: ?>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1"><?php echo __('shop.price_on_request'); ?></span>
+                                </div>
+                                <?php endif; ?>
                                 <form action="/cart/add" method="POST" class="flex-shrink-0">
                                     <input type="hidden" name="product_id" value="<?php echo $product['id']; ?>">
                                     <input type="hidden" name="quantity" value="1">

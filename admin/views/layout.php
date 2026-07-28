@@ -76,6 +76,7 @@
             <a href="/manager/products"    class="nav-link"><i class="fas fa-box-archive w-4 text-center"></i>Productos</a>
             <a href="/manager/categories"  class="nav-link"><i class="fas fa-folder-tree w-4 text-center"></i>Categorías</a>
             <a href="/manager/orders"      class="nav-link"><i class="fas fa-receipt w-4 text-center"></i>Pedidos</a>
+            <a href="/manager/quote-requests" class="nav-link"><i class="fas fa-file-invoice-dollar w-4 text-center"></i>Cotizaciones</a>
 
             <div class="nav-section">Servicios</div>
             <a href="/manager/admission-requests"  class="nav-link"><i class="fas fa-file-signature w-4 text-center"></i>Solicitudes</a>

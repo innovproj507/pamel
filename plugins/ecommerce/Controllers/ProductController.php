@@ -3,16 +3,21 @@
 namespace Plugins\Ecommerce\Controllers;
 
 use Core\Controller;
+use Core\Models\QuoteRequest;
+use Plugins\Ecommerce\Models\Cart;
 use Plugins\Ecommerce\Models\Product;
+use Plugins\Ecommerce\Support\PriceGate;
 
 class ProductController extends Controller
 {
     private $productModel;
+    private $quoteRequestModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->productModel = new Product();
+        $this->quoteRequestModel = new QuoteRequest();
     }
 
     public function index()
@@ -61,7 +66,8 @@ class ProductController extends Controller
             'filters' => $filters,
             'currentPage' => $page,
             'totalPages' => $totalPages,
-            'totalProducts' => $totalProducts
+            'totalProducts' => $totalProducts,
+            'priceVisible' => PriceGate::isUnlocked(),
         ], 'public/views/layout');
     }
 
@@ -74,7 +80,7 @@ class ProductController extends Controller
             echo "Product not found";
             return;
         }
-        
+
         // Get full product info with category if available
         if (isset($product['id'])) {
             $fullProduct = $this->productModel->getWithCategory($product['id']);
@@ -83,9 +89,55 @@ class ProductController extends Controller
             }
         }
 
+        $this->tryUnlockFromQuoteToken($product);
+
         $this->view->render('plugins/ecommerce/views/product', [
             'title' => $product['name'],
-            'product' => $product
+            'product' => $product,
+            'priceVisible' => PriceGate::isUnlocked(),
         ], 'public/views/layout');
+    }
+
+    /**
+     * When a customer follows a "your quote is ready" email link
+     * (/shop/:slug?quote=TOKEN), validate the token and, if it matches an
+     * approved quote that includes this product, unlock pricing for the
+     * session and restore the cart with the quoted items.
+     */
+    private function tryUnlockFromQuoteToken($product)
+    {
+        $token = $_GET['quote'] ?? null;
+        if (!$token) {
+            return;
+        }
+
+        $quoteRequest = $this->quoteRequestModel->findByToken($token);
+        if (!$quoteRequest || !in_array($quoteRequest['status'], ['quoted', 'completed'], true)) {
+            return;
+        }
+
+        $items = $this->quoteRequestModel->getItemsByQuoteId($quoteRequest['id']);
+        $matchesThisProduct = false;
+        foreach ($items as $item) {
+            if ((int)$item['product_id'] === (int)$product['id']) {
+                $matchesThisProduct = true;
+                break;
+            }
+        }
+
+        if (!$matchesThisProduct) {
+            return;
+        }
+
+        PriceGate::unlock($quoteRequest['id']);
+
+        $cart = new Cart();
+        if ($cart->getCount() == 0) {
+            foreach ($items as $item) {
+                if ($item['product_id']) {
+                    $cart->addItem($item['product_id'], $item['quantity']);
+                }
+            }
+        }
     }
 }

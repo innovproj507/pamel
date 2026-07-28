@@ -4,6 +4,7 @@ namespace Plugins\Ecommerce\Controllers;
 
 use Core\Controller;
 use Plugins\Ecommerce\Models\Cart;
+use Plugins\Ecommerce\Support\PriceGate;
 
 class CartController extends Controller
 {
@@ -23,7 +24,8 @@ class CartController extends Controller
         $this->view->render('plugins/ecommerce/views/cart', [
             'title' => 'Shopping Cart',
             'items' => $items,
-            'total' => $total
+            'total' => $total,
+            'priceVisible' => PriceGate::isUnlocked(),
         ], 'public/views/layout');
     }
 

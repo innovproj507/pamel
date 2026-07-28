@@ -120,9 +120,15 @@
 
             <!-- Price -->
             <div class="mt-6">
+                <?php if ($priceVisible): ?>
                 <p class="text-5xl font-bold bg-gradient-to-r from-cyan-600 to-blue-600 bg-clip-text text-transparent">
                     $<?php echo number_format($product['price'] ?? 0, 2); ?>
                 </p>
+                <?php else: ?>
+                <p class="text-2xl font-bold text-gray-500">
+                    <?php echo __('shop.price_on_request'); ?>
+                </p>
+                <?php endif; ?>
             </div>
 
             <!-- Description -->
@@ -242,9 +248,13 @@
                                 </a>
                             </h3>
                             <div class="flex items-center justify-between">
+                                <?php if ($priceVisible): ?>
                                 <span class="text-lg font-bold text-cyan-600">
                                     $<?php echo number_format($related['price'] ?? 0, 2); ?>
                                 </span>
+                                <?php else: ?>
+                                <span class="text-xs font-bold text-gray-400 uppercase"><?php echo __('shop.price_on_request'); ?></span>
+                                <?php endif; ?>
                                 <a href="/shop/<?php echo htmlspecialchars($related['slug']); ?>" class="text-cyan-600 hover:text-cyan-800 text-sm font-medium">
                                     <?php echo __('shop.product.view'); ?> <i class="fas fa-arrow-right ml-1"></i>
                                 </a>

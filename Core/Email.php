@@ -205,6 +205,14 @@ class Email
         return self::send($config['admin_email'] ?? '', $subject, self::getContactEmailTemplate($data));
     }
 
+    public static function sendQuoteRequestNotification(array $data): bool
+    {
+        $config  = self::getConfig();
+        $subject = 'Nueva Solicitud de Cotización - ' . $data['customer_name'];
+        $body    = self::getQuoteRequestEmailTemplate($data);
+        return self::send($config['admin_email'] ?? '', $subject, $body);
+    }
+
     // -------------------------------------------------------------------------
     // Confirmation helpers (to the person who submitted)
     // -------------------------------------------------------------------------
@@ -253,6 +261,57 @@ class Email
         return self::send($data['email'], $subject, $body);
     }
 
+    public static function sendQuoteRequestConfirmation(array $data): bool
+    {
+        $coursesList = '';
+        foreach ($data['items'] ?? [] as $item) {
+            $coursesList .= '<li>' . htmlspecialchars($item['name']) . ' (x' . (int) $item['quantity'] . ')</li>';
+        }
+
+        $subject = 'Solicitud de Cotización Recibida - PAMEL';
+        $body    = self::wrapTemplate(
+            'Solicitud de Cotización Recibida',
+            '<p style="font-size:15px">Estimado/a <strong>' . htmlspecialchars($data['customer_name']) . '</strong>,</p>
+             <p>Hemos recibido su solicitud de cotización para:</p>
+             <ul>' . $coursesList . '</ul>
+             <p>Nuestro equipo revisará su solicitud y le enviará el precio a la brevedad.</p>
+             <p style="margin-top:20px">Gracias por su interés en <strong>PAMEL</strong>.</p>',
+            'Este es un correo automático, por favor no responda a este mensaje.'
+        );
+        return self::send($data['email'], $subject, $body);
+    }
+
+    /**
+     * Sent by an admin from /manager/quote-requests after reviewing a request.
+     * $items must include: name, price (current), slug, quantity.
+     */
+    public static function sendQuoteReady(array $quoteRequest, array $items): bool
+    {
+        $rows  = '';
+        $total = 0;
+        $siteUrl = rtrim(Config::get('site.url', ''), '/');
+
+        foreach ($items as $item) {
+            $lineTotal = $item['price'] * $item['quantity'];
+            $total += $lineTotal;
+            $link = $siteUrl . '/shop/' . $item['slug'] . '?quote=' . $quoteRequest['token'];
+            $rows .= '<div class="field"><div class="label">' . htmlspecialchars($item['name']) . ' (x' . (int) $item['quantity'] . '):</div>'
+                   . '<div class="value">$' . number_format($lineTotal, 2) . ' &mdash; <a href="' . htmlspecialchars($link) . '">' . htmlspecialchars($link) . '</a></div></div>';
+        }
+
+        $rows .= '<div class="field" style="margin-top:20px"><div class="label">Total:</div><div class="value" style="font-size:18px;font-weight:bold">$' . number_format($total, 2) . '</div></div>';
+
+        $subject = 'Su Cotización Está Lista - PAMEL';
+        $body    = self::wrapTemplate(
+            'Su Cotización Está Lista',
+            '<p style="font-size:15px">Estimado/a <strong>' . htmlspecialchars($quoteRequest['customer_name']) . '</strong>,</p>
+             <p>Aquí tiene el precio para los cursos que solicitó:</p>' . $rows .
+             '<p style="margin-top:20px">Haga clic en el enlace de cada curso para ver el precio en el sitio y completar su inscripción y pago.</p>',
+            'Este es un correo automático, por favor no responda a este mensaje.'
+        );
+        return self::send($quoteRequest['email'], $subject, $body);
+    }
+
     // -------------------------------------------------------------------------
     // Email templates
     // -------------------------------------------------------------------------
@@ -282,6 +341,36 @@ class Email
 
         return self::wrapTemplate('Nueva Solicitud de Admisión', $rows,
             'Para ver los archivos adjuntos (cédula / certificado de salud), ingrese al panel de administración.');
+    }
+
+    private static function getQuoteRequestEmailTemplate(array $data): string
+    {
+        $fields = [
+            'Nombre'   => $data['customer_name'],
+            'Email'    => $data['email'],
+            'Teléfono' => $data['phone'],
+        ];
+
+        $rows = '';
+        foreach ($fields as $label => $value) {
+            $rows .= '<div class="field"><div class="label">' . $label . ':</div>'
+                   . '<div class="value">' . htmlspecialchars((string) $value) . '</div></div>';
+        }
+
+        if (!empty($data['message'])) {
+            $rows .= '<div class="field"><div class="label">Mensaje:</div>'
+                   . '<div class="value">' . nl2br(htmlspecialchars($data['message'])) . '</div></div>';
+        }
+
+        $rows .= '<h2 style="color:#0066cc;margin-top:20px">Cursos Solicitados</h2>';
+        foreach ($data['items'] ?? [] as $item) {
+            $rows .= '<div class="field"><div class="label">' . htmlspecialchars($item['name']) . ':</div>'
+                   . '<div class="value">Cantidad: ' . (int) $item['quantity'] . ' &mdash; Precio actual: $' . number_format($item['price'], 2) . '</div></div>';
+        }
+
+        $siteUrl = rtrim(Config::get('site.url', ''), '/');
+        return self::wrapTemplate('Nueva Solicitud de Cotización', $rows,
+            'Para responder, ingrese al panel de administración en <a href="' . $siteUrl . '/manager/quote-requests/' . (int) $data['id'] . '">Cotizaciones</a>.');
     }
 
     private static function getContactEmailTemplate(array $data): string

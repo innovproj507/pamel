@@ -37,7 +37,9 @@
                                         <?php echo htmlspecialchars($item['name']); ?>
                                     </a>
                                 </h3>
+                                <?php if ($priceVisible): ?>
                                 <p class="ml-4">$<?php echo number_format($item['price'] * $item['quantity'], 2); ?></p>
+                                <?php endif; ?>
                             </div>
                         </div>
                         <div class="flex-1 flex items-end justify-between text-sm">
@@ -61,14 +63,16 @@
         </div>
 
         <div class="mt-8 bg-white shadow rounded-lg p-6">
+            <?php if ($priceVisible): ?>
             <div class="flex justify-between text-base font-medium text-gray-900 mb-4">
                 <p><?php echo __('shop.cart.subtotal'); ?></p>
                 <p class="text-2xl font-bold text-cyan-600">$<?php echo number_format($total, 2); ?></p>
             </div>
             <p class="mt-0.5 text-sm text-gray-500"><?php echo __('shop.cart.shipping_info'); ?></p>
+            <?php endif; ?>
             <div class="mt-6">
                 <a href="/checkout" class="w-full flex justify-center items-center px-6 py-3 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-cyan-600 hover:bg-cyan-700 transition duration-300">
-                    <?php echo __('shop.cart.checkout'); ?>
+                    <?php echo $priceVisible ? __('shop.cart.checkout') : __('shop.cart.request_quote'); ?>
                 </a>
             </div>
             <div class="mt-6 flex justify-center text-sm text-center text-gray-500">

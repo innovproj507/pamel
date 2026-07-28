@@ -531,6 +531,7 @@ return [
         'spots_left' => '¡Solo quedan :count cupos!',
         'no_products' => 'No se encontraron productos.',
         'showing_results' => 'Mostrando :count cursos',
+        'price_on_request' => 'Precio a cotizar',
         'filters' => [
             'title' => 'Filtros',
             'clear' => 'Limpiar todo',
@@ -571,7 +572,8 @@ return [
             'checkout' => 'Proceder al Pago',
             'or' => 'o',
             'continue' => 'Continuar Comprando',
-            'shipping_info' => 'El envío se calcula al momento del pago.'
+            'shipping_info' => 'El envío se calcula al momento del pago.',
+            'request_quote' => 'Solicitar Cotización'
         ],
         'checkout' => [
             'title' => 'Pago',
@@ -580,9 +582,12 @@ return [
             'email' => 'Correo Electrónico',
             'phone' => 'Teléfono',
             'address' => 'Dirección de Envío',
+            'message' => 'Comentarios Adicionales (opcional)',
             'summary' => 'Resumen del Pedido',
             'total' => 'Total',
-            'place_order' => 'Realizar Pedido'
+            'place_order' => 'Realizar Pedido',
+            'request_quote_cta' => 'Solicitar Cotización',
+            'quote_notice' => 'Aquí no se muestran precios. Envía tu solicitud y nuestro equipo te contactará por correo con la cotización.'
         ],
         'success' => [
             'title' => '¡Pedido Exitoso!',
@@ -591,6 +596,11 @@ return [
             'email_conf' => '📧 Recibirá un correo de confirmación en breve con los detalles de su pedido.',
             'continue' => 'Continuar Comprando',
             'home' => 'Volver al Inicio'
+        ],
+        'quote_success' => [
+            'title' => '¡Solicitud de Cotización Recibida!',
+            'message' => '¡Gracias! Hemos recibido tu solicitud de cotización.',
+            'email_conf' => '📧 Nuestro equipo la revisará y te enviará el precio por correo en breve.'
         ]
     ],
     'auth' => [

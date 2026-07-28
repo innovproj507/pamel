@@ -44,6 +44,12 @@ return function($router) {
     $router->get('/manager/admission-requests/:id/download-word', 'Admin\Controllers\AdminAdmissionController@downloadWord', 'admin.admission.download.word');
     $router->post('/manager/admission-requests/update-status', 'Admin\Controllers\AdminAdmissionController@updateStatus', 'admin.admission.update.status');
 
+    // Quote Requests
+    $router->get('/manager/quote-requests', 'Admin\Controllers\AdminQuoteController@index', 'admin.quote.requests');
+    $router->post('/manager/quote-requests/update-status', 'Admin\Controllers\AdminQuoteController@updateStatus', 'admin.quote.update.status');
+    $router->get('/manager/quote-requests/:id', 'Admin\Controllers\AdminQuoteController@show', 'admin.quote.show');
+    $router->post('/manager/quote-requests/:id/send-quote', 'Admin\Controllers\AdminQuoteController@sendQuote', 'admin.quote.send');
+
     // Satisfaction Surveys
     $router->get('/manager/satisfaction-surveys', 'Admin\Controllers\AdminSatisfactionController@index', 'admin.satisfaction.index');
     $router->get('/manager/satisfaction-surveys/:id', 'Admin\Controllers\AdminSatisfactionController@show', 'admin.satisfaction.show');

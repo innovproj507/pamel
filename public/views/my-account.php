@@ -293,21 +293,16 @@ $userEmail = $user['email'] ?? '';
                                         $icons = ['fa-chart-line', 'fa-camera', 'fa-chart-pie', 'fa-ship', 'fa-anchor'];
                                         $bg = $gradients[$index % count($gradients)];
                                         $icon = $icons[$index % count($icons)];
-                                        $price = $course['price'] ? '$' . $course['price'] : 'Ver precio';
                                     ?>
                                     <div class="border rounded-lg overflow-hidden group hover:shadow-lg transition cursor-pointer flex flex-col h-full transform hover:-translate-y-1">
                                         <div class="h-40 bg-gradient-to-r <?php echo $bg; ?> flex items-center justify-center relative overflow-hidden">
                                             <div class="absolute inset-0 bg-white opacity-10" style="background-image: radial-gradient(circle, #fff 10%, transparent 10%); background-size: 10px 10px;"></div>
                                             <i class="fas <?php echo $icon; ?> text-white text-4xl transform group-hover:scale-110 transition z-10"></i>
-                                            <?php if(isset($course['regular_price']) && $course['regular_price'] > $course['price']): ?>
-                                                <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full shadow-sm animate-pulse">Oferta</div>
-                                            <?php endif; ?>
                                         </div>
                                         <div class="p-5 flex-1 flex flex-col">
                                             <h4 class="font-bold text-gray-800 line-clamp-2 h-12 mb-2"><?php echo htmlspecialchars($course['post_title']); ?></h4>
-                                            
-                                            <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-between">
-                                                <span class="text-lg font-bold text-blue-600"><?php echo $price; ?></span>
+
+                                            <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-end">
                                                 <a href="/product?id=<?php echo $course['ID']; ?>" class="px-4 py-2 bg-gray-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition text-sm font-medium">Ver Curso</a>
                                             </div>
                                         </div>
