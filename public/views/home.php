@@ -20,20 +20,13 @@
     <div class="container mx-auto px-4 relative z-10">
         <div class="max-w-5xl mx-auto text-center">
             <h1 class="text-5xl md:text-7xl font-extrabold mb-6 leading-tight">
-                <?php echo __('home.hero.title_main'); ?>
+                <span class="tracking-widest"><?php echo __('home.hero.title_main'); ?></span>
                 <span class="block bg-gradient-to-r from-yellow-300 via-yellow-200 to-yellow-300 bg-clip-text text-transparent">
                     <?php echo __('home.hero.title_sub'); ?>
                 </span>
             </h1>
             
             <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-                <a href="https://pamel.edu.pa/shop?category=pamel&subcategory=omi" class="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold text-lg hover:bg-blue-50 transition-all transform hover:scale-105 shadow-2xl shine-effect w-full sm:w-auto">
-                    <span class="flex items-center justify-center">
-                        <i class="fas fa-shopping-cart mr-2"></i>
-                        <?php echo __('home.hero.btn_shop'); ?>
-                    </span>
-                </a>
-                
                 <a href="/admission" class="inline-block bg-cyan-400 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-cyan-500 transition-all transform hover:scale-105 shadow-2xl w-full sm:w-auto uppercase tracking-wider">
                     <span class="flex items-center justify-center">
                         <i class="fas fa-user-graduate mr-2"></i>
@@ -131,11 +124,11 @@
                                 <i class="fas fa-anchor text-3xl text-white"></i>
                             </div>
                             <div class="text-left">
-                                <p class="text-xs uppercase tracking-widest text-cyan-100 font-semibold">Panama Maritime</p>
-                                <h3 class="text-2xl font-extrabold leading-tight">PAMEL Courses</h3>
+                                <p class="text-xs uppercase tracking-widest text-cyan-100 font-semibold">Panama Maritime E-Learning</p>
+                                <h3 class="text-2xl font-extrabold leading-tight">PANAMA Courses</h3>
                             </div>
                         </div>
-                        <p class="text-sm text-cyan-100 mt-1">ISO 9001:2015 · STCW Certified · Panama</p>
+                        <p class="text-sm text-cyan-100 mt-1">STCW Certified</p>
                     </div>
 
                     <!-- Course List -->
@@ -195,7 +188,7 @@
                                 <h3 class="text-2xl font-extrabold leading-tight">India Courses</h3>
                             </div>
                         </div>
-                        <p class="text-sm text-orange-100 mt-1">ISO 9001:2015 · IMO Standards · India</p>
+                        <p class="text-sm text-orange-100 mt-1">IMO Standards</p>
                     </div>
 
                     <!-- Course List -->

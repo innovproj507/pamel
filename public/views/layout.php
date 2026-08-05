@@ -110,47 +110,11 @@
 
                 <!-- Desktop Menu -->
                 <div class="hidden lg:flex items-center space-x-1">
-                    <!-- Store Courses with Submenu -->
-                    <div class="relative group">
-                        <button class="px-4 py-2 text-gray-700 hover:text-cyan-600 font-medium transition rounded-lg hover:bg-cyan-50 relative flex items-center">
-                            <span><?php echo __('nav.store_courses'); ?></span>
-                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 group-hover:w-full transition-all duration-300"></span>
-                        </button>
-                        <div class="absolute left-0 mt-0 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                            <!-- Pamel Section -->
-                            <div class="border-b border-gray-200">
-                                <div class="px-4 py-2 bg-gradient-to-r from-cyan-50 to-blue-50">
-                                    <p class="text-xs font-bold text-cyan-700 uppercase tracking-wide">Pamel</p>
-                                </div>
-                                <div class="relative group/omi">
-                                    <a href="/shop?category=pamel&subcategory=omi" class="flex items-center justify-between px-6 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition">
-                                        <span><i class="fas fa-ship mr-2 text-cyan-500"></i>OMI</span>
-                                        <i class="fas fa-chevron-right text-xs"></i>
-                                    </a>
-                                    <!-- OMI Submenu -->
-                                    <div class="absolute left-full top-0 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover/omi:opacity-100 group-hover/omi:visible transition-all duration-300 ml-1">
-                                        <a href="/shop?category=pamel&subcategory=omi&modality=B-learning" class="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-t-lg">
-                                            <i class="fas fa-laptop mr-2 text-blue-500"></i>B-learning
-                                        </a>
-                                        <a href="/shop?category=pamel&subcategory=omi&modality=E-learning" class="block px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition rounded-b-lg">
-                                            <i class="fas fa-desktop mr-2 text-blue-500"></i>E-learning
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <!-- Latin Indo Section -->
-                            <div>
-                                <div class="px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50">
-                                    <p class="text-xs font-bold text-green-700 uppercase tracking-wide">Latin Indo</p>
-                                </div>
-                                <a href="/shop?category=latin&subcategory=omi" class="block px-6 py-3 text-gray-700 hover:bg-green-50 hover:text-green-600 transition rounded-b-lg">
-                                    <i class="fas fa-anchor mr-2 text-green-500"></i>OMI
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Courses -->
+                    <a href="/shop" class="px-4 py-2 text-gray-700 hover:text-cyan-600 font-medium transition rounded-lg hover:bg-cyan-50 relative">
+                        <span><?php echo __('nav.store_courses'); ?></span>
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:w-full transition-all duration-300"></span>
+                    </a>
 
                     <!-- About Us with Submenu -->
                     <div class="relative group">
@@ -161,7 +125,6 @@
                         </button>
                         <div class="absolute left-0 mt-0 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                             <a href="/our-company" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.about.company'); ?></a>
-                            <a href="/quality-policy" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition"><?php echo __('nav.about.quality'); ?></a>
                             <!-- Branches with nested submenu -->
                             <div class="relative group/branches">
                                 <button class="w-full text-left px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition flex items-center justify-between">
@@ -184,8 +147,11 @@
                             <i class="fas fa-chevron-down ml-1 text-xs"></i>
                             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 group-hover:w-full transition-all duration-300"></span>
                         </button>
-                        <div class="absolute left-0 mt-0 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                        <div class="absolute left-0 mt-0 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                             <a href="/services" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.competence_courses'); ?></a>
+                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition"><?php echo __('nav.pde'); ?></a>
+                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition"><?php echo __('nav.assessment'); ?></a>
+                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-b-lg"><?php echo __('nav.pamel_service'); ?></a>
                         </div>
                     </div>
 
@@ -267,23 +233,14 @@
             <div class="flex-1 overflow-y-auto py-6">
                 <!-- Navigation Groups -->
                 <div class="px-4 space-y-8">
-                    <!-- Store Courses -->
+                    <!-- Courses -->
                     <div>
-                        <p class="text-[11px] font-black text-cyan-600 uppercase tracking-[0.2em] mb-4 px-2 border-l-4 border-cyan-500"><?php echo __('nav.store_courses'); ?></p>
-                        <div class="space-y-2">
-                            <a href="/shop?category=pamel&subcategory=omi" class="flex items-center px-4 py-4 bg-gray-50 hover:bg-cyan-50 text-gray-900 font-bold rounded-2xl transition group">
-                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mr-3 group-hover:scale-110 transition">
-                                    <i class="fas fa-ship text-cyan-500"></i>
-                                </div>
-                                <span>Pamel OMI</span>
-                            </a>
-                            <a href="/shop?category=latin&subcategory=omi" class="flex items-center px-4 py-4 bg-gray-50 hover:bg-emerald-50 text-gray-900 font-bold rounded-2xl transition group">
-                                <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mr-3 group-hover:scale-110 transition">
-                                    <i class="fas fa-anchor text-emerald-500"></i>
-                                </div>
-                                <span>Latin Indo OMI</span>
-                            </a>
-                        </div>
+                        <a href="/shop" class="flex items-center px-4 py-4 bg-gray-50 hover:bg-cyan-50 text-gray-900 font-bold rounded-2xl transition group">
+                            <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mr-3 group-hover:scale-110 transition">
+                                <i class="fas fa-graduation-cap text-cyan-500"></i>
+                            </div>
+                            <span><?php echo __('nav.store_courses'); ?></span>
+                        </a>
                     </div>
 
                     <!-- About Us -->
@@ -293,10 +250,6 @@
                             <a href="/our-company" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-building w-8 text-gray-400 group-hover:text-cyan-500"></i>
                                 <span><?php echo __('nav.about.company'); ?></span>
-                            </a>
-                            <a href="/quality-policy" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
-                                <i class="fas fa-clipboard-check w-8 text-gray-400 group-hover:text-cyan-500"></i>
-                                <span><?php echo __('nav.about.quality'); ?></span>
                             </a>
                             <a href="/branches" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-map-marked-alt w-8 text-gray-400 group-hover:text-cyan-500"></i>
@@ -316,6 +269,18 @@
                             <a href="/services" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-graduation-cap w-8 text-gray-400"></i>
                                 <span><?php echo __('nav.competence_courses'); ?></span>
+                            </a>
+                            <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
+                                <i class="fas fa-file-alt w-8 text-gray-400"></i>
+                                <span><?php echo __('nav.pde'); ?></span>
+                            </a>
+                            <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
+                                <i class="fas fa-clipboard-check w-8 text-gray-400"></i>
+                                <span><?php echo __('nav.assessment'); ?></span>
+                            </a>
+                            <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
+                                <i class="fas fa-ship w-8 text-gray-400"></i>
+                                <span><?php echo __('nav.pamel_service'); ?></span>
                             </a>
                             <a href="https://elearning.pamel.edu.pa/login/index.php" target="_blank" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-laptop-code w-8 text-gray-400"></i>

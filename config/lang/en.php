@@ -3,8 +3,8 @@
 return [
     'nav' => [
         'home' => 'Home',
-        'maritime_center' => 'Maritime Training Center',
-        'store_courses' => 'Store Courses',
+        'maritime_center' => 'Panama Maritime E-Learning',
+        'store_courses' => 'Courses',
         'about_us' => 'About Us',
         'services' => 'Services',
         'e_platform' => 'E-Platform',
@@ -18,19 +18,22 @@ return [
             'company' => 'Our Company',
             'quality' => 'Quality Policy & Objectives',
             'certificates' => 'Our Certificates',
-            'branches' => 'Our Facilities',
+            'branches' => 'BRANCH',
             'all_branches' => 'Our Facilities',
             'limr' => 'LATIN Indo Marine Registry (LIMR)',
             'iso' => 'GCL International - ISO 9001:2015'
         ],
         'competence_courses' => 'Competence Courses',
+        'pde' => 'PDE (Presencial Latin Indo)',
+        'assessment' => 'Assessment (Presencial Latin Indo)',
+        'pamel_service' => 'Pamel (Presencial, E-learning)',
         'elearning' => 'E-Learning'
     ],
     'home' => [
         'hero' => [
             'badge' => 'best quality courses',
-            'title_main' => 'PAMEL E-LEARNING',
-            'title_sub' => 'PANAMA MARITIME E-LEARNING',
+            'title_main' => 'PAMEL',
+            'title_sub' => 'PANAMA MARITIME<br>E-LEARNING',
             'subtitle' => 'Professional maritime training based on competencies with internationally recognized certifications',
             'btn_shop' => 'SHOP NOW'
         ],
@@ -52,7 +55,7 @@ return [
         ],
         'admission' => [
             'title' => 'ADMISSION',
-            'btn' => 'START ADMISSION PROCESS'
+            'btn' => 'ADMISSION PROCESS'
         ],
         'why_choose' => [
             'title' => 'Why Choose PAMEL?',
