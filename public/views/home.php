@@ -128,7 +128,7 @@
                                 <h3 class="text-2xl font-extrabold leading-tight">PANAMA Courses</h3>
                             </div>
                         </div>
-                        <p class="text-sm text-cyan-100 mt-1">STCW Certified</p>
+                        <p class="text-sm text-cyan-100 mt-1">STCW CERTIFIED-PANAMA</p>
                     </div>
 
                     <!-- Course List -->
@@ -188,7 +188,7 @@
                                 <h3 class="text-2xl font-extrabold leading-tight">India Courses</h3>
                             </div>
                         </div>
-                        <p class="text-sm text-orange-100 mt-1">STCW Certified</p>
+                        <p class="text-sm text-orange-100 mt-1">STCW CERTIFIED-INDIA</p>
                     </div>
 
                     <!-- Course List -->
