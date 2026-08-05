@@ -124,7 +124,6 @@
                             </div>
                             <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-900 mb-1"><?php echo __('branches.practical.pool.title'); ?></h3>
-                                <p class="text-cyan-600 text-sm font-semibold mb-3"><?php echo __('branches.practical.pool.subtitle'); ?></p>
                                 <p class="text-gray-600 text-sm leading-relaxed">
                                     <?php echo __('branches.practical.pool.text'); ?>
                                 </p>
@@ -150,7 +149,6 @@
                             </div>
                             <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-900 mb-1"><?php echo __('branches.practical.fire.title'); ?></h3>
-                                <p class="text-orange-600 text-sm font-semibold mb-3"><?php echo __('branches.practical.fire.subtitle'); ?></p>
                                 <p class="text-gray-600 text-sm leading-relaxed">
                                     <?php echo __('branches.practical.fire.text'); ?>
                                 </p>
@@ -175,7 +173,6 @@
                             </div>
                             <div class="p-6">
                                 <h3 class="text-xl font-bold text-gray-900 mb-1"><?php echo __('branches.practical.kitchen.title'); ?></h3>
-                                <p class="text-emerald-600 text-sm font-semibold mb-3"><?php echo __('branches.practical.kitchen.subtitle'); ?></p>
                                 <p class="text-gray-600 text-sm leading-relaxed">
                                     <?php echo __('branches.practical.kitchen.text'); ?>
                                 </p>

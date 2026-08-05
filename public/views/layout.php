@@ -127,7 +127,7 @@
                             <a href="/our-company" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.about.company'); ?></a>
                             <!-- Branches with nested submenu -->
                             <div class="relative group/branches">
-                                <button class="w-full text-left px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition flex items-center justify-between">
+                                <button class="w-full text-left px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition flex items-center justify-between rounded-b-lg">
                                     <span><?php echo __('nav.about.branches'); ?></span>
                                     <i class="fas fa-chevron-right text-xs"></i>
                                 </button>
@@ -136,8 +136,6 @@
                                     <a href="/limr" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-b-lg"><?php echo __('nav.about.limr'); ?></a>
                                 </div>
                             </div>
-                            
-                            <a href="/gcl-iso" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-b-lg"><?php echo __('nav.about.iso'); ?></a>
                         </div>
                     </div>
 
@@ -254,10 +252,6 @@
                             <a href="/branches" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-map-marked-alt w-8 text-gray-400 group-hover:text-cyan-500"></i>
                                 <span><?php echo __('nav.about.branches'); ?></span>
-                            </a>
-                            <a href="/gcl-iso" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
-                                <i class="fas fa-certificate w-8 text-gray-400 group-hover:text-cyan-500"></i>
-                                <span><?php echo __('nav.about.iso'); ?></span>
                             </a>
                         </div>
                     </div>

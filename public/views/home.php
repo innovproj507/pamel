@@ -188,7 +188,7 @@
                                 <h3 class="text-2xl font-extrabold leading-tight">India Courses</h3>
                             </div>
                         </div>
-                        <p class="text-sm text-orange-100 mt-1">IMO Standards</p>
+                        <p class="text-sm text-orange-100 mt-1">STCW Certified</p>
                     </div>
 
                     <!-- Course List -->
