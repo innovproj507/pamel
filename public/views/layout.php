@@ -129,19 +129,10 @@
                         </div>
                     </div>
 
-                    <div class="relative group">
-                        <button class="px-4 py-2 text-gray-700 hover:text-cyan-600 font-medium transition rounded-lg hover:bg-cyan-50 relative flex items-center">
-                            <span><?php echo __('nav.services'); ?></span>
-                            <i class="fas fa-chevron-down ml-1 text-xs"></i>
-                            <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 group-hover:w-full transition-all duration-300"></span>
-                        </button>
-                        <div class="absolute left-0 mt-0 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                            <a href="/" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.competence_courses'); ?></a>
-                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition"><?php echo __('nav.pde'); ?></a>
-                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition"><?php echo __('nav.assessment'); ?></a>
-                            <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-b-lg"><?php echo __('nav.pamel_service'); ?></a>
-                        </div>
-                    </div>
+                    <a href="#" class="px-4 py-2 text-gray-700 hover:text-cyan-600 font-medium transition rounded-lg hover:bg-cyan-50 relative">
+                        <span><?php echo __('nav.services'); ?></span>
+                        <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:w-full transition-all duration-300"></span>
+                    </a>
 
                     <!-- E-Platform -->
                      <div class="relative group">
@@ -255,16 +246,8 @@
                                 <span><?php echo __('nav.competence_courses'); ?></span>
                             </a>
                             <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
-                                <i class="fas fa-file-alt w-8 text-gray-400"></i>
-                                <span><?php echo __('nav.pde'); ?></span>
-                            </a>
-                            <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-clipboard-check w-8 text-gray-400"></i>
-                                <span><?php echo __('nav.assessment'); ?></span>
-                            </a>
-                            <a href="#" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
-                                <i class="fas fa-ship w-8 text-gray-400"></i>
-                                <span><?php echo __('nav.pamel_service'); ?></span>
+                                <span><?php echo __('nav.services'); ?></span>
                             </a>
                             <a href="https://elearning.pamel.edu.pa/login/index.php" target="_blank" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-laptop-code w-8 text-gray-400"></i>
