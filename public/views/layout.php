@@ -125,17 +125,7 @@
                         </button>
                         <div class="absolute left-0 mt-0 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
                             <a href="/our-company" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.about.company'); ?></a>
-                            <!-- Branches with nested submenu -->
-                            <div class="relative group/branches">
-                                <button class="w-full text-left px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition flex items-center justify-between rounded-b-lg">
-                                    <span><?php echo __('nav.about.branches'); ?></span>
-                                    <i class="fas fa-chevron-right text-xs"></i>
-                                </button>
-                                <div class="absolute left-full top-0 ml-1 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover/branches:opacity-100 group-hover/branches:visible transition-all duration-300">
-                                    <a href="/branches" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.about.all_branches'); ?></a>
-                                    <a href="/limr" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-b-lg"><?php echo __('nav.about.limr'); ?></a>
-                                </div>
-                            </div>
+                            <a href="\limr" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-b-lg"><?php echo __('nav.about.branches'); ?></a>
                         </div>
                     </div>
 
@@ -146,7 +136,7 @@
                             <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 group-hover:w-full transition-all duration-300"></span>
                         </button>
                         <div class="absolute left-0 mt-0 w-64 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
-                            <a href="/services" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.competence_courses'); ?></a>
+                            <a href="/" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-t-lg"><?php echo __('nav.competence_courses'); ?></a>
                             <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition"><?php echo __('nav.pde'); ?></a>
                             <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition"><?php echo __('nav.assessment'); ?></a>
                             <a href="#" class="block px-4 py-3 text-gray-700 hover:bg-cyan-50 hover:text-cyan-600 transition rounded-b-lg"><?php echo __('nav.pamel_service'); ?></a>
@@ -249,7 +239,7 @@
                                 <i class="fas fa-building w-8 text-gray-400 group-hover:text-cyan-500"></i>
                                 <span><?php echo __('nav.about.company'); ?></span>
                             </a>
-                            <a href="/branches" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
+                            <a href="\limr" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-map-marked-alt w-8 text-gray-400 group-hover:text-cyan-500"></i>
                                 <span><?php echo __('nav.about.branches'); ?></span>
                             </a>
@@ -260,7 +250,7 @@
                     <div>
                         <p class="text-[11px] font-black text-cyan-600 uppercase tracking-[0.2em] mb-4 px-2 border-l-4 border-cyan-500">Platform & Services</p>
                         <div class="space-y-1">
-                            <a href="/services" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
+                            <a href="/" class="flex items-center px-4 py-3 text-gray-700 hover:text-cyan-600 hover:bg-cyan-50 rounded-xl transition font-medium">
                                 <i class="fas fa-graduation-cap w-8 text-gray-400"></i>
                                 <span><?php echo __('nav.competence_courses'); ?></span>
                             </a>

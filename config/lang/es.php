@@ -6,7 +6,7 @@ return [
         'maritime_center' => 'Panama Maritime E-Learning',
         'store_courses' => 'Cursos',
         'about_us' => 'Sobre Nosotros',
-        'services' => 'Servicios',
+        'services' => 'Simuladores',
         'e_platform' => 'E-Plataforma',
         'cert_validation' => 'Validación de Certificados',
         'contact' => 'Contáctenos',
