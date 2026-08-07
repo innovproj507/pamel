@@ -40,15 +40,15 @@ return [
         'about' => [
             'badge' => 'Sobre Nosotros',
             'title' => 'Bienvenido a :name',
-            'text' => 'Como centro de formación marítima, PAMEL busca la formación profesional basada en competencias con una actitud hacia la investigación-desarrollo, dirigiendo las acciones académicas que se incorporan a la estructura educativa de la formación técnica de la gente de mar de acuerdo con los cursos modelo de la OMI de la Organización Marítima Internacional.',
+            'text' => 'Como Centro de Formación Marítima, PAMEL está comprometido con la capacitación y el desarrollo de competencias profesionales de la gente de mar, ofreciendo programas de formación de alta calidad basados en los estándares y cursos modelo de la Organización Marítima Internacional (OMI).',
             'feature_iso' => 'Certificación ISO 9001:2015',
             'feature_iso_text' => 'Sistema de gestión de calidad certificado por GCL International, garantizando los más altos estándares de formación.',
             'feature_stcw' => 'Cumplimiento STCW',
             'feature_stcw_text' => 'Todos los cursos cumplen con los estándares de la Organización Marítima Internacional y los requisitos del Código STCW.'
         ],
         'featured' => [
-            'title' => 'Cursos Aprobados',
-            'subtitle' => 'Explora nuestros cursos oficialmente aprobados y avanza en tu carrera marítima',
+            'title' => 'Cursos',
+            'subtitle' => 'Haz crecer tu potencial',
             'view_details' => 'Ver Detalles',
             'view_all' => 'Ver Todos los Cursos',
             'none' => 'No hay cursos disponibles en este momento.'
@@ -170,7 +170,7 @@ return [
         'intro' => 'PAMEL opera múltiples instalaciones de capacitación ubicadas estratégicamente para servir a los profesionales marítimos en toda la región.',
         'headquarters' => [
             'badge' => 'SEDE PRINCIPAL',
-            'title' => 'Campus Ciudad de Panamá',
+            'title' => 'Centro Ciudad de Panamá',
             'text' => 'Nuestro campus principal cuenta con instalaciones de capacitación de vanguardia, aulas modernas y equipos avanzados de simulación marítima.',
             'facilities_title' => 'Las instalaciones incluyen:',
             'facilities' => [
@@ -200,7 +200,7 @@ return [
             'title' => 'Instalaciones para Componente Práctico',
             'subtitle' => 'Contamos con instalaciones especializadas para garantizar el entrenamiento práctico de nuestros estudiantes bajo los más altos estándares internacionales.',
             'pool' => [
-                'title' => 'Piscina Los Ríos',
+                'title' => 'Piscina',
                 'subtitle' => 'Entrenamiento de Supervivencia Acuática',
                 'text' => 'Instalación acuática utilizada para el entrenamiento práctico en técnicas de supervivencia en el mar, evacuación y rescate conforme a los estándares STCW.',
                 'location' => 'Los Ríos, Panamá'
@@ -428,7 +428,7 @@ return [
         ],
         'competence' => [
             'title' => 'ESTRUCTURA DE COMPETENCIAS',
-            'text' => 'Como centro de formación marítima, PAMEL busca la formación profesional basada en competencias con una actitud hacia la investigación-desarrollo, dirigiendo acciones académicas que se incorporan a la estructura educativa de la formación técnica de la gente de mar de acuerdo con los cursos modelo de la OMI de la Marina Internacional.',
+            'text' => 'Como Centro de Formación Marítima, PAMEL está comprometido con la capacitación y el desarrollo de competencias profesionales de la gente de mar, ofreciendo programas de formación de alta calidad basados en los estándares y cursos modelo de la Organización Marítima Internacional (OMI).',
             'subtitle' => 'Organización y relacionados a través de las siguientes actividades:',
             'list' => [
                 '1' => 'Buscando la sistematización de la información disponible, y favoreciendo la familiarización con el área de trabajo.',

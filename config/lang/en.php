@@ -40,15 +40,15 @@ return [
         'about' => [
             'badge' => 'About Us',
             'title' => 'Welcome to :name',
-            'text' => 'As a maritime training center, PAMEL seeks professional training based on competencies with an attitude towards research-development, directing academic actions that are incorporated into the educational structure of the technical training of seafarers in accordance with the IMO model courses of the International Maritime.',
+            'text' => 'As a Maritime Training Center, PAMEL is committed to the training and professional competency development of seafarers, offering high-quality training programs based on the standards and model courses of the International Maritime Organization (IMO).',
             'feature_iso' => 'ISO 9001:2015 Certified',
             'feature_iso_text' => 'Quality management system certified by GCL International, ensuring highest training standards.',
             'feature_stcw' => 'STCW Compliant',
             'feature_stcw_text' => 'All courses meet International Maritime Organization standards and STCW Code requirements.'
         ],
         'featured' => [
-            'title' => 'Approved Courses',
-            'subtitle' => 'Explore our officially approved courses and advance your maritime career',
+            'title' => 'Courses',
+            'subtitle' => 'Grow your potential',
             'view_details' => 'View Details',
             'view_all' => 'View All Courses',
             'none' => 'No courses available at the moment.'
@@ -171,7 +171,7 @@ return [
         'intro' => 'PAMEL operates multiple training facilities strategically located to serve maritime professionals across the region.',
         'headquarters' => [
             'badge' => 'HEADQUARTERS',
-            'title' => 'Panama City Campus',
+            'title' => 'Panama City Center',
             'text' => 'Our main campus features state-of-the-art training facilities, modern classrooms, and advanced maritime simulation equipment.',
             'facilities_title' => 'Facilities Include:',
             'facilities' => [
@@ -201,7 +201,7 @@ return [
             'title' => 'Facilities for Practical Component',
             'subtitle' => 'We have specialized facilities to guarantee the practical training of our students under the highest international standards.',
             'pool' => [
-                'title' => 'Piscina Los Ríos',
+                'title' => 'Pool',
                 'subtitle' => 'Aquatic Survival Training',
                 'text' => 'Aquatic facility used for practical training in sea survival techniques, evacuation and rescue in accordance with STCW standards.',
                 'location' => 'Los Ríos, Panama'
@@ -429,7 +429,7 @@ return [
         ],
         'competence' => [
             'title' => 'COMPETENCE STRUCTURE',
-            'text' => 'As a maritime training center, PAMEL seeks professional training based on competencies with an attitude towards research-development, directing academic actions that are incorporated into the educational structure of the technical training of seafarers in accordance with the IMO model courses of the International Maritime.',
+            'text' => 'As a Maritime Training Center, PAMEL is committed to the training and professional competency development of seafarers, offering high-quality training programs based on the standards and model courses of the International Maritime Organization (IMO).',
             'subtitle' => 'Organization and related through the following activities:',
             'list' => [
                 '1' => 'Seeking the systematization of the available information, and favoring familiarization with the work area.',
