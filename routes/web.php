@@ -6,38 +6,35 @@
 
 use Core\View;
 use Core\Database;
+use Plugins\Ecommerce\Models\Branch;
 
 return function($router) {
     // Home page
     $router->get('/', function() {
         $db = Database::getInstance();
+        $branchModel = new Branch();
 
-        $pamelProducts = $db->fetchAll(
-            "SELECT p.*, c.name as category_name, c.slug as category_slug
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             LEFT JOIN branches b ON p.branch_id = b.id
-             WHERE p.status = 'active'
-               AND b.slug = 'pamel'
-             ORDER BY p.created_at DESC
-             LIMIT 4"
-        );
+        $branches = array_filter($branchModel->all(), function($b) {
+            return (int) $b['is_active'] === 1;
+        });
 
-        $indiaProducts = $db->fetchAll(
-            "SELECT p.*, c.name as category_name, c.slug as category_slug
-             FROM products p
-             LEFT JOIN categories c ON p.category_id = c.id
-             LEFT JOIN branches b ON p.branch_id = b.id
-             WHERE p.status = 'active'
-               AND b.slug = 'latin'
-             ORDER BY p.created_at DESC
-             LIMIT 4"
-        );
+        foreach ($branches as &$branch) {
+            $branch['products'] = $db->fetchAll(
+                "SELECT p.*, c.name as category_name, c.slug as category_slug
+                 FROM products p
+                 LEFT JOIN categories c ON p.category_id = c.id
+                 WHERE p.status = 'active'
+                   AND p.branch_id = ?
+                 ORDER BY p.created_at DESC
+                 LIMIT 4",
+                [$branch['id']]
+            );
+        }
+        unset($branch);
 
         $view = new View();
         $view->render('public/views/home', [
-            'pamelProducts' => $pamelProducts,
-            'indiaProducts' => $indiaProducts,
+            'branches' => $branches,
         ], 'public/views/layout');
     }, 'home');
 

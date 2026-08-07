@@ -113,127 +113,79 @@
                 <p class="text-xl text-gray-600"><?php echo __('home.featured.subtitle'); ?></p>
             </div>
 
-            <div class="grid md:grid-cols-2 gap-8 items-start">
+            <?php
+                $branchThemes = [
+                    ['from' => 'cyan-500', 'to' => 'blue-700', 'soft' => 'cyan-50', 'text' => 'cyan-100', 'accent' => 'cyan-500'],
+                    ['from' => 'orange-500', 'to' => 'red-600', 'soft' => 'orange-50', 'text' => 'orange-100', 'accent' => 'orange-500'],
+                    ['from' => 'emerald-500', 'to' => 'teal-700', 'soft' => 'emerald-50', 'text' => 'emerald-100', 'accent' => 'emerald-500'],
+                    ['from' => 'purple-500', 'to' => 'indigo-700', 'soft' => 'purple-50', 'text' => 'purple-100', 'accent' => 'purple-500'],
+                ];
+                $branchCount = count($branches);
+                $gridCols = $branchCount >= 3 ? 'md:grid-cols-2 lg:grid-cols-3' : 'md:grid-cols-2';
+            ?>
+            <div class="grid <?php echo $gridCols; ?> gap-8 items-start">
 
-                <!-- ══════════ PAMEL PANEL ══════════ -->
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
-                    <!-- Header -->
-                    <div class="bg-gradient-to-r from-cyan-500 to-blue-700 px-8 py-7 text-white text-center">
-                        <div class="flex items-center justify-center mb-3">
-                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mr-3">
-                                <i class="fas fa-anchor text-3xl text-white"></i>
+                <?php foreach (array_values($branches) as $i => $branch): ?>
+                    <?php $theme = $branchThemes[$i % count($branchThemes)]; ?>
+                    <div class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
+                        <!-- Header -->
+                        <div class="bg-gradient-to-r from-<?php echo $theme['from']; ?> to-<?php echo $theme['to']; ?> px-8 py-7 text-white text-center">
+                            <div class="flex items-center justify-center mb-3">
+                                <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mr-3">
+                                    <i class="fas <?php echo htmlspecialchars($branch['icon'] ?: 'fa-anchor'); ?> text-3xl text-white"></i>
+                                </div>
+                                <div class="text-left">
+                                    <p class="text-xs uppercase tracking-widest text-<?php echo $theme['text']; ?> font-semibold"><?php echo htmlspecialchars($branch['description'] ?: $branch['name']); ?></p>
+                                    <h3 class="text-2xl font-extrabold leading-tight"><?php echo htmlspecialchars($branch['name']); ?> Courses</h3>
+                                </div>
                             </div>
-                            <div class="text-left">
-                                <p class="text-xs uppercase tracking-widest text-cyan-100 font-semibold">Panama Maritime E-Learning</p>
-                                <h3 class="text-2xl font-extrabold leading-tight">PANAMA Courses</h3>
-                            </div>
+                            <p class="text-sm text-<?php echo $theme['text']; ?> mt-1">STCW CERTIFIED - <?php echo htmlspecialchars(strtoupper($branch['name'])); ?></p>
                         </div>
-                        <p class="text-sm text-cyan-100 mt-1">STCW CERTIFIED-PANAMA</p>
-                    </div>
 
-                    <!-- Course List -->
-                    <div class="divide-y divide-gray-100 flex-1">
-                        <?php if (!empty($pamelProducts)): ?>
-                            <?php foreach ($pamelProducts as $product): ?>
-                                <a href="/courses/<?php echo htmlspecialchars($product['slug']); ?>"
-                                   class="flex items-center gap-4 px-6 py-4 hover:bg-cyan-50 transition group">
-                                    <?php if (!empty($product['image'])): ?>
-                                        <img src="<?php echo htmlspecialchars($product['image']); ?>"
-                                             alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                             class="w-16 h-16 object-cover rounded-xl flex-shrink-0 border border-gray-100">
-                                    <?php else: ?>
-                                        <div class="w-16 h-16 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-ship text-white text-xl"></i>
-                                        </div>
-                                    <?php endif; ?>
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-sm font-bold text-gray-900 group-hover:text-cyan-700 transition line-clamp-2 leading-snug">
-                                            <?php echo htmlspecialchars($product['name']); ?>
-                                        </h4>
-                                        <?php if (!empty($product['course_code'])): ?>
-                                            <p class="text-xs text-gray-400 mt-1 font-mono"><?php echo htmlspecialchars($product['course_code']); ?></p>
+                        <!-- Course List -->
+                        <div class="divide-y divide-gray-100 flex-1">
+                            <?php if (!empty($branch['products'])): ?>
+                                <?php foreach ($branch['products'] as $product): ?>
+                                    <a href="/courses/<?php echo htmlspecialchars($product['slug']); ?>"
+                                       class="flex items-center gap-4 px-6 py-4 hover:bg-<?php echo $theme['soft']; ?> transition group">
+                                        <?php if (!empty($product['image'])): ?>
+                                            <img src="<?php echo htmlspecialchars($product['image']); ?>"
+                                                 alt="<?php echo htmlspecialchars($product['name']); ?>"
+                                                 class="w-16 h-16 object-cover rounded-xl flex-shrink-0 border border-gray-100">
+                                        <?php else: ?>
+                                            <div class="w-16 h-16 bg-gradient-to-br from-<?php echo $theme['from']; ?> to-<?php echo $theme['to']; ?> rounded-xl flex items-center justify-center flex-shrink-0">
+                                                <i class="fas fa-ship text-white text-xl"></i>
+                                            </div>
                                         <?php endif; ?>
-                                    </div>
-                                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-cyan-500 transition flex-shrink-0 text-xs"></i>
-                                </a>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="px-6 py-10 text-center text-gray-400">
-                                <i class="fas fa-box-open text-3xl mb-2"></i>
-                                <p class="text-sm"><?php echo __('home.featured.none'); ?></p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- View All Button -->
-                    <div class="p-6 border-t border-gray-100 bg-gray-50">
-                        <a href="/courses?branch=pamel"
-                           class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition transform hover:scale-105 shadow-md">
-                            <i class="fas fa-th-list"></i>
-                            Ver todos los cursos
-                        </a>
-                    </div>
-                </div>
-
-                <!-- ══════════ INDIA / LIMR PANEL ══════════ -->
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col">
-                    <!-- Header -->
-                    <div class="bg-gradient-to-r from-orange-500 to-red-600 px-8 py-7 text-white text-center">
-                        <div class="flex items-center justify-center mb-3">
-                            <div class="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mr-3">
-                                <i class="fas fa-globe-asia text-3xl text-white"></i>
-                            </div>
-                            <div class="text-left">
-                                <p class="text-xs uppercase tracking-widest text-orange-100 font-semibold">LATIN Indo Marine Registry</p>
-                                <h3 class="text-2xl font-extrabold leading-tight">India Courses</h3>
-                            </div>
+                                        <div class="flex-1 min-w-0">
+                                            <h4 class="text-sm font-bold text-gray-900 transition line-clamp-2 leading-snug">
+                                                <?php echo htmlspecialchars($product['name']); ?>
+                                            </h4>
+                                            <?php if (!empty($product['course_code'])): ?>
+                                                <p class="text-xs text-gray-400 mt-1 font-mono"><?php echo htmlspecialchars($product['course_code']); ?></p>
+                                            <?php endif; ?>
+                                        </div>
+                                        <i class="fas fa-chevron-right text-gray-300 transition flex-shrink-0 text-xs"></i>
+                                    </a>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="px-6 py-10 text-center text-gray-400">
+                                    <i class="fas fa-box-open text-3xl mb-2"></i>
+                                    <p class="text-sm"><?php echo __('home.featured.none'); ?></p>
+                                </div>
+                            <?php endif; ?>
                         </div>
-                        <p class="text-sm text-orange-100 mt-1">STCW CERTIFIED-INDIA</p>
-                    </div>
 
-                    <!-- Course List -->
-                    <div class="divide-y divide-gray-100 flex-1">
-                        <?php if (!empty($indiaProducts)): ?>
-                            <?php foreach ($indiaProducts as $product): ?>
-                                <a href="/courses/<?php echo htmlspecialchars($product['slug']); ?>"
-                                   class="flex items-center gap-4 px-6 py-4 hover:bg-orange-50 transition group">
-                                    <?php if (!empty($product['image'])): ?>
-                                        <img src="<?php echo htmlspecialchars($product['image']); ?>"
-                                             alt="<?php echo htmlspecialchars($product['name']); ?>"
-                                             class="w-16 h-16 object-cover rounded-xl flex-shrink-0 border border-gray-100">
-                                    <?php else: ?>
-                                        <div class="w-16 h-16 bg-gradient-to-br from-orange-400 to-red-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-ship text-white text-xl"></i>
-                                        </div>
-                                    <?php endif; ?>
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-sm font-bold text-gray-900 group-hover:text-orange-700 transition line-clamp-2 leading-snug">
-                                            <?php echo htmlspecialchars($product['name']); ?>
-                                        </h4>
-                                        <?php if (!empty($product['course_code'])): ?>
-                                            <p class="text-xs text-gray-400 mt-1 font-mono"><?php echo htmlspecialchars($product['course_code']); ?></p>
-                                        <?php endif; ?>
-                                    </div>
-                                    <i class="fas fa-chevron-right text-gray-300 group-hover:text-orange-500 transition flex-shrink-0 text-xs"></i>
-                                </a>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="px-6 py-10 text-center text-gray-400">
-                                <i class="fas fa-box-open text-3xl mb-2"></i>
-                                <p class="text-sm"><?php echo __('home.featured.none'); ?></p>
-                            </div>
-                        <?php endif; ?>
+                        <!-- View All Button -->
+                        <div class="p-6 border-t border-gray-100 bg-gray-50">
+                            <a href="/courses?branch=<?php echo htmlspecialchars($branch['slug']); ?>"
+                               class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-<?php echo $theme['from']; ?> to-<?php echo $theme['to']; ?> hover:opacity-90 text-white font-bold py-3 px-6 rounded-xl transition transform hover:scale-105 shadow-md">
+                                <i class="fas fa-th-list"></i>
+                                <?php echo __('home.featured.view_all'); ?>
+                            </a>
+                        </div>
                     </div>
-
-                    <!-- View All Button -->
-                    <div class="p-6 border-t border-gray-100 bg-gray-50">
-                        <a href="/courses?branch=latin"
-                           class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-3 px-6 rounded-xl transition transform hover:scale-105 shadow-md">
-                            <i class="fas fa-th-list"></i>
-                            Ver todos los cursos
-                        </a>
-                    </div>
-                </div>
+                <?php endforeach; ?>
 
             </div>
         </div>
