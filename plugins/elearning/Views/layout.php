@@ -126,7 +126,7 @@
                 <h4 class="text-white font-bold mb-3 text-sm uppercase tracking-widest">Cursos</h4>
                 <ul class="space-y-2 text-sm">
                     <li><a href="/courses" class="hover:text-white transition-colors">Catálogo Completo</a></li>
-                    <li><a href="<?= rtrim(\Core\Config::get('site.url'), '/') ?>/shop" class="hover:text-white transition-colors">Tienda Online</a></li>
+                    <li><a href="<?= rtrim(\Core\Config::get('site.url'), '/') ?>/courses" class="hover:text-white transition-colors">Tienda Online</a></li>
                 </ul>
             </div>
             <div>

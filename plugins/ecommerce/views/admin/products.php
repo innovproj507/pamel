@@ -27,18 +27,13 @@
 
         <?php
         $selCat = (string)($filters['category_id'] ?? '');
-        $selSub = (string)($filters['subcategory_id'] ?? '');
-        // Build subcategory map as JSON for JS
-        $subMap = [];
-        foreach ($subcategories as $s) {
-            $subMap[$s['parent_id']][] = ['id' => $s['id'], 'name' => $s['name']];
-        }
+        $selBranch = (string)($filters['branch_id'] ?? '');
         ?>
-        <!-- Parent category -->
-        <select id="filter-category" name="category_id"
+        <!-- Category -->
+        <select name="category_id"
                 class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white">
             <option value="">Todas las categorías</option>
-            <?php foreach ($parentCats as $cat): ?>
+            <?php foreach ($categories as $cat): ?>
                 <option value="<?php echo $cat['id']; ?>"
                     <?php echo $selCat === (string)$cat['id'] ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($cat['name']); ?>
@@ -46,15 +41,14 @@
             <?php endforeach; ?>
         </select>
 
-        <!-- Subcategory (hidden when no parent selected) -->
-        <select id="filter-subcategory" name="subcategory_id"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white <?php echo $selCat === '' ? 'hidden' : ''; ?>">
-            <option value="">Todas las subcategorías</option>
-            <?php foreach ($subcategories as $s): ?>
-                <option value="<?php echo $s['id']; ?>"
-                        data-parent="<?php echo $s['parent_id']; ?>"
-                    <?php echo $selSub === (string)$s['id'] ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($s['name']); ?>
+        <!-- Branch -->
+        <select name="branch_id"
+                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white">
+            <option value="">Todos los branches</option>
+            <?php foreach ($branches as $branch): ?>
+                <option value="<?php echo $branch['id']; ?>"
+                    <?php echo $selBranch === (string)$branch['id'] ? 'selected' : ''; ?>>
+                    <?php echo htmlspecialchars($branch['name']); ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -68,33 +62,6 @@
             </a>
         <?php endif; ?>
     </form>
-
-    <script>
-    (function () {
-        const catSel = document.getElementById('filter-category');
-        const subSel = document.getElementById('filter-subcategory');
-        const allOpts = Array.from(subSel.querySelectorAll('option[data-parent]'));
-
-        function updateSubs(parentId) {
-            allOpts.forEach(opt => {
-                opt.hidden = parentId !== '' && opt.dataset.parent !== parentId;
-            });
-            if (parentId === '') {
-                subSel.classList.add('hidden');
-                subSel.value = '';
-            } else {
-                subSel.classList.remove('hidden');
-            }
-        }
-
-        catSel.addEventListener('change', function () {
-            updateSubs(this.value);
-        });
-
-        // Init on page load
-        updateSubs(catSel.value);
-    })();
-    </script>
 
     <?php if (empty($products)): ?>
         <div class="text-center py-20 text-gray-400">
@@ -196,10 +163,10 @@
         <!-- Pagination -->
         <?php if ($totalPages > 1):
             $queryBase = http_build_query(array_filter([
-                'search'         => $filters['search'] ?? '',
-                'status'         => $filters['status'] ?? '',
-                'category_id'    => $filters['category_id'] ?? '',
-                'subcategory_id' => $filters['subcategory_id'] ?? '',
+                'search'      => $filters['search'] ?? '',
+                'status'      => $filters['status'] ?? '',
+                'category_id' => $filters['category_id'] ?? '',
+                'branch_id'   => $filters['branch_id'] ?? '',
             ]));
             $queryBase = $queryBase ? '&' . $queryBase : '';
         ?>

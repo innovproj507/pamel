@@ -529,7 +529,7 @@ return [
         'approval' => 'Maritime Training Center approved by the Panama Maritime Authority by means of Resolution No. DGGM-CFM-016-2026 of May 25th, 2026.'
     ],
     'shop' => [
-        'title' => 'Shop',
+        'title' => 'Courses',
         'available' => 'Available',
         'enroll' => 'Enroll',
         'no_products' => 'No products found.',

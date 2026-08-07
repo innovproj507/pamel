@@ -26,7 +26,7 @@
             </div>
 
             <div class="space-y-3">
-                <a href="/shop" class="block w-full text-center bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                <a href="/courses" class="block w-full text-center bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
                     <?php echo __('shop.success.continue'); ?>
                 </a>
                 <a href="/" class="block w-full text-center bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-300">

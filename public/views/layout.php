@@ -111,7 +111,7 @@
                 <!-- Desktop Menu -->
                 <div class="hidden lg:flex items-center space-x-1">
                     <!-- Courses -->
-                    <a href="/shop" class="px-4 py-2 text-gray-700 hover:text-cyan-600 font-medium transition rounded-lg hover:bg-cyan-50 relative">
+                    <a href="/courses" class="px-4 py-2 text-gray-700 hover:text-cyan-600 font-medium transition rounded-lg hover:bg-cyan-50 relative">
                         <span><?php echo __('nav.store_courses'); ?></span>
                         <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:w-full transition-all duration-300"></span>
                     </a>
@@ -214,7 +214,7 @@
                 <div class="px-4 space-y-8">
                     <!-- Courses -->
                     <div>
-                        <a href="/shop" class="flex items-center px-4 py-4 bg-gray-50 hover:bg-cyan-50 text-gray-900 font-bold rounded-2xl transition group">
+                        <a href="/courses" class="flex items-center px-4 py-4 bg-gray-50 hover:bg-cyan-50 text-gray-900 font-bold rounded-2xl transition group">
                             <div class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center mr-3 group-hover:scale-110 transition">
                                 <i class="fas fa-graduation-cap text-cyan-500"></i>
                             </div>
@@ -312,7 +312,7 @@
                 <div>
                     <h3 class="text-xl font-bold mb-4"><?php echo __('footer.information'); ?></h3>
                     <ul class="space-y-2">
-                        <li><a href="/shop" class="text-white hover:text-cyan-200 transition"><?php echo __('footer.courses'); ?></a></li>
+                        <li><a href="/courses" class="text-white hover:text-cyan-200 transition"><?php echo __('footer.courses'); ?></a></li>
                         <li><a href="/payment-methods" class="text-white hover:text-cyan-200 transition"><?php echo __('footer.payment'); ?></a></li>
                         <li><a href="/our-company" class="text-white hover:text-cyan-200 transition"><?php echo __('nav.about_us'); ?></a></li>
                         <li><a href="/contact" class="text-white hover:text-cyan-200 transition"><?php echo __('nav.contact'); ?></a></li>

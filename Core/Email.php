@@ -294,7 +294,7 @@ class Email
         foreach ($items as $item) {
             $lineTotal = $item['price'] * $item['quantity'];
             $total += $lineTotal;
-            $link = $siteUrl . '/shop/' . $item['slug'] . '?quote=' . $quoteRequest['token'];
+            $link = $siteUrl . '/courses/' . $item['slug'] . '?quote=' . $quoteRequest['token'];
             $rows .= '<div class="field"><div class="label">' . htmlspecialchars($item['name']) . ' (x' . (int) $item['quantity'] . '):</div>'
                    . '<div class="value">$' . number_format($lineTotal, 2) . ' &mdash; <a href="' . htmlspecialchars($link) . '">' . htmlspecialchars($link) . '</a></div></div>';
         }

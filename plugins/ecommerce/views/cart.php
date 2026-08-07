@@ -9,7 +9,7 @@
             <h3 class="mt-2 text-xl font-medium text-gray-900"><?php echo __('shop.cart.empty'); ?></h3>
             <p class="mt-1 text-gray-500"><?php echo __('shop.cart.empty_text'); ?></p>
             <div class="mt-6">
-                <a href="/shop" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-cyan-600 hover:bg-cyan-700">
+                <a href="/courses" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-cyan-600 hover:bg-cyan-700">
                     <?php echo __('shop.cart.browse'); ?>
                 </a>
             </div>
@@ -33,7 +33,7 @@
                         <div>
                             <div class="flex justify-between text-base font-medium text-gray-900">
                                 <h3>
-                                    <a href="/shop/<?php echo htmlspecialchars($item['slug']); ?>">
+                                    <a href="/courses/<?php echo htmlspecialchars($item['slug']); ?>">
                                         <?php echo htmlspecialchars($item['name']); ?>
                                     </a>
                                 </h3>
@@ -78,7 +78,7 @@
             <div class="mt-6 flex justify-center text-sm text-center text-gray-500">
                 <p>
                     <?php echo __('shop.cart.or'); ?>
-                    <a href="/shop" class="text-cyan-600 font-medium hover:text-cyan-700 ml-1">
+                    <a href="/courses" class="text-cyan-600 font-medium hover:text-cyan-700 ml-1">
                         <?php echo __('shop.cart.continue'); ?>
                     </a>
                 </p>

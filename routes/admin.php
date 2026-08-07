@@ -34,6 +34,14 @@ return function($router) {
     $router->post('/manager/categories/:id/update', 'Plugins\Ecommerce\Controllers\AdminCategoryController@update', 'admin.categories.update');
     $router->post('/manager/categories/:id/delete', 'Plugins\Ecommerce\Controllers\AdminCategoryController@delete', 'admin.categories.delete');
 
+    // Branches
+    $router->get('/manager/branches', 'Plugins\Ecommerce\Controllers\AdminBranchController@index', 'admin.branches');
+    $router->get('/manager/branches/create', 'Plugins\Ecommerce\Controllers\AdminBranchController@create', 'admin.branches.create');
+    $router->post('/manager/branches/store', 'Plugins\Ecommerce\Controllers\AdminBranchController@store', 'admin.branches.store');
+    $router->get('/manager/branches/:id/edit', 'Plugins\Ecommerce\Controllers\AdminBranchController@edit', 'admin.branches.edit');
+    $router->post('/manager/branches/:id/update', 'Plugins\Ecommerce\Controllers\AdminBranchController@update', 'admin.branches.update');
+    $router->post('/manager/branches/:id/delete', 'Plugins\Ecommerce\Controllers\AdminBranchController@delete', 'admin.branches.delete');
+
     // Orders
     $router->get('/manager/orders', 'Plugins\Ecommerce\Controllers\AdminOrderController@index', 'admin.orders');
     $router->get('/manager/orders/:id', 'Plugins\Ecommerce\Controllers\AdminOrderController@show', 'admin.orders.show');

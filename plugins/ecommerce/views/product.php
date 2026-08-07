@@ -18,16 +18,16 @@
                     </div>
                 <?php endif; ?>
                 
-                <!-- Category Badge -->
-                <?php if (!empty($product['category_name'])): ?>
+                <!-- Branch Badge -->
+                <?php if (!empty($product['branch_name'])): ?>
                     <div class="absolute top-4 left-4">
-                        <?php 
-                            $isLatin = stripos($product['category_name'], 'latin') !== false;
+                        <?php
+                            $isLatin = $product['branch_slug'] === 'latin';
                             $badgeColorClass = $isLatin ? 'text-[#D2691E]' : 'text-cyan-700';
                         ?>
                         <span class="bg-white/90 backdrop-blur-sm <?php echo $badgeColorClass; ?> px-4 py-2 rounded-full text-sm font-bold shadow-lg flex items-center">
-                            <i class="fas <?php echo $product['category_icon'] ?? 'fa-folder'; ?> mr-2"></i>
-                            <?php echo htmlspecialchars($product['category_name']); ?>
+                            <i class="fas <?php echo $product['branch_icon'] ?? 'fa-folder'; ?> mr-2"></i>
+                            <?php echo htmlspecialchars($product['branch_name']); ?>
                         </span>
                     </div>
                 <?php endif; ?>
@@ -69,6 +69,15 @@
 
             <!-- Course Info Badges -->
             <div class="flex flex-wrap gap-3 mb-6">
+                <?php if (!empty($product['category_name'])): ?>
+                    <div class="flex items-center bg-cyan-50 border border-cyan-200 rounded-lg px-4 py-2">
+                        <i class="fas <?php echo $product['category_icon'] ?? 'fa-folder'; ?> text-cyan-600 text-xl mr-3"></i>
+                        <div>
+                            <div class="text-xs text-cyan-600 font-medium">Category</div>
+                            <div class="text-sm font-bold text-cyan-800"><?php echo htmlspecialchars($product['category_name']); ?></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <?php if (!empty($product['modality'])): ?>
                     <?php 
                         $modalityBg = 'bg-indigo-50 border-indigo-200';
@@ -243,7 +252,7 @@
                         </div>
                         <div class="p-4">
                             <h3 class="font-bold text-gray-900 mb-2 line-clamp-2">
-                                <a href="/shop/<?php echo htmlspecialchars($related['slug']); ?>" class="hover:text-cyan-600">
+                                <a href="/courses/<?php echo htmlspecialchars($related['slug']); ?>" class="hover:text-cyan-600">
                                     <?php echo htmlspecialchars($related['name']); ?>
                                 </a>
                             </h3>
@@ -255,7 +264,7 @@
                                 <?php else: ?>
                                 <span class="text-xs font-bold text-gray-400 uppercase"><?php echo __('shop.price_on_request'); ?></span>
                                 <?php endif; ?>
-                                <a href="/shop/<?php echo htmlspecialchars($related['slug']); ?>" class="text-cyan-600 hover:text-cyan-800 text-sm font-medium">
+                                <a href="/courses/<?php echo htmlspecialchars($related['slug']); ?>" class="text-cyan-600 hover:text-cyan-800 text-sm font-medium">
                                     <?php echo __('shop.product.view'); ?> <i class="fas fa-arrow-right ml-1"></i>
                                 </a>
                             </div>

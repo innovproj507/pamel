@@ -12,8 +12,19 @@ $pm = PluginManager::getInstance();
 $router = $GLOBALS['app']->getRouter();
 
 // Register ecommerce routes
-$router->get('/shop', 'Plugins\Ecommerce\Controllers\ProductController@index', 'shop.index');
-$router->get('/shop/:slug', 'Plugins\Ecommerce\Controllers\ProductController@show', 'shop.product');
+$router->get('/courses', 'Plugins\Ecommerce\Controllers\ProductController@index', 'courses.index');
+$router->get('/courses/:slug', 'Plugins\Ecommerce\Controllers\ProductController@show', 'courses.product');
+
+// Legacy /shop URLs — redirect to /courses so old links/bookmarks/SEO still work
+$router->get('/shop', function() {
+    header('Location: /courses', true, 301);
+    exit;
+});
+$router->get('/shop/:slug', function($slug) {
+    header('Location: /courses/' . $slug, true, 301);
+    exit;
+});
+
 $router->get('/cart', 'Plugins\Ecommerce\Controllers\CartController@index', 'cart.index');
 $router->post('/cart/add', 'Plugins\Ecommerce\Controllers\CartController@add', 'cart.add');
 $router->post('/cart/remove', 'Plugins\Ecommerce\Controllers\CartController@remove', 'cart.remove');

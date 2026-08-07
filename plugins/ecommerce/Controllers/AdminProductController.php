@@ -4,6 +4,7 @@ namespace Plugins\Ecommerce\Controllers;
 
 use Core\Controller;
 use Core\Auth;
+use Plugins\Ecommerce\Models\Branch;
 use Plugins\Ecommerce\Models\Category;
 use Plugins\Ecommerce\Models\Product;
 
@@ -24,10 +25,10 @@ class AdminProductController extends Controller
 
         // Filters from GET
         $filters = [
-            'search'         => trim($_GET['search'] ?? ''),
-            'status'         => $_GET['status'] ?? '',
-            'category_id'    => $_GET['category_id'] ?? '',
-            'subcategory_id' => $_GET['subcategory_id'] ?? '',
+            'search'     => trim($_GET['search'] ?? ''),
+            'status'     => $_GET['status'] ?? '',
+            'category_id'=> $_GET['category_id'] ?? '',
+            'branch_id'  => $_GET['branch_id'] ?? '',
         ];
         $filters = array_filter($filters, fn($v) => $v !== '');
 
@@ -40,20 +41,19 @@ class AdminProductController extends Controller
         $products   = $this->productModel->getPaginatedFiltered($perPage, $offset, $filters);
         $totalPages = (int) ceil($total / $perPage);
 
-        $allCats        = (new Category())->all();
-        $parentCats     = array_values(array_filter($allCats, fn($c) => empty($c['parent_id'])));
-        $subcategories  = array_values(array_filter($allCats, fn($c) => !empty($c['parent_id'])));
+        $categories = (new Category())->all();
+        $branches   = (new Branch())->all();
 
         $this->view->render('plugins/ecommerce/views/admin/products', [
-            'title'          => 'Products',
-            'products'       => $products,
-            'parentCats'     => $parentCats,
-            'subcategories'  => $subcategories,
-            'filters'        => $filters,
-            'currentPage'    => $page,
-            'totalPages'     => $totalPages,
-            'total'          => $total,
-            'perPage'        => $perPage,
+            'title'       => 'Products',
+            'products'    => $products,
+            'categories'  => $categories,
+            'branches'    => $branches,
+            'filters'     => $filters,
+            'currentPage' => $page,
+            'totalPages'  => $totalPages,
+            'total'       => $total,
+            'perPage'     => $perPage,
         ], 'admin/views/layout');
     }
 
@@ -93,7 +93,7 @@ class AdminProductController extends Controller
                 'renewal_price'      => $_POST['renewal_price'] ?? 0,
                 'stock'              => $_POST['stock'],
                 'category_id'        => !empty($_POST['category_id']) ? $_POST['category_id'] : null,
-                'subcategory_id'     => !empty($_POST['subcategory_id']) ? $_POST['subcategory_id'] : null,
+                'branch_id'          => !empty($_POST['branch_id']) ? $_POST['branch_id'] : null,
                 'modality'           => $_POST['modality'] ?? null,
                 'imo_model_course_no'=> !empty($_POST['imo_model_course_no']) ? $_POST['imo_model_course_no'] : null,
                 'course_code'        => !empty($_POST['course_code']) ? $_POST['course_code'] : null,
@@ -110,7 +110,7 @@ class AdminProductController extends Controller
                     $data['description'] ?? '',
                     (float)($data['price'] ?? 0),
                     $data['course_code'] ?? null,
-                    !empty($data['category_id']) ? (int)$data['category_id'] : null
+                    !empty($data['branch_id']) ? (int)$data['branch_id'] : null
                 );
                 $this->redirect('/manager/products');
             } else {
@@ -143,7 +143,7 @@ class AdminProductController extends Controller
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->generateSlug($_POST['name']);
             $imagePath = $this->handleImageUpload($_POST['image_url'] ?? '', $_POST['current_image'] ?? '');
-            $subcategoryId = !empty($_POST['subcategory_id']) ? intval($_POST['subcategory_id']) : null;
+            $branchId = !empty($_POST['branch_id']) ? intval($_POST['branch_id']) : null;
 
             $this->productModel->update($id, [
                 'name' => $_POST['name'],
@@ -153,7 +153,7 @@ class AdminProductController extends Controller
                 'renewal_price' => $_POST['renewal_price'] ?? 0,
                 'stock' => $_POST['stock'],
                 'category_id' => $_POST['category_id'] ?? null,
-                'subcategory_id' => $subcategoryId,
+                'branch_id' => $branchId,
                 'modality' => $_POST['modality'] ?? null,
                 'imo_model_course_no' => $_POST['imo_model_course_no'] ?? null,
                 'course_code' => $_POST['course_code'] ?? null,
@@ -171,7 +171,7 @@ class AdminProductController extends Controller
                     $_POST['description'] ?? '',
                     (float)($_POST['price'] ?? 0),
                     !empty($_POST['course_code']) ? $_POST['course_code'] : null,
-                    !empty($_POST['category_id']) ? (int)$_POST['category_id'] : null
+                    $branchId
                 );
             }
 
@@ -195,17 +195,17 @@ class AdminProductController extends Controller
      * Auto-create a draft LMS course linked to a product if none exists.
      */
     /**
-     * Maps product category_id to LMS category_id.
-     * products.category_id 4 (Pamel) → lms_categories 1 (PAMEL PANAMA)
-     * products.category_id 3 (Latin) → lms_categories 2 (LATIN INDIA)
+     * Maps product branch_id to LMS category_id.
+     * branches.id 1 (Pamel) → lms_categories 1 (PAMEL PANAMA)
+     * branches.id 2 (Latin Indo) → lms_categories 2 (LATIN INDIA)
      */
-    private function mapProductCategoryToLms(?int $productCategoryId): ?int
+    private function mapProductBranchToLms(?int $productBranchId): ?int
     {
-        $map = [4 => 1, 3 => 2];
-        return $map[$productCategoryId] ?? null;
+        $map = [1 => 1, 2 => 2];
+        return $map[$productBranchId] ?? null;
     }
 
-    private function autoCreateLmsCourse(int $productId, string $name, string $description, float $price, ?string $courseCode = null, ?int $productCategoryId = null): void
+    private function autoCreateLmsCourse(int $productId, string $name, string $description, float $price, ?string $courseCode = null, ?int $productBranchId = null): void
     {
         $existing = $this->db->fetchOne("SELECT id FROM lms_courses WHERE product_id = ?", [$productId]);
         if ($existing) {
@@ -228,7 +228,7 @@ class AdminProductController extends Controller
 
         $this->db->insert('lms_courses', [
             'product_id'      => $productId,
-            'category_id'     => $this->mapProductCategoryToLms($productCategoryId),
+            'category_id'     => $this->mapProductBranchToLms($productBranchId),
             'title'           => $name,
             'slug'            => $slug,
             'description'     => $description,
@@ -253,7 +253,7 @@ class AdminProductController extends Controller
         }
 
         $products = $this->db->fetchAll(
-            "SELECT p.id, p.name, p.description, p.price, p.course_code, p.category_id
+            "SELECT p.id, p.name, p.description, p.price, p.course_code, p.branch_id
              FROM products p
              LEFT JOIN lms_courses c ON c.product_id = p.id
              WHERE c.id IS NULL AND p.status = 'active'"
@@ -267,7 +267,7 @@ class AdminProductController extends Controller
                 $p['description'] ?? '',
                 (float)$p['price'],
                 $p['course_code'] ?? null,
-                !empty($p['category_id']) ? (int)$p['category_id'] : null
+                !empty($p['branch_id']) ? (int)$p['branch_id'] : null
             );
             $created++;
         }

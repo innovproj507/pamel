@@ -152,7 +152,7 @@ class AccountController
         $courses = $this->db->fetchAll($sql, [$userId, $email]);
         
         foreach ($courses as &$course) {
-            $course['course_url'] = '/shop/' . $course['slug']; // Direct to shop product for now
+            $course['course_url'] = '/courses/' . $course['slug'];
         }
         
         return $courses ?: [];

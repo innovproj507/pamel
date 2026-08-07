@@ -51,54 +51,43 @@
 
         <div class="grid grid-cols-2 gap-6 mb-6">
             <div>
-                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
-                <select id="category_id" name="category_id" 
+                <label for="branch_id" class="block text-sm font-medium text-gray-700 mb-2">Branch</label>
+                <select id="branch_id" name="branch_id"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                        onchange="updateSubcategories()">
-                    <option value="">-- Select Category (Optional) --</option>
+                        onchange="toggleIndiaExclusive()">
+                    <option value="">-- Select Branch (Optional) --</option>
                     <?php
-                    $categoryModel = new \Plugins\Ecommerce\Models\Category();
-                    $allCategories = $categoryModel->getAllWithHierarchy();
-                    foreach ($allCategories as $category): 
-                        // Only show parent categories
-                        if (!isset($category['is_subcategory'])):
+                    $branchModel = new \Plugins\Ecommerce\Models\Branch();
+                    $allBranches = $branchModel->all();
+                    foreach ($allBranches as $branch):
                     ?>
-                        <option value="<?php echo $category['id']; ?>" 
-                                <?php echo ($product && $product['category_id'] == $category['id']) ? 'selected' : ''; ?>
-                                data-name="<?php echo strtolower($category['name']); ?>"
-                                data-has-subs="<?php echo (isset($category['has_subcategories']) && $category['has_subcategories']) ? '1' : '0'; ?>">
-                            <?php echo htmlspecialchars($category['name']); ?>
+                        <option value="<?php echo $branch['id']; ?>"
+                                <?php echo ($product && $product['branch_id'] == $branch['id']) ? 'selected' : ''; ?>
+                                data-name="<?php echo strtolower($branch['name']); ?>">
+                            <?php echo htmlspecialchars($branch['name']); ?>
                         </option>
-                    <?php 
-                        endif;
-                    endforeach; 
-                    ?>
+                    <?php endforeach; ?>
                 </select>
-                <p class="mt-1 text-sm text-gray-500">Select main category</p>
+                <p class="mt-1 text-sm text-gray-500">Which branch offers this course</p>
             </div>
 
             <div>
-                <label for="subcategory_id" class="block text-sm font-medium text-gray-700 mb-2">Subcategory</label>
-                <select id="subcategory_id" name="subcategory_id" 
+                <label for="category_id" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                <select id="category_id" name="category_id"
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
-                    <option value="">-- Select Subcategory (Optional) --</option>
+                    <option value="">-- Select Category (Optional) --</option>
                     <?php
-                    // Show all subcategories with parent info
-                    foreach ($allCategories as $category): 
-                        if (isset($category['is_subcategory'])):
+                    $categoryModel = new \Plugins\Ecommerce\Models\Category();
+                    $allCategories = $categoryModel->all();
+                    foreach ($allCategories as $category):
                     ?>
-                        <option value="<?php echo $category['id']; ?>" 
-                                data-parent="<?php echo $category['parent_id'] ?? ''; ?>"
-                                <?php echo ($product && isset($product['subcategory_id']) && $product['subcategory_id'] == $category['id']) ? 'selected' : ''; ?>
-                                style="display:none;">
+                        <option value="<?php echo $category['id']; ?>"
+                                <?php echo ($product && $product['category_id'] == $category['id']) ? 'selected' : ''; ?>>
                             <?php echo htmlspecialchars($category['name']); ?>
                         </option>
-                    <?php 
-                        endif;
-                    endforeach; 
-                    ?>
+                    <?php endforeach; ?>
                 </select>
-                <p class="mt-1 text-sm text-gray-500">Select subcategory if applicable</p>
+                <p class="mt-1 text-sm text-gray-500">What the course is about</p>
             </div>
         </div>
 
@@ -209,56 +198,14 @@ function previewImage(event) {
     }
 }
 
-function updateSubcategories() {
-    const categorySelect = document.getElementById('category_id');
-    const subcategorySelect = document.getElementById('subcategory_id');
-    const selectedCategoryId = categorySelect.value;
-    
-    console.log('Category changed to:', selectedCategoryId);
-    
-    // Get currently selected subcategory before hiding
-    const currentSubcategoryValue = subcategorySelect.value;
-    console.log('Current subcategory value:', currentSubcategoryValue);
-    
-    // Hide all subcategory options first
-    const allSubOptions = subcategorySelect.querySelectorAll('option[data-parent]');
-    allSubOptions.forEach(opt => {
-        opt.style.display = 'none';
-        opt.disabled = true; // Disable hidden options
-    });
-    
-    // Reset subcategory selection only if it doesn't belong to new parent
-    let shouldReset = true;
-    
-    if (selectedCategoryId) {
-        // Show only subcategories that belong to selected parent
-        const matchingSubOptions = subcategorySelect.querySelectorAll(`option[data-parent="${selectedCategoryId}"]`);
-        matchingSubOptions.forEach(opt => {
-            opt.style.display = 'block';
-            opt.disabled = false; // Enable visible options
-            
-            // Check if current selection is still valid
-            if (opt.value === currentSubcategoryValue) {
-                shouldReset = false;
-            }
-        });
-        
-        console.log('Showing', matchingSubOptions.length, 'subcategories for category', selectedCategoryId);
-    }
-    
-    // Only reset if current selection is invalid
-    if (shouldReset) {
-        subcategorySelect.value = '';
-        console.log('Reset subcategory selection');
-    }
-
-    // Toggle India Exclusive modality
+function toggleIndiaExclusive() {
+    const branchSelect = document.getElementById('branch_id');
     const modalitySelect = document.getElementById('modality');
     const indiaOpt = document.getElementById('opt-india');
-    const selectedCatOpt = categorySelect.options[categorySelect.selectedIndex];
-    const catName = selectedCatOpt ? (selectedCatOpt.getAttribute('data-name') || '') : '';
-    
-    if (catName.includes('latin')) {
+    const selectedBranchOpt = branchSelect.options[branchSelect.selectedIndex];
+    const branchName = selectedBranchOpt ? (selectedBranchOpt.getAttribute('data-name') || '') : '';
+
+    if (branchName.includes('latin')) {
         indiaOpt.style.display = 'block';
         indiaOpt.disabled = false;
     } else {
@@ -288,19 +235,6 @@ document.getElementById('name').addEventListener('input', function() {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Page loaded, initializing subcategories');
-    updateSubcategories();
-    
-    // Debug: Log form submission
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            const subcategoryValue = document.getElementById('subcategory_id').value;
-            const modalityValue = document.getElementById('modality').value;
-            console.log('Form submitting with:');
-            console.log('- subcategory_id:', subcategoryValue);
-            console.log('- modality:', modalityValue);
-        });
-    }
+    toggleIndiaExclusive();
 });
 </script>

@@ -25,6 +25,7 @@ class ProductController extends Controller
         // Get filters from GET parameters
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $category = isset($_GET['category']) ? $_GET['category'] : null;
+        $branch = isset($_GET['branch']) ? $_GET['branch'] : null;
         $modality = isset($_GET['modality']) ? $_GET['modality'] : null;
         $priceMin = isset($_GET['price_min']) ? $_GET['price_min'] : null;
         $priceMax = isset($_GET['price_max']) ? $_GET['price_max'] : null;
@@ -37,6 +38,7 @@ class ProductController extends Controller
         
         $filters = [
             'category' => $category,
+            'branch' => $branch,
             'modality' => $modality,
             'price_min' => $priceMin,
             'price_max' => $priceMax,
@@ -55,14 +57,17 @@ class ProductController extends Controller
         $totalProducts = $this->productModel->getTotalFrontendCount($filters);
         $totalPages = ceil($totalProducts / $limit);
         
-        // Get categories for the filter sidebar
+        // Get categories and branches for the filter sidebar
         $categoryModel = new \Plugins\Ecommerce\Models\Category();
-        $categories = $categoryModel->getParentCategories();
-        
+        $categories = $categoryModel->all();
+        $branchModel = new \Plugins\Ecommerce\Models\Branch();
+        $branches = $branchModel->all();
+
         $this->view->render('plugins/ecommerce/views/shop', [
-            'title' => 'Shop',
+            'title' => __('shop.title'),
             'products' => $products,
             'categories' => $categories,
+            'branches' => $branches,
             'filters' => $filters,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -100,7 +105,7 @@ class ProductController extends Controller
 
     /**
      * When a customer follows a "your quote is ready" email link
-     * (/shop/:slug?quote=TOKEN), validate the token and, if it matches an
+     * (/courses/:slug?quote=TOKEN), validate the token and, if it matches an
      * approved quote that includes this product, unlock pricing for the
      * session and restore the cart with the quoted items.
      */

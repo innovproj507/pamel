@@ -528,7 +528,7 @@ return [
         'approval' => 'Centro de formación marítima aprobado por la Autoridad Marítima de Panamá mediante la Resolución No. DGGM-CFM-016-2026 del 25 de mayo de 2026.'
     ],
     'shop' => [
-        'title' => 'Tienda',
+        'title' => 'Cursos',
         'available' => 'Disponible',
         'enroll' => 'Inscribirse',
         'spots_left' => '¡Solo quedan :count cupos!',

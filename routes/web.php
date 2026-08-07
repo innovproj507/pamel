@@ -16,8 +16,9 @@ return function($router) {
             "SELECT p.*, c.name as category_name, c.slug as category_slug
              FROM products p
              LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN branches b ON p.branch_id = b.id
              WHERE p.status = 'active'
-               AND (c.name LIKE '%PAMEL%' OR c.slug LIKE '%pamel%')
+               AND b.slug = 'pamel'
              ORDER BY p.created_at DESC
              LIMIT 4"
         );
@@ -26,8 +27,9 @@ return function($router) {
             "SELECT p.*, c.name as category_name, c.slug as category_slug
              FROM products p
              LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN branches b ON p.branch_id = b.id
              WHERE p.status = 'active'
-               AND (c.name LIKE '%Latin%' OR c.slug LIKE '%latin%')
+               AND b.slug = 'latin'
              ORDER BY p.created_at DESC
              LIMIT 4"
         );

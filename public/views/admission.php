@@ -96,7 +96,7 @@
                             <p class="text-gray-600 leading-relaxed mb-4">
                                 <?php echo __('admission.steps.4.text'); ?>
                             </p>
-                            <a href="/shop" class="text-cyan-600 font-semibold hover:text-cyan-700 transition inline-flex items-center">
+                            <a href="/courses" class="text-cyan-600 font-semibold hover:text-cyan-700 transition inline-flex items-center">
                                 <i class="fas fa-store mr-2"></i>
                                 <?php echo __('admission.steps.4.btn'); ?> →
                             </a>
@@ -152,7 +152,7 @@
                         <i class="fas fa-file-alt mr-2"></i>
                         <?php echo __('admission.cta.btn_apply'); ?>
                     </a>
-                    <a href="/shop" class="inline-block bg-transparent border-2 border-white text-white px-10 py-4 rounded-full font-bold hover:bg-white hover:text-blue-600 transition transform hover:scale-105">
+                    <a href="/courses" class="inline-block bg-transparent border-2 border-white text-white px-10 py-4 rounded-full font-bold hover:bg-white hover:text-blue-600 transition transform hover:scale-105">
                         <i class="fas fa-shopping-cart mr-2"></i>
                         <?php echo __('admission.cta.btn_courses'); ?>
                     </a>

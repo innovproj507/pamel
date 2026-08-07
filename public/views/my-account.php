@@ -277,7 +277,7 @@ $userEmail = $user['email'] ?? '';
                                 <h3 class="text-lg font-semibold">Cursos Recomendados</h3>
                                 <p class="text-gray-500 text-sm">Contenido educativo para mejorar tus habilidades</p>
                             </div>
-                            <a href="/shop" class="text-blue-600 text-sm font-medium hover:underline">Ver catálogo</a>
+                            <a href="/courses" class="text-blue-600 text-sm font-medium hover:underline">Ver catálogo</a>
                         </div>
                         <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                             <?php if (!empty($recommended_courses)): ?>
@@ -386,7 +386,7 @@ $userEmail = $user['email'] ?? '';
                                     <input type="text" placeholder="Buscar pedido..." class="w-full pl-10 pr-4 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                                     <i class="fas fa-search absolute left-3 top-2.5 text-gray-400"></i>
                                 </div>
-                                <a href="/shop" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium whitespace-nowrap hidden md:block">
+                                <a href="/courses" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium whitespace-nowrap hidden md:block">
                                     <i class="fas fa-plus mr-2"></i> Nuevo Pedido
                                 </a>
                             </div>
@@ -696,7 +696,7 @@ $userEmail = $user['email'] ?? '';
                                 </div>
                                 <h3 class="text-xl font-bold text-gray-800 mb-2">No estás inscrito en ningún curso</h3>
                                 <p class="text-gray-500 max-w-lg mx-auto mb-8">Parece que aún no has comprado ningún curso. ¡Explora nuestro catálogo para empezar a aprender!</p>
-                                <a href="/shop" class="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-xl">
+                                <a href="/courses" class="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 transition shadow-lg hover:shadow-xl">
                                     <i class="fas fa-search mr-2"></i> Ver Cursos Disponibles
                                 </a>
                             </div>

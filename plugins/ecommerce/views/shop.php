@@ -7,12 +7,12 @@
                 <div class="bg-white rounded-3xl shadow-xl p-8 border border-gray-100 sticky top-32">
                     <div class="flex items-center justify-between mb-8">
                         <h2 class="text-xl font-bold text-gray-900"><?php echo __('shop.filters.title'); ?></h2>
-                        <a href="/shop" class="text-sm text-cyan-600 hover:text-cyan-700 font-medium transition">
+                        <a href="/courses" class="text-sm text-cyan-600 hover:text-cyan-700 font-medium transition">
                             <?php echo __('shop.filters.clear'); ?>
                         </a>
                     </div>
 
-                    <form action="/shop" method="GET" class="space-y-8">
+                    <form action="/courses" method="GET" class="space-y-8">
                         <!-- Search -->
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-3"><?php echo __('shop.filters.search'); ?></label>
@@ -32,6 +32,19 @@
                                 <?php foreach ($categories as $cat): ?>
                                     <option value="<?php echo $cat['slug']; ?>" <?php echo (isset($filters['category']) && $filters['category'] === $cat['slug']) ? 'selected' : ''; ?>>
                                         <?php echo htmlspecialchars($cat['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <!-- Branch -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-3">Branch</label>
+                            <select name="branch" class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition text-sm appearance-none cursor-pointer">
+                                <option value="">All Branches</option>
+                                <?php foreach ($branches as $branch): ?>
+                                    <option value="<?php echo $branch['slug']; ?>" <?php echo (isset($filters['branch']) && $filters['branch'] === $branch['slug']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($branch['name']); ?>
                                     </option>
                                 <?php endforeach; ?>
                             </select>
@@ -105,16 +118,16 @@
                                  class="w-full h-full object-cover group-hover:scale-110 transition duration-700">
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             
-                            <!-- Category Badge -->
-                            <?php if (!empty($product['category_name'])): ?>
+                            <!-- Branch Badge -->
+                            <?php if (!empty($product['branch_name'])): ?>
                                 <div class="absolute top-5 left-5">
-                                    <?php 
-                                        $isLatin = stripos($product['category_name'], 'latin') !== false;
+                                    <?php
+                                        $isLatin = $product['branch_slug'] === 'latin';
                                         $badgeBg = $isLatin ? 'bg-[#D2691E]' : 'bg-cyan-600';
                                     ?>
                                     <span class="<?php echo $badgeBg; ?> text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center">
-                                        <i class="fas <?php echo $product['category_icon'] ?? 'fa-folder'; ?> mr-2"></i>
-                                        <?php echo htmlspecialchars($product['category_name']); ?>
+                                        <i class="fas <?php echo $product['branch_icon'] ?? 'fa-folder'; ?> mr-2"></i>
+                                        <?php echo htmlspecialchars($product['branch_name']); ?>
                                     </span>
                                 </div>
                             <?php endif; ?>
@@ -132,13 +145,19 @@
                         <div class="p-8 flex flex-col flex-1">
                             <!-- Title -->
                             <h3 class="text-xl font-bold text-gray-900 mb-4 group-hover:text-cyan-600 transition leading-tight min-h-[4.5rem] flex items-center">
-                                <a href="/shop/<?php echo htmlspecialchars($product['slug']); ?>">
+                                <a href="/courses/<?php echo htmlspecialchars($product['slug']); ?>">
                                     <?php echo htmlspecialchars($product['name']); ?>
                                 </a>
                             </h3>
                             
                             <!-- Badges Grid -->
                             <div class="flex flex-wrap gap-2 mb-6 min-h-[2.5rem] items-start">
+                                <?php if (!empty($product['category_name'])): ?>
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-cyan-50 text-cyan-700 border border-cyan-100">
+                                        <i class="fas <?php echo $product['category_icon'] ?? 'fa-folder'; ?> mr-2"></i>
+                                        <?php echo htmlspecialchars($product['category_name']); ?>
+                                    </span>
+                                <?php endif; ?>
                                 <?php if (!empty($product['modality'])): ?>
                                     <?php 
                                         $modColor = 'blue';
@@ -235,7 +254,7 @@
                         </div>
                         <h2 class="text-2xl font-bold text-gray-900 mb-2"><?php echo __('shop.no_products_title'); ?></h2>
                         <p class="text-gray-500 max-w-sm mx-auto"><?php echo __('shop.no_products_text'); ?></p>
-                        <a href="/shop" class="inline-block mt-8 text-cyan-600 font-bold hover:underline">
+                        <a href="/courses" class="inline-block mt-8 text-cyan-600 font-bold hover:underline">
                             <?php echo __('shop.clear_all_filters'); ?>
                         </a>
                     </div>

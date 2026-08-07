@@ -168,7 +168,7 @@
                             <h3 class="text-xl font-bold text-gray-900 mb-4"><?php echo __('contact.quick_links.title'); ?></h3>
                             <ul class="space-y-3">
                                 <li>
-                                    <a href="/shop" class="text-gray-600 hover:text-cyan-600 transition flex items-center">
+                                    <a href="/courses" class="text-gray-600 hover:text-cyan-600 transition flex items-center">
                                         <i class="fas fa-chevron-right text-cyan-500 mr-2 text-sm"></i>
                                         <?php echo __('contact.quick_links.browse'); ?>
                                     </a>

@@ -25,22 +25,24 @@ class Product extends Model
             ["%{$query}%", "%{$query}%"]
         );
     }
-    
+
     public function getByCategory($category)
     {
         // Get category ID from slug
         $categoryModel = new Category();
         $cat = $categoryModel->findBySlug($category);
-        
+
         if (!$cat) {
             return [];
         }
-        
+
         return $this->db->fetchAll(
-            "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon
+            "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon,
+                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
-             WHERE p.category_id = ? AND p.status = 'active' 
+             LEFT JOIN branches b ON p.branch_id = b.id
+             WHERE p.category_id = ? AND p.status = 'active'
              ORDER BY p.created_at DESC",
             [$cat['id']]
         );
@@ -51,7 +53,7 @@ class Product extends Model
         // Build dynamic WHERE clause based on filters
         $where = ["p.status = 'active'"];
         $params = [];
-        
+
         // Filter by category slug
         if (!empty($filters['category'])) {
             $categoryModel = new Category();
@@ -61,17 +63,17 @@ class Product extends Model
                 $params[] = $cat['id'];
             }
         }
-        
-        // Filter by subcategory slug
-        if (!empty($filters['subcategory'])) {
-            $categoryModel = new Category();
-            $subcat = $categoryModel->findBySlug($filters['subcategory']);
-            if ($subcat) {
-                $where[] = "p.subcategory_id = ?";
-                $params[] = $subcat['id'];
+
+        // Filter by branch slug
+        if (!empty($filters['branch'])) {
+            $branchModel = new Branch();
+            $branch = $branchModel->findBySlug($filters['branch']);
+            if ($branch) {
+                $where[] = "p.branch_id = ?";
+                $params[] = $branch['id'];
             }
         }
-        
+
         // Filter by modality
         if (!empty($filters['modality'])) {
             if (is_array($filters['modality'])) {
@@ -85,23 +87,19 @@ class Product extends Model
                 $params[] = $filters['modality'];
             }
         }
-        
+
         $whereClause = implode(' AND ', $where);
-        
+
         return $this->db->fetchAll(
-            "SELECT p.*, 
+            "SELECT p.*,
                     c.name as category_name, c.slug as category_slug, c.icon as category_icon,
-                    sc.name as subcategory_name, sc.slug as subcategory_slug
+                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
-             LEFT JOIN categories sc ON p.subcategory_id = sc.id
+             LEFT JOIN branches b ON p.branch_id = b.id
              WHERE $whereClause
-             ORDER BY 
-                CASE 
-                    WHEN c.slug LIKE '%pamel%' OR c.name LIKE '%PAMEL%' THEN 0 
-                    WHEN c.slug LIKE '%latin%' OR c.name LIKE '%Latin%' THEN 1 
-                    ELSE 2 
-                END ASC, 
+             ORDER BY
+                CASE WHEN b.slug = 'pamel' THEN 0 WHEN b.slug = 'latin' THEN 1 ELSE 2 END ASC,
                 p.created_at DESC",
             $params
         );
@@ -114,35 +112,35 @@ class Product extends Model
             [$quantity, $id]
         );
     }
-    
+
     public function getWithCategory($id)
     {
         return $this->db->fetchOne(
-            "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon
+            "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon,
+                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN branches b ON p.branch_id = b.id
              WHERE p.id = ?",
             [$id]
         );
     }
-    
+
     public function getAllWithCategories()
     {
         return $this->db->fetchAll(
-            "SELECT p.*, c.name as category_name, c.slug as category_slug 
+            "SELECT p.*, c.name as category_name, c.slug as category_slug,
+                    b.name as branch_name, b.slug as branch_slug
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN branches b ON p.branch_id = b.id
              WHERE p.status = 'active'
-             ORDER BY 
-                CASE 
-                    WHEN c.slug LIKE '%pamel%' OR c.name LIKE '%PAMEL%' THEN 0 
-                    WHEN c.slug LIKE '%latin%' OR c.name LIKE '%Latin%' THEN 1 
-                    ELSE 2 
-                END ASC, 
+             ORDER BY
+                CASE WHEN b.slug = 'pamel' THEN 0 WHEN b.slug = 'latin' THEN 1 ELSE 2 END ASC,
                 p.created_at DESC"
         );
     }
-    
+
     public function getRelatedProducts($productId, $limit = 4)
     {
         return $this->db->fetchAll(
@@ -154,7 +152,7 @@ class Product extends Model
             [$productId, $limit]
         );
     }
-    
+
     public function addRelatedProduct($productId, $relatedProductId, $displayOrder = 0)
     {
         return $this->db->insert('related_products', [
@@ -163,7 +161,7 @@ class Product extends Model
             'display_order' => $displayOrder
         ]);
     }
-    
+
     public function removeRelatedProduct($productId, $relatedProductId)
     {
         return $this->db->query(
@@ -171,28 +169,28 @@ class Product extends Model
             [$productId, $relatedProductId]
         );
     }
-    
+
     public function getSimilarByCategory($productId, $categoryId, $limit = 4)
     {
         return $this->db->fetchAll(
-            "SELECT * FROM {$this->table} 
+            "SELECT * FROM {$this->table}
              WHERE category_id = ? AND id != ? AND status = 'active'
              ORDER BY avg_rating DESC, created_at DESC
              LIMIT ?",
             [$categoryId, $productId, $limit]
         );
     }
-    
+
     public function getAllWithCategoriesForAdmin()
     {
         return $this->db->fetchAll(
-            "SELECT p.*, c.name as category_name, c.icon as category_icon 
+            "SELECT p.*, c.name as category_name, c.icon as category_icon
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
              ORDER BY p.created_at DESC"
         );
     }
-    
+
     public function getTotalCount()
     {
         $result = $this->db->fetchOne("SELECT COUNT(*) as count FROM {$this->table}");
@@ -238,21 +236,19 @@ class Product extends Model
     public function getFrontendPaginated($limit, $offset, $filters = [])
     {
         [$where, $params] = $this->buildFrontendWhere($filters);
-        
+
         $params[] = $limit;
         $params[] = $offset;
 
         return $this->db->fetchAll(
-            "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon
+            "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon,
+                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN branches b ON p.branch_id = b.id
              $where
-             ORDER BY 
-                CASE 
-                    WHEN c.slug LIKE '%pamel%' OR c.name LIKE '%PAMEL%' THEN 0 
-                    WHEN c.slug LIKE '%latin%' OR c.name LIKE '%Latin%' THEN 1 
-                    ELSE 2 
-                END ASC, 
+             ORDER BY
+                CASE WHEN b.slug = 'pamel' THEN 0 WHEN b.slug = 'latin' THEN 1 ELSE 2 END ASC,
                 p.created_at DESC
              LIMIT ? OFFSET ?",
             $params
@@ -263,10 +259,11 @@ class Product extends Model
     {
         [$where, $params] = $this->buildFrontendWhere($filters);
         $result = $this->db->fetchOne(
-            "SELECT COUNT(*) as count 
-             FROM {$this->table} p 
-             LEFT JOIN categories c ON p.category_id = c.id 
-             $where", 
+            "SELECT COUNT(*) as count
+             FROM {$this->table} p
+             LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN branches b ON p.branch_id = b.id
+             $where",
             $params
         );
         return $result['count'] ?? 0;
@@ -280,6 +277,11 @@ class Product extends Model
         if (!empty($filters['category'])) {
             $where[] = "c.slug = ?";
             $params[] = $filters['category'];
+        }
+
+        if (!empty($filters['branch'])) {
+            $where[] = "b.slug = ?";
+            $params[] = $filters['branch'];
         }
 
         if (!empty($filters['modality'])) {
@@ -337,9 +339,9 @@ class Product extends Model
             $conditions[] = "p.category_id = ?";
             $params[]     = (int) $filters['category_id'];
         }
-        if (!empty($filters['subcategory_id'])) {
-            $conditions[] = "p.subcategory_id = ?";
-            $params[]     = (int) $filters['subcategory_id'];
+        if (!empty($filters['branch_id'])) {
+            $conditions[] = "p.branch_id = ?";
+            $params[]     = (int) $filters['branch_id'];
         }
 
         $where = $conditions ? 'WHERE ' . implode(' AND ', $conditions) : '';

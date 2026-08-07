@@ -135,7 +135,7 @@
                     <div class="divide-y divide-gray-100 flex-1">
                         <?php if (!empty($pamelProducts)): ?>
                             <?php foreach ($pamelProducts as $product): ?>
-                                <a href="/shop/<?php echo htmlspecialchars($product['slug']); ?>"
+                                <a href="/courses/<?php echo htmlspecialchars($product['slug']); ?>"
                                    class="flex items-center gap-4 px-6 py-4 hover:bg-cyan-50 transition group">
                                     <?php if (!empty($product['image'])): ?>
                                         <img src="<?php echo htmlspecialchars($product['image']); ?>"
@@ -167,7 +167,7 @@
 
                     <!-- View All Button -->
                     <div class="p-6 border-t border-gray-100 bg-gray-50">
-                        <a href="/shop?category=pamel"
+                        <a href="/courses?branch=pamel"
                            class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-xl transition transform hover:scale-105 shadow-md">
                             <i class="fas fa-th-list"></i>
                             Ver todos los cursos
@@ -195,7 +195,7 @@
                     <div class="divide-y divide-gray-100 flex-1">
                         <?php if (!empty($indiaProducts)): ?>
                             <?php foreach ($indiaProducts as $product): ?>
-                                <a href="/shop/<?php echo htmlspecialchars($product['slug']); ?>"
+                                <a href="/courses/<?php echo htmlspecialchars($product['slug']); ?>"
                                    class="flex items-center gap-4 px-6 py-4 hover:bg-orange-50 transition group">
                                     <?php if (!empty($product['image'])): ?>
                                         <img src="<?php echo htmlspecialchars($product['image']); ?>"
@@ -227,7 +227,7 @@
 
                     <!-- View All Button -->
                     <div class="p-6 border-t border-gray-100 bg-gray-50">
-                        <a href="/shop?category=latin"
+                        <a href="/courses?branch=latin"
                            class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold py-3 px-6 rounded-xl transition transform hover:scale-105 shadow-md">
                             <i class="fas fa-th-list"></i>
                             Ver todos los cursos

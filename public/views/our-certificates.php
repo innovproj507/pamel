@@ -183,7 +183,7 @@
         <div class="container mx-auto px-4 text-center text-white">
             <h2 class="text-4xl font-bold mb-4"><?php echo __('certificates.cta.title'); ?></h2>
             <p class="text-xl mb-8 text-blue-100"><?php echo __('certificates.cta.subtitle'); ?></p>
-            <a href="/shop" class="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold hover:bg-blue-50 transition transform hover:scale-105 shadow-xl">
+            <a href="/courses" class="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold hover:bg-blue-50 transition transform hover:scale-105 shadow-xl">
                 <i class="fas fa-graduation-cap mr-2"></i><?php echo __('certificates.cta.btn'); ?>
             </a>
         </div>

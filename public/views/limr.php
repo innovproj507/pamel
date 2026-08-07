@@ -66,7 +66,7 @@
                 <?php echo __('limr.cta.subtitle'); ?>
             </p>
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="/shop?category=latin" class="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold hover:bg-blue-50 transition transform hover:scale-105 shadow-xl">
+                <a href="/courses?branch=latin" class="inline-block bg-white text-blue-600 px-10 py-4 rounded-xl font-bold hover:bg-blue-50 transition transform hover:scale-105 shadow-xl">
                     <i class="fas fa-graduation-cap mr-2"></i><?php echo __('limr.cta.btn_view'); ?>
                 </a>
                 <a href="/contact" class="inline-block bg-blue-700 text-white border-2 border-white px-10 py-4 rounded-xl font-bold hover:bg-blue-800 transition transform hover:scale-105 shadow-xl">

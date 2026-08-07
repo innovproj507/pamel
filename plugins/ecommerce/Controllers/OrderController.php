@@ -33,7 +33,7 @@ class OrderController extends Controller
         $total = $this->cartModel->getTotal();
 
         if (empty($items)) {
-            $this->redirect('/shop');
+            $this->redirect('/courses');
             return;
         }
 
@@ -55,7 +55,7 @@ class OrderController extends Controller
         $items = $this->cartModel->getItems();
 
         if (empty($items)) {
-            $this->redirect('/shop');
+            $this->redirect('/courses');
             return;
         }
 
@@ -69,7 +69,7 @@ class OrderController extends Controller
 
     /**
      * Real purchase — unchanged behaviour, only reachable once a quote has been approved
-     * and the customer returned via its /shop/:slug?quote=TOKEN link.
+     * and the customer returned via its /courses/:slug?quote=TOKEN link.
      */
     private function processRealOrder($items)
     {

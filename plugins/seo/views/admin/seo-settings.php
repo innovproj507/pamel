@@ -10,7 +10,7 @@
                 <label for="page_url" class="block text-sm font-medium text-gray-700">Page URL</label>
                 <input type="text" id="page_url" name="page_url" required placeholder="/" 
                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary">
-                <p class="mt-1 text-sm text-gray-500">Enter the page path (e.g., /, /shop, /shop/product-1)</p>
+                <p class="mt-1 text-sm text-gray-500">Enter the page path (e.g., /, /courses, /courses/product-1)</p>
             </div>
 
             <div>

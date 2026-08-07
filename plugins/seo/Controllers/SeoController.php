@@ -48,7 +48,7 @@ class SeoController extends Controller
         // Products
         foreach ($products as $product) {
             echo "  <url>\n";
-            echo "    <loc>{$baseUrl}/shop/{$product['slug']}</loc>\n";
+            echo "    <loc>{$baseUrl}/courses/{$product['slug']}</loc>\n";
             echo "    <lastmod>" . date('Y-m-d', strtotime($product['updated_at'])) . "</lastmod>\n";
             echo "    <changefreq>weekly</changefreq>\n";
             echo "    <priority>0.7</priority>\n";
