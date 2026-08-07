@@ -245,13 +245,6 @@
     <div class="container mx-auto px-4">
         <div class="max-w-6xl mx-auto">
 
-            <!-- Introduction -->
-            <div class="text-center mb-16">
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                    <?php echo __('branches.intro'); ?>
-                </p>
-            </div>
-
             <!-- Main Branch -->
             <div class="mb-12">
                 <div class="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-2xl overflow-hidden shadow-2xl">
