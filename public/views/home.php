@@ -141,7 +141,7 @@
                                         : $branch['description'];
                                     ?>
                                     <p class="text-xs uppercase tracking-widest text-<?php echo $theme['text']; ?> font-semibold"><?php echo htmlspecialchars($branchDescription ?: $branch['name']); ?></p>
-                                    <h3 class="text-2xl font-extrabold leading-tight"><?php echo htmlspecialchars($branch['name']); ?> <?php echo __('home.featured.title'); ?></h3>
+                                    <h3 class="text-2xl font-extrabold leading-tight uppercase"><?php echo htmlspecialchars($branch['name']); ?> <?php echo __('home.featured.title'); ?></h3>
                                 </div>
                             </div>
                             <p class="text-sm text-<?php echo $theme['text']; ?> mt-1">STCW CERTIFIED - <?php echo htmlspecialchars(strtoupper($branch['name'])); ?></p>

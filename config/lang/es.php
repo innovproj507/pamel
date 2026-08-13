@@ -174,8 +174,8 @@ return [
         'intro' => 'PAMEL opera múltiples instalaciones de capacitación ubicadas estratégicamente para servir a los profesionales marítimos en toda la región.',
         'headquarters' => [
             'badge' => 'SEDE PRINCIPAL',
-            'title' => 'Centro Ciudad de Panamá',
-            'text' => 'Nuestro campus principal cuenta con instalaciones de capacitación de vanguardia, aulas modernas y equipos avanzados de simulación marítima.',
+            'title' => 'Ciudad de Panamá',
+            'text' => 'Nuestro centro principal cuenta con instalaciones de capacitación de vanguardia, aulas modernas y equipos avanzados de simulación marítima.',
             'facilities_title' => 'Las instalaciones incluyen:',
             'facilities' => [
                 'Simuladores de entrenamiento modernos',
