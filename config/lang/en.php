@@ -146,7 +146,7 @@ return [
         'overview' => [
             'badge' => 'Welcome to',
             'title' => 'Panama Maritime <span class="text-cyan-600"><br>E-Learning (PAMEL), S.A.</span>',
-            'text_1' => 'PAMEL is a Maritime Training Center approved by the Panama Maritime Authority, we have an ISO 9001:2015 Quality System, a Synchronous-Asynchronous Platform for Training and Certification which has been implemented due to the great national and international demand due to the fact that e-learning inspires the participation of the maritime – port and logistics community as well as inclusive learning environments through the use of emerging technologies which allows us to provide Education without borders.',
+            'text_1' => 'PAMEL is a Maritime Training Center with an ISO 9001:2015 Quality System, a Synchronous-Asynchronous Platform for Training and Certification which has been implemented due to the great national and international demand due to the fact that e-learning inspires the participation of the maritime – port and logistics community as well as inclusive learning environments through the use of emerging technologies which allows us to provide Education without borders.',
             'text_2' => 'With over 15 years of experience, we have trained thousands of maritime professionals, helping them achieve their career goals and meet international standards.'
         ],
         'mission' => [
@@ -181,7 +181,6 @@ return [
             'facilities' => [
                 'Modern Training Simulators',
                 'Fully Equipped Classrooms',
-                'Computer Labs',
                 'Safety Training Facilities',
                 'Student Support Services',
                 'Certification Processing Center'
@@ -486,7 +485,9 @@ return [
             'title' => 'Who is LATIN Indo Marine Registry (LIMR)?',
             'text1' => 'Latin Indo Marine Registry Pvt. Ltd. is a maritime institute/college established in 2019. It offers both Pre-Sea and Post-Sea training, with a team of experienced maritime professionals. The institute provides internationally recognized training using advanced simulation technology for bridge, engine room, liquid cargo operations, and ship handling.',
             'text2' => 'LIMR is certified under the ISO 9001:2015 Quality Management System and follows the guidelines set by the Maritime Administration Authority and the International Maritime Organization (IMO). It is officially recognized for providing maritime education, training, assessment, evaluation, and certification services.',
-            'tagline' => 'LIMR - Maritime Training Excellence'
+            'tagline' => 'LIMR - Maritime Training Excellence',
+            'address_label' => 'Address',
+            'address' => 'E-14 B, Sector-8, Noida, Gautam Buddha Nagar, Uttar Pradesh, 201301, India'
         ],
         'values' => [
             'title' => 'Company Values',

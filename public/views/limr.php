@@ -50,7 +50,15 @@
                     
                     <div class="bg-white rounded-2xl shadow-xl p-8">
                         <img src="/assets/images/base-ubicacion.jpg" alt="LIMR Location" class="w-full rounded-lg shadow-md mb-4">
-                        <p class="text-center text-gray-600 font-semibold"><?php echo __('limr.who.tagline'); ?></p>
+                        <p class="text-center text-gray-600 font-semibold mb-6"><?php echo __('limr.who.tagline'); ?></p>
+
+                        <div class="flex items-start border-t border-gray-100 pt-6">
+                            <i class="fas fa-map-marker-alt text-cyan-600 mt-1 mr-4 text-xl"></i>
+                            <div>
+                                <p class="font-semibold text-gray-900"><?php echo __('limr.who.address_label'); ?></p>
+                                <p class="text-gray-600"><?php echo __('limr.who.address'); ?></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

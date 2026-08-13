@@ -197,6 +197,64 @@
     </div>
 </section>
 
+<!-- Why Choose PAMEL Section -->
+<section class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="max-w-7xl mx-auto">
+
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4"><?php echo __('home.why_choose.title'); ?></h2>
+                <p class="text-xl text-gray-600"><?php echo __('home.why_choose.subtitle'); ?></p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
+                    <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-graduation-cap text-cyan-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_1'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_1_text'); ?></p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-laptop text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_2'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_2_text'); ?></p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
+                    <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-certificate text-cyan-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_3'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_3_text'); ?></p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-headset text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_4'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_4_text'); ?></p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
+                    <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-mobile-alt text-cyan-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_5'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_5_text'); ?></p>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</section>
+
 <!-- Our Facilities Section -->
 <section class="py-20">
     <div class="container mx-auto px-4">
@@ -492,65 +550,6 @@
                         <p class="text-blue-100 text-sm"><?php echo __('services.process.steps.4.text'); ?></p>
                     </div>
                 </div>
-            </div>
-
-        </div>
-    </div>
-</section>
-
-
-<!-- Why Choose PAMEL Section -->
-<section class="py-20 bg-gray-50">
-    <div class="container mx-auto px-4">
-        <div class="max-w-7xl mx-auto">
-            
-            <div class="text-center mb-12">
-                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4"><?php echo __('home.why_choose.title'); ?></h2>
-                <p class="text-xl text-gray-600"><?php echo __('home.why_choose.subtitle'); ?></p>
-            </div>
-
-            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                    <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-graduation-cap text-cyan-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_1'); ?></h3>
-                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_1_text'); ?></p>
-                </div>
-
-                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-laptop text-blue-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_2'); ?></h3>
-                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_2_text'); ?></p>
-                </div>
-
-                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                    <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-certificate text-cyan-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_3'); ?></h3>
-                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_3_text'); ?></p>
-                </div>
-
-                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-headset text-blue-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_4'); ?></h3>
-                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_4_text'); ?></p>
-                </div>
-
-                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
-                    <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-mobile-alt text-cyan-600 text-2xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_5'); ?></h3>
-                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_5_text'); ?></p>
-                </div>
-
             </div>
 
         </div>

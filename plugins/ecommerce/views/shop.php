@@ -69,17 +69,6 @@
                             </div>
                         </div>
 
-                        <!-- Price Range -->
-                        <div>
-                            <label class="block text-sm font-bold text-gray-700 mb-3"><?php echo __('shop.filters.price_range'); ?></label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <input type="number" name="price_min" value="<?php echo htmlspecialchars($filters['price_min'] ?? ''); ?>" 
-                                       placeholder="Min" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm">
-                                <input type="number" name="price_max" value="<?php echo htmlspecialchars($filters['price_max'] ?? ''); ?>" 
-                                       placeholder="Max" class="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm">
-                            </div>
-                        </div>
-
                         <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-cyan-200 transition transform active:scale-95 flex items-center justify-center">
                             <i class="fas fa-filter mr-2"></i> <?php echo __('shop.filters.apply'); ?>
                         </button>
