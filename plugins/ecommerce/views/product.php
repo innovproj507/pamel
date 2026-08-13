@@ -78,30 +78,13 @@
                         </div>
                     </div>
                 <?php endif; ?>
-                <?php if (!empty($product['modality'])): ?>
-                    <?php 
-                        $modalityBg = 'bg-indigo-50 border-indigo-200';
-                        $modalityText = 'text-indigo-600';
-                        $modalityDark = 'text-indigo-800';
-                        $modalityIcon = 'fa-desktop';
-                        
-                        if ($product['modality'] === 'B-learning') {
-                            $modalityBg = 'bg-orange-50 border-orange-200';
-                            $modalityText = 'text-orange-600';
-                            $modalityDark = 'text-orange-800';
-                            $modalityIcon = 'fa-laptop';
-                        } elseif ($product['modality'] === 'India Exclusive') {
-                            $modalityBg = 'bg-amber-50 border-amber-200';
-                            $modalityText = 'text-amber-600';
-                            $modalityDark = 'text-amber-800';
-                            $modalityIcon = 'fa-globe-asia';
-                        }
-                    ?>
-                    <div class="flex items-center <?php echo $modalityBg; ?> border rounded-lg px-4 py-2">
-                        <i class="fas <?php echo $modalityIcon; ?> <?php echo $modalityText; ?> text-xl mr-3"></i>
+                <?php if (!empty($product['modality_name'])): ?>
+                    <?php $modColor = $product['modality_color'] ?: 'indigo'; ?>
+                    <div class="flex items-center bg-<?php echo $modColor; ?>-50 border border-<?php echo $modColor; ?>-200 rounded-lg px-4 py-2">
+                        <i class="fas <?php echo htmlspecialchars($product['modality_icon'] ?: 'fa-desktop'); ?> text-<?php echo $modColor; ?>-600 text-xl mr-3"></i>
                         <div>
-                            <div class="text-xs <?php echo $modalityText; ?> font-medium"><?php echo __('shop.product.modality'); ?></div>
-                            <div class="text-sm font-bold <?php echo $modalityDark; ?>"><?php echo htmlspecialchars($product['modality']); ?></div>
+                            <div class="text-xs text-<?php echo $modColor; ?>-600 font-medium"><?php echo __('shop.product.modality'); ?></div>
+                            <div class="text-sm font-bold text-<?php echo $modColor; ?>-800"><?php echo htmlspecialchars($product['modality_name']); ?></div>
                         </div>
                     </div>
                 <?php endif; ?>

@@ -54,21 +54,15 @@
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-3"><?php echo __('shop.filters.modality'); ?></label>
                             <div class="space-y-2">
-                                <?php 
-                                $modalities = [
-                                    'E-learning' => ['icon' => 'fa-desktop', 'color' => 'indigo'],
-                                    'B-learning' => ['icon' => 'fa-laptop', 'color' => 'orange'],
-                                    'India Exclusive' => ['icon' => 'fa-globe-asia', 'color' => 'amber']
-                                ];
-                                foreach ($modalities as $value => $info): 
-                                    $checked = (isset($filters['modality']) && $filters['modality'] === $value);
+                                <?php foreach ($modalities as $mod):
+                                    $checked = (isset($filters['modality']) && $filters['modality'] === $mod['slug']);
                                 ?>
                                 <label class="flex items-center group cursor-pointer">
-                                    <input type="radio" name="modality" value="<?php echo $value; ?>" <?php echo $checked ? 'checked' : ''; ?> 
+                                    <input type="radio" name="modality" value="<?php echo htmlspecialchars($mod['slug']); ?>" <?php echo $checked ? 'checked' : ''; ?>
                                            class="w-5 h-5 text-cyan-600 border-gray-300 focus:ring-cyan-500 rounded-full transition cursor-pointer">
                                     <span class="ml-3 text-sm text-gray-600 group-hover:text-cyan-600 transition flex items-center">
-                                        <i class="fas <?php echo $info['icon']; ?> mr-2 text-<?php echo $info['color']; ?>-500 opacity-70"></i>
-                                        <?php echo $value; ?>
+                                        <i class="fas <?php echo htmlspecialchars($mod['icon'] ?: 'fa-desktop'); ?> mr-2 text-<?php echo htmlspecialchars($mod['color'] ?: 'cyan'); ?>-500 opacity-70"></i>
+                                        <?php echo htmlspecialchars($mod['name']); ?>
                                     </span>
                                 </label>
                                 <?php endforeach; ?>
@@ -158,16 +152,11 @@
                                         <?php echo htmlspecialchars($product['category_name']); ?>
                                     </span>
                                 <?php endif; ?>
-                                <?php if (!empty($product['modality'])): ?>
-                                    <?php 
-                                        $modColor = 'blue';
-                                        $modIcon = 'fa-desktop';
-                                        if ($product['modality'] === 'B-learning') { $modColor = 'orange'; $modIcon = 'fa-laptop'; }
-                                        elseif ($product['modality'] === 'India Exclusive') { $modColor = 'amber'; $modIcon = 'fa-globe-asia'; }
-                                    ?>
+                                <?php if (!empty($product['modality_name'])): ?>
+                                    <?php $modColor = $product['modality_color'] ?: 'cyan'; ?>
                                     <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-<?php echo $modColor; ?>-50 text-<?php echo $modColor; ?>-700 border border-<?php echo $modColor; ?>-100">
-                                        <i class="fas <?php echo $modIcon; ?> mr-2"></i>
-                                        <?php echo htmlspecialchars($product['modality']); ?>
+                                        <i class="fas <?php echo htmlspecialchars($product['modality_icon'] ?: 'fa-desktop'); ?> mr-2"></i>
+                                        <?php echo htmlspecialchars($product['modality_name']); ?>
                                     </span>
                                 <?php endif; ?>
                                 

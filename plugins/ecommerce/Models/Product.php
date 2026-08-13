@@ -99,7 +99,7 @@ class Product extends Model
              LEFT JOIN branches b ON p.branch_id = b.id
              WHERE $whereClause
              ORDER BY
-                CASE WHEN b.slug = 'pamel' THEN 0 WHEN b.slug = 'latin' THEN 1 ELSE 2 END ASC,
+                COALESCE(b.display_order, 999) ASC,
                 p.created_at DESC",
             $params
         );
@@ -117,10 +117,12 @@ class Product extends Model
     {
         return $this->db->fetchOne(
             "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon,
-                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon
+                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon,
+                    m.name as modality_name, m.slug as modality_slug, m.icon as modality_icon, m.color as modality_color
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN branches b ON p.branch_id = b.id
+             LEFT JOIN modalities m ON p.modality_id = m.id
              WHERE p.id = ?",
             [$id]
         );
@@ -136,7 +138,7 @@ class Product extends Model
              LEFT JOIN branches b ON p.branch_id = b.id
              WHERE p.status = 'active'
              ORDER BY
-                CASE WHEN b.slug = 'pamel' THEN 0 WHEN b.slug = 'latin' THEN 1 ELSE 2 END ASC,
+                COALESCE(b.display_order, 999) ASC,
                 p.created_at DESC"
         );
     }
@@ -223,9 +225,10 @@ class Product extends Model
         $params[] = $limit;
         $params[] = $offset;
         return $this->db->fetchAll(
-            "SELECT p.*, c.name as category_name, c.icon as category_icon
+            "SELECT p.*, c.name as category_name, c.icon as category_icon, lc.id as lms_course_id
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
+             LEFT JOIN lms_courses lc ON lc.product_id = p.id
              $where
              ORDER BY p.created_at DESC
              LIMIT ? OFFSET ?",
@@ -242,13 +245,15 @@ class Product extends Model
 
         return $this->db->fetchAll(
             "SELECT p.*, c.name as category_name, c.slug as category_slug, c.icon as category_icon,
-                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon
+                    b.name as branch_name, b.slug as branch_slug, b.icon as branch_icon,
+                    m.name as modality_name, m.slug as modality_slug, m.icon as modality_icon, m.color as modality_color
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN branches b ON p.branch_id = b.id
+             LEFT JOIN modalities m ON p.modality_id = m.id
              $where
              ORDER BY
-                CASE WHEN b.slug = 'pamel' THEN 0 WHEN b.slug = 'latin' THEN 1 ELSE 2 END ASC,
+                COALESCE(b.display_order, 999) ASC,
                 p.created_at DESC
              LIMIT ? OFFSET ?",
             $params
@@ -263,6 +268,7 @@ class Product extends Model
              FROM {$this->table} p
              LEFT JOIN categories c ON p.category_id = c.id
              LEFT JOIN branches b ON p.branch_id = b.id
+             LEFT JOIN modalities m ON p.modality_id = m.id
              $where",
             $params
         );
@@ -285,7 +291,7 @@ class Product extends Model
         }
 
         if (!empty($filters['modality'])) {
-            $where[] = "p.modality = ?";
+            $where[] = "m.slug = ?";
             $params[] = $filters['modality'];
         }
 

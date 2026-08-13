@@ -135,8 +135,13 @@
                                     <i class="fas <?php echo htmlspecialchars($branch['icon'] ?: 'fa-anchor'); ?> text-3xl text-white"></i>
                                 </div>
                                 <div class="text-left">
-                                    <p class="text-xs uppercase tracking-widest text-<?php echo $theme['text']; ?> font-semibold"><?php echo htmlspecialchars($branch['description'] ?: $branch['name']); ?></p>
-                                    <h3 class="text-2xl font-extrabold leading-tight"><?php echo htmlspecialchars($branch['name']); ?> Courses</h3>
+                                    <?php
+                                    $branchDescription = \Core\Language::getLocale() === 'es' && !empty($branch['description_es'])
+                                        ? $branch['description_es']
+                                        : $branch['description'];
+                                    ?>
+                                    <p class="text-xs uppercase tracking-widest text-<?php echo $theme['text']; ?> font-semibold"><?php echo htmlspecialchars($branchDescription ?: $branch['name']); ?></p>
+                                    <h3 class="text-2xl font-extrabold leading-tight"><?php echo htmlspecialchars($branch['name']); ?> <?php echo __('home.featured.title'); ?></h3>
                                 </div>
                             </div>
                             <p class="text-sm text-<?php echo $theme['text']; ?> mt-1">STCW CERTIFIED - <?php echo htmlspecialchars(strtoupper($branch['name'])); ?></p>
@@ -261,8 +266,7 @@
                     <span class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider">
                         <?php echo __('branches.practical.badge'); ?>
                     </span>
-                    <h2 class="text-3xl font-bold text-gray-900 mt-5 mb-2"><?php echo __('branches.practical.title'); ?></h2>
-                    <p class="text-gray-500 max-w-2xl mx-auto"><?php echo __('branches.practical.subtitle'); ?></p>
+                    <p class="text-gray-500 max-w-2xl mx-auto mt-5"><?php echo __('branches.practical.subtitle'); ?></p>
                 </div>
 
                 <div class="grid md:grid-cols-3 gap-6">
@@ -523,20 +527,28 @@
                     <p class="text-gray-600"><?php echo __('home.why_choose.feature_2_text'); ?></p>
                 </div>
 
-                <!-- <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
                     <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-certificate text-cyan-600 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2">Global Certificates</h3>
-                    <p class="text-gray-600">Internationally recognized certifications</p>
-                </div> -->
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_3'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_3_text'); ?></p>
+                </div>
 
                 <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
                     <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
                         <i class="fas fa-headset text-blue-600 text-2xl"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_3'); ?></h3>
-                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_3_text'); ?></p>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_4'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_4_text'); ?></p>
+                </div>
+
+                <div class="bg-white rounded-xl p-8 shadow-lg hover:shadow-2xl transition">
+                    <div class="bg-cyan-100 w-16 h-16 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-mobile-alt text-cyan-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2"><?php echo __('home.why_choose.feature_5'); ?></h3>
+                    <p class="text-gray-600"><?php echo __('home.why_choose.feature_5_text'); ?></p>
                 </div>
 
             </div>

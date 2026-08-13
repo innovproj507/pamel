@@ -94,7 +94,7 @@ class AdminProductController extends Controller
                 'stock'              => $_POST['stock'],
                 'category_id'        => !empty($_POST['category_id']) ? $_POST['category_id'] : null,
                 'branch_id'          => !empty($_POST['branch_id']) ? $_POST['branch_id'] : null,
-                'modality'           => $_POST['modality'] ?? null,
+                'modality_id'        => !empty($_POST['modality_id']) ? (int) $_POST['modality_id'] : null,
                 'imo_model_course_no'=> !empty($_POST['imo_model_course_no']) ? $_POST['imo_model_course_no'] : null,
                 'course_code'        => !empty($_POST['course_code']) ? $_POST['course_code'] : null,
                 'duration_hours'     => !empty($_POST['duration_hours']) ? floatval($_POST['duration_hours']) : 0,
@@ -145,7 +145,7 @@ class AdminProductController extends Controller
             $imagePath = $this->handleImageUpload($_POST['image_url'] ?? '', $_POST['current_image'] ?? '');
             $branchId = !empty($_POST['branch_id']) ? intval($_POST['branch_id']) : null;
 
-            $this->productModel->update($id, [
+            $productUpdated = $this->productModel->update($id, [
                 'name' => $_POST['name'],
                 'slug' => $slug,
                 'description' => $_POST['description'],
@@ -154,13 +154,18 @@ class AdminProductController extends Controller
                 'stock' => $_POST['stock'],
                 'category_id' => $_POST['category_id'] ?? null,
                 'branch_id' => $branchId,
-                'modality' => $_POST['modality'] ?? null,
+                'modality_id' => !empty($_POST['modality_id']) ? (int) $_POST['modality_id'] : null,
                 'imo_model_course_no' => $_POST['imo_model_course_no'] ?? null,
                 'course_code' => $_POST['course_code'] ?? null,
                 'duration_hours' => !empty($_POST['duration_hours']) ? floatval($_POST['duration_hours']) : 0,
                 'image' => $imagePath,
                 'status' => $_POST['status']
             ]);
+
+            // Keep the linked LMS course's price field in sync (no-op if unlinked)
+            if ($productUpdated) {
+                $this->db->update('lms_courses', ['price' => $_POST['price']], 'product_id = :pid', ['pid' => (int) $id]);
+            }
 
             // If no LMS course linked yet, auto-create one
             $existing = $this->db->fetchOne("SELECT id FROM lms_courses WHERE product_id = ?", [(int)$id]);

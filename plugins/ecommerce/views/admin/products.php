@@ -80,6 +80,7 @@
                     <th class="w-14 px-3 py-3 text-left">Img</th>
                     <th class="px-3 py-3 text-left">Curso</th>
                     <th class="w-28 px-3 py-3 text-left">Categoría</th>
+                    <th class="w-24 px-3 py-3 text-center">LMS</th>
                     <th class="w-16 px-3 py-3 text-center">Stock</th>
                     <th class="w-20 px-3 py-3 text-center">Estado</th>
                     <th class="w-32 px-3 py-3 text-center">Acciones</th>
@@ -121,6 +122,21 @@
                             </span>
                         <?php else: ?>
                             <span class="text-gray-400 text-xs">—</span>
+                        <?php endif; ?>
+                    </td>
+
+                    <!-- LMS link -->
+                    <td class="px-3 py-3 text-center">
+                        <?php if (!empty($product['lms_course_id'])): ?>
+                            <a href="/manager/lms/courses/<?php echo $product['lms_course_id']; ?>/edit"
+                               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 transition">
+                                <i class="fas fa-check mr-1"></i>Vinculado
+                            </a>
+                        <?php else: ?>
+                            <a href="/manager/lms/courses/create?product_id=<?php echo $product['id']; ?>"
+                               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-amber-100 hover:text-amber-700 transition">
+                                <i class="fas fa-plus mr-1"></i>Sin curso
+                            </a>
                         <?php endif; ?>
                     </td>
 

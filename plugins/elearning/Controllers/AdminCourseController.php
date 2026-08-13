@@ -112,13 +112,19 @@ class AdminCourseController extends BaseController
         $view       = new View();
         $teachers   = $this->db->fetchAll("SELECT id, name FROM users WHERE role IN ('admin', 'teacher')");
         $categories = $this->db->fetchAll("SELECT id, name FROM lms_categories ORDER BY name ASC");
-        $products   = $this->db->fetchAll("SELECT id, name, course_code, status FROM products ORDER BY name ASC");
+        $products   = $this->db->fetchAll(
+            "SELECT id, name, course_code, status FROM products
+             WHERE id NOT IN (SELECT product_id FROM lms_courses WHERE product_id IS NOT NULL)
+             ORDER BY name ASC"
+        );
+        $preselectedProductId = !empty($_GET['product_id']) ? (int) $_GET['product_id'] : null;
 
         $view->render('admin/views/lms/courses/create', [
             'title'      => 'Crear Nuevo Curso',
             'teachers'   => $teachers,
             'categories' => $categories,
             'products'   => $products,
+            'preselectedProductId' => $preselectedProductId,
         ], 'admin/views/layout');
     }
 
@@ -154,9 +160,13 @@ class AdminCourseController extends BaseController
             'created_at'      => date('Y-m-d H:i:s'),
         ];
 
-        $this->db->insert('lms_courses', $data);
-        
-        $this->flash('success', 'Curso creado correctamente.');
+        $newId = $this->db->insert('lms_courses', $data);
+
+        if ($newId) {
+            $this->flash('success', 'Curso creado correctamente.');
+        } else {
+            $this->flash('error', 'No se pudo crear el curso. Revisa los datos e intenta de nuevo.');
+        }
         $this->redirect('/manager/lms/courses');
     }
 
@@ -188,7 +198,10 @@ class AdminCourseController extends BaseController
         $teachers   = $this->db->fetchAll("SELECT id, name FROM users WHERE role IN ('admin', 'teacher')");
         $categories = $this->db->fetchAll("SELECT id, name FROM lms_categories ORDER BY name ASC");
         $products   = $this->db->fetchAll(
-            "SELECT id, name, course_code, status FROM products ORDER BY name ASC"
+            "SELECT id, name, course_code, status FROM products
+             WHERE id NOT IN (SELECT product_id FROM lms_courses WHERE product_id IS NOT NULL AND id != ?)
+             ORDER BY name ASC",
+            [(int) $id]
         );
 
         $view = new View();

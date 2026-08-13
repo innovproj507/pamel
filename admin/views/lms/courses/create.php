@@ -97,7 +97,7 @@
                 <select name="product_id" class="w-full px-4 py-2 rounded-lg border border-blue-200 bg-white text-sm font-semibold text-slate-700 focus:border-blue-500 outline-none transition">
                     <option value="">— Sin producto —</option>
                     <?php foreach ($products as $prod): ?>
-                    <option value="<?= $prod['id'] ?>">
+                    <option value="<?= $prod['id'] ?>" <?= (int) ($preselectedProductId ?? 0) === (int) $prod['id'] ? 'selected' : '' ?>>
                         <?= htmlspecialchars("[{$prod['course_code']}] {$prod['name']}") ?>
                         <?= $prod['status'] === 'inactive' ? ' ⚠ inactivo' : '' ?>
                     </option>

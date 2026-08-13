@@ -92,13 +92,21 @@
         </div>
 
         <div class="mb-6">
-            <label for="modality" class="block text-sm font-medium text-gray-700 mb-2">Modality *</label>
-            <select id="modality" name="modality" required
+            <label for="modality_id" class="block text-sm font-medium text-gray-700 mb-2">Modality *</label>
+            <select id="modality_id" name="modality_id" required
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                 <option value="">-- Select Modality --</option>
-                <option value="B-learning" <?php echo (isset($product['modality']) && $product['modality'] === 'B-learning') ? 'selected' : ''; ?>>B-learning</option>
-                <option value="E-learning" <?php echo (isset($product['modality']) && $product['modality'] === 'E-learning') ? 'selected' : ''; ?>>E-learning</option>
-                <option value="India Exclusive" id="opt-india" <?php echo (isset($product['modality']) && $product['modality'] === 'India Exclusive') ? 'selected' : ''; ?>>India Exclusive</option>
+                <?php
+                $modalityModel = new \Plugins\Ecommerce\Models\Modality();
+                $allModalities = $modalityModel->all();
+                foreach ($allModalities as $modalityOpt):
+                ?>
+                    <option value="<?php echo $modalityOpt['id']; ?>"
+                            data-branch-id="<?php echo $modalityOpt['branch_id'] ?: ''; ?>"
+                            <?php echo (isset($product['modality_id']) && $product['modality_id'] == $modalityOpt['id']) ? 'selected' : ''; ?>>
+                        <?php echo htmlspecialchars($modalityOpt['name']); ?>
+                    </option>
+                <?php endforeach; ?>
             </select>
             <p class="mt-1 text-sm text-gray-500">Select the course delivery modality</p>
         </div>
@@ -200,21 +208,21 @@ function previewImage(event) {
 
 function toggleIndiaExclusive() {
     const branchSelect = document.getElementById('branch_id');
-    const modalitySelect = document.getElementById('modality');
-    const indiaOpt = document.getElementById('opt-india');
-    const selectedBranchOpt = branchSelect.options[branchSelect.selectedIndex];
-    const branchName = selectedBranchOpt ? (selectedBranchOpt.getAttribute('data-name') || '') : '';
+    const modalitySelect = document.getElementById('modality_id');
+    const selectedBranchId = branchSelect.value;
 
-    if (branchName.includes('latin')) {
-        indiaOpt.style.display = 'block';
-        indiaOpt.disabled = false;
-    } else {
-        indiaOpt.style.display = 'none';
-        indiaOpt.disabled = true;
-        if (modalitySelect.value === 'India Exclusive') {
+    Array.from(modalitySelect.options).forEach(function(opt) {
+        const restrictedTo = opt.getAttribute('data-branch-id');
+        if (!restrictedTo) {
+            return; // available for all branches
+        }
+        const allowed = restrictedTo === selectedBranchId;
+        opt.style.display = allowed ? 'block' : 'none';
+        opt.disabled = !allowed;
+        if (!allowed && modalitySelect.value === opt.value) {
             modalitySelect.value = '';
         }
-    }
+    });
 }
 
 // Slug generation logic

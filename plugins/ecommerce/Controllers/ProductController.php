@@ -62,12 +62,15 @@ class ProductController extends Controller
         $categories = $categoryModel->all();
         $branchModel = new \Plugins\Ecommerce\Models\Branch();
         $branches = $branchModel->all();
+        $modalityModel = new \Plugins\Ecommerce\Models\Modality();
+        $modalities = $modalityModel->all();
 
         $this->view->render('plugins/ecommerce/views/shop', [
             'title' => __('shop.title'),
             'products' => $products,
             'categories' => $categories,
             'branches' => $branches,
+            'modalities' => $modalities,
             'filters' => $filters,
             'currentPage' => $page,
             'totalPages' => $totalPages,

@@ -60,12 +60,16 @@ return [
         'why_choose' => [
             'title' => 'Why Choose PAMEL?',
             'subtitle' => 'Excellence in Maritime Training',
-            'feature_1' => 'Expert Instructors',
-            'feature_1_text' => 'Learn from experienced maritime professionals',
+            'feature_1' => 'Experienced Instructors',
+            'feature_1_text' => 'Learn from professionals with hands-on experience in the maritime field.',
             'feature_2' => 'E-Learning Platform',
-            'feature_2_text' => 'Study online at your own pace, anytime',
-            'feature_3' => '24/7 Support',
-            'feature_3_text' => 'Dedicated support whenever you need it'
+            'feature_2_text' => 'Study from anywhere, anytime, at your own pace.',
+            'feature_3' => 'Completion Certificates',
+            'feature_3_text' => 'Get credit for the courses you complete and strengthen your professional profile.',
+            'feature_4' => '24/7 Support',
+            'feature_4_text' => 'We are available to support you throughout your learning journey.',
+            'feature_5' => 'Access from Any Device',
+            'feature_5_text' => 'Learn from your phone, tablet, or computer.'
         ]
     ],
     'admission' => [
@@ -171,8 +175,8 @@ return [
         'intro' => 'PAMEL operates multiple training facilities strategically located to serve maritime professionals across the region.',
         'headquarters' => [
             'badge' => 'HEADQUARTERS',
-            'title' => 'Panama City Center',
-            'text' => 'Our main campus features state-of-the-art training facilities, modern classrooms, and advanced maritime simulation equipment.',
+            'title' => 'Panama City',
+            'text' => 'Our main center features state-of-the-art training facilities, modern classrooms, and advanced maritime simulation equipment.',
             'facilities_title' => 'Facilities Include:',
             'facilities' => [
                 'Modern Training Simulators',
@@ -204,7 +208,7 @@ return [
                 'title' => 'Pool',
                 'subtitle' => 'Aquatic Survival Training',
                 'text' => 'Aquatic facility used for practical training in sea survival techniques, evacuation and rescue in accordance with STCW standards.',
-                'location' => 'Los Ríos, Panama'
+                'location' => 'Panama'
             ],
             'fire' => [
                 'title' => 'POIDVEN',
@@ -220,8 +224,8 @@ return [
             ]
         ],
         'map' => [
-            'title' => 'Find Us On The Map',
-            'subtitle' => 'Visit any of our conveniently located branches',
+            'title' => 'Find Us',
+            'subtitle' => 'We are in Panama.<br>Come visit us, we\'re waiting for you!',
             'btn' => 'Get Directions'
         ]
     ],

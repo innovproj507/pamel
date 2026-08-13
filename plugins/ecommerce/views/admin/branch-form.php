@@ -22,9 +22,16 @@
         </div>
 
         <div class="mb-6">
-            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description</label>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-2">Description (English)</label>
             <textarea id="description" name="description" rows="3"
                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"><?php echo $branch ? htmlspecialchars($branch['description']) : ''; ?></textarea>
+        </div>
+
+        <div class="mb-6">
+            <label for="description_es" class="block text-sm font-medium text-gray-700 mb-2">Description (Español)</label>
+            <textarea id="description_es" name="description_es" rows="3"
+                      class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-transparent"><?php echo $branch && !empty($branch['description_es']) ? htmlspecialchars($branch['description_es']) : ''; ?></textarea>
+            <p class="mt-1 text-sm text-gray-500">Se usa cuando el sitio esta en español. Si se deja vacio, se muestra la descripcion en ingles.</p>
         </div>
 
         <div class="grid grid-cols-2 gap-6 mb-6">

@@ -57,6 +57,7 @@ class AdminBranchController extends Controller
                 'name' => $_POST['name'],
                 'slug' => $slug,
                 'description' => $_POST['description'] ?? '',
+                'description_es' => $_POST['description_es'] ?? '',
                 'icon' => $_POST['icon'] ?? 'fa-anchor',
                 'display_order' => $_POST['display_order'] ?? 0
             ]);
@@ -90,6 +91,7 @@ class AdminBranchController extends Controller
                 'name' => $_POST['name'],
                 'slug' => $slug,
                 'description' => $_POST['description'] ?? '',
+                'description_es' => $_POST['description_es'] ?? '',
                 'icon' => $_POST['icon'] ?? 'fa-anchor',
                 'display_order' => $_POST['display_order'] ?? 0
             ]);

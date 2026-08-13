@@ -283,7 +283,7 @@
                 </div>
             </div>
         </div>
-    </main>
+    </nav>
 
     <!-- Main Content -->
     <main>

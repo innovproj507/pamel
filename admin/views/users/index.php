@@ -77,14 +77,13 @@
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
                         <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registered</th>
                         <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
                     <?php if (empty($users)): ?>
                     <tr>
-                        <td colspan="5" class="px-6 py-12 text-center">
+                        <td colspan="4" class="px-6 py-12 text-center">
                             <i class="fas fa-users text-gray-300 text-4xl mb-3"></i>
                             <p class="text-gray-500 text-sm">No se encontraron usuarios</p>
                             <?php if ($search || $roleFilter || $statusFilter): ?>
@@ -130,10 +129,6 @@
                                 <span class="h-1.5 w-1.5 rounded-full mr-1.5 <?php echo $status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'; ?>"></span>
                                 <?php echo ucfirst($status); ?>
                             </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            <i class="far fa-calendar-alt mr-2 text-gray-400"></i>
-                            <?php echo date('M d, Y', strtotime($user['created_at'])); ?>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                             <a href="/manager/users/<?php echo $user['id']; ?>/toggle-status"

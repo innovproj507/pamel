@@ -42,6 +42,14 @@ return function($router) {
     $router->post('/manager/branches/:id/update', 'Plugins\Ecommerce\Controllers\AdminBranchController@update', 'admin.branches.update');
     $router->post('/manager/branches/:id/delete', 'Plugins\Ecommerce\Controllers\AdminBranchController@delete', 'admin.branches.delete');
 
+    // Modalities
+    $router->get('/manager/modalities', 'Plugins\Ecommerce\Controllers\AdminModalityController@index', 'admin.modalities');
+    $router->get('/manager/modalities/create', 'Plugins\Ecommerce\Controllers\AdminModalityController@create', 'admin.modalities.create');
+    $router->post('/manager/modalities/store', 'Plugins\Ecommerce\Controllers\AdminModalityController@store', 'admin.modalities.store');
+    $router->get('/manager/modalities/:id/edit', 'Plugins\Ecommerce\Controllers\AdminModalityController@edit', 'admin.modalities.edit');
+    $router->post('/manager/modalities/:id/update', 'Plugins\Ecommerce\Controllers\AdminModalityController@update', 'admin.modalities.update');
+    $router->post('/manager/modalities/:id/delete', 'Plugins\Ecommerce\Controllers\AdminModalityController@delete', 'admin.modalities.delete');
+
     // Orders
     $router->get('/manager/orders', 'Plugins\Ecommerce\Controllers\AdminOrderController@index', 'admin.orders');
     $router->get('/manager/orders/:id', 'Plugins\Ecommerce\Controllers\AdminOrderController@show', 'admin.orders.show');

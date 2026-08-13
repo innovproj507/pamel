@@ -60,12 +60,16 @@ return [
         'why_choose' => [
             'title' => '¿Por qué elegir PAMEL?',
             'subtitle' => 'Excelencia en Formación Marítima',
-            'feature_1' => 'Instructores Expertos',
-            'feature_1_text' => 'Aprende de profesionales marítimos con experiencia',
+            'feature_1' => 'Instructores con Experiencia',
+            'feature_1_text' => 'Aprende de profesionales con experiencia práctica en el ámbito marítimo.',
             'feature_2' => 'Plataforma E-Learning',
-            'feature_2_text' => 'Estudia en línea a tu propio ritmo, en cualquier momento',
-            'feature_3' => 'Soporte 24/7',
-            'feature_3_text' => 'Soporte dedicado siempre que lo necesites'
+            'feature_2_text' => 'Estudia desde cualquier lugar, en cualquier momento y a tu propio ritmo.',
+            'feature_3' => 'Certificados de Finalización',
+            'feature_3_text' => 'Acredita los cursos que has completado y fortalece tu perfil profesional.',
+            'feature_4' => 'Soporte 24/7',
+            'feature_4_text' => 'Estamos disponibles para acompañarte durante tu proceso de aprendizaje.',
+            'feature_5' => 'Acceso desde Cualquier Dispositivo',
+            'feature_5_text' => 'Aprende desde tu celular, tablet o computadora.'
         ]
     ],
     'admission' => [
@@ -203,7 +207,7 @@ return [
                 'title' => 'Piscina',
                 'subtitle' => 'Entrenamiento de Supervivencia Acuática',
                 'text' => 'Instalación acuática utilizada para el entrenamiento práctico en técnicas de supervivencia en el mar, evacuación y rescate conforme a los estándares STCW.',
-                'location' => 'Los Ríos, Panamá'
+                'location' => 'Panamá'
             ],
             'fire' => [
                 'title' => 'POIDVEN',
@@ -219,8 +223,8 @@ return [
             ]
         ],
         'map' => [
-            'title' => 'Encuéntranos en el mapa',
-            'subtitle' => 'Visite cualquiera de nuestras sucursales convenientemente ubicadas',
+            'title' => 'Encuéntranos',
+            'subtitle' => 'Estamos en Panamá.<br>Ven a visitarnos, ¡te esperamos!',
             'btn' => 'Obtener Direcciones'
         ]
     ],
