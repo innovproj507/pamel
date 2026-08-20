@@ -39,7 +39,7 @@ return [
         ],
         'about' => [
             'badge' => 'Sobre Nosotros',
-            'title' => 'Bienvenido a :name',
+            'title' => 'Bienvenidos a :name',
             'text' => 'Como Centro de Formación Marítima, PAMEL está comprometido con la capacitación y el desarrollo de competencias profesionales de la gente de mar, ofreciendo programas de formación de alta calidad basados en los estándares y cursos modelo de la Organización Marítima Internacional (OMI).',
             'feature_iso' => 'Certificación ISO 9001:2015',
             'feature_iso_text' => 'Sistema de gestión de calidad certificado por GCL International, garantizando los más altos estándares de formación.',

@@ -3,6 +3,9 @@ $q                = htmlspecialchars($q ?? '');
 $filterStatus     = $filterStatus     ?? '';
 $filterCategory   = (int)($filterCategory   ?? 0);
 $filterHasProduct = $filterHasProduct ?? '';
+$filterTeacherId  = (int)($filterTeacherId ?? 0);
+$teachers         = $teachers ?? [];
+$isTeacher        = $isTeacher ?? false;
 $total            = (int)($total   ?? 0);
 $page             = (int)($page    ?? 1);
 $lastPage         = (int)($lastPage ?? 1);
@@ -13,6 +16,7 @@ $pagerBase = http_build_query(array_filter([
     'status'      => $filterStatus,
     'category_id' => $filterCategory ?: null,
     'has_product' => $filterHasProduct,
+    'teacher_id'  => $filterTeacherId ?: null,
 ]));
 $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
 ?>
@@ -60,7 +64,7 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
                        font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-md shadow-blue-600/20 whitespace-nowrap">
             <i class="fas fa-search text-xs"></i> Buscar
         </button>
-        <?php if ($q || $filterStatus || $filterCategory || $filterHasProduct !== ''): ?>
+        <?php if ($q || $filterStatus || $filterCategory || $filterHasProduct !== '' || $filterTeacherId): ?>
         <a href="/manager/lms/courses"
            class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600
                   font-bold text-sm px-5 py-3.5 rounded-xl transition-all whitespace-nowrap">
@@ -70,7 +74,7 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
     </div>
 
     <!-- Fila 2: filtros secundarios -->
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-1 sm:grid-cols-<?= !$isTeacher ? '4' : '3' ?> gap-3">
 
         <!-- Estado -->
         <div>
@@ -111,6 +115,23 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
                 <option value="0" <?= $filterHasProduct === '0' ? 'selected' : '' ?>>Sin producto vinculado</option>
             </select>
         </div>
+
+        <?php if (!$isTeacher): ?>
+        <!-- Instructor -->
+        <div>
+            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Instructor</label>
+            <select name="teacher_id"
+                    class="w-full px-4 py-2.5 rounded-xl bg-slate-50 text-sm font-bold text-slate-700
+                           border border-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-200 outline-none transition-all">
+                <option value="">Todos los instructores</option>
+                <?php foreach ($teachers as $t): ?>
+                <option value="<?= $t['id'] ?>" <?= $filterTeacherId === (int)$t['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($t['name']) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <?php endif; ?>
     </div>
 </form>
 
@@ -121,6 +142,7 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
             <thead>
                 <tr class="bg-white border-b border-slate-50">
                     <th class="w-1/3 px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Curso</th>
+                    <th class="w-40 px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Instructor</th>
                     <th class="w-36 px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] text-center">Estado</th>
                     <th class="w-52 px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] text-center">Contenido</th>
                     <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] text-right">Acciones</th>
@@ -129,7 +151,7 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
             <tbody class="divide-y divide-slate-50">
                 <?php if (empty($courses)): ?>
                 <tr>
-                    <td colspan="4" class="px-8 py-16 text-center text-slate-400">
+                    <td colspan="5" class="px-8 py-16 text-center text-slate-400">
                         <i class="fas fa-search text-3xl mb-3 block opacity-30"></i>
                         <p class="font-semibold text-sm">No se encontraron cursos con esos filtros.</p>
                         <a href="/manager/lms/courses" class="text-blue-500 text-xs mt-1 inline-block hover:underline">Limpiar filtros</a>
@@ -169,6 +191,15 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
                                 <?php endif; ?>
                             </div>
                         </div>
+                    </td>
+
+                    <!-- Instructor -->
+                    <td class="px-6 py-5">
+                        <?php if (!empty($course['teacher_name'])): ?>
+                        <span class="text-[11px] font-bold text-slate-600"><?= htmlspecialchars($course['teacher_name']) ?></span>
+                        <?php else: ?>
+                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Sin asignar</span>
+                        <?php endif; ?>
                     </td>
 
                     <!-- Estado -->

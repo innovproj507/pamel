@@ -55,10 +55,7 @@
             
             <!-- Welcome Section -->
             <div class="text-center mb-16">
-                <span class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold uppercase tracking-wider">
-                    <?php echo __('home.about.badge'); ?>
-                </span>
-                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mt-6 mb-6">
+                <h2 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
                     <?php echo __('home.about.title', ['name' => '<span class="text-cyan-600">PAMEL</span>']); ?>
                 </h2>
                 <p class="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
@@ -457,10 +454,6 @@
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-xl p-8">
-                    <p class="text-gray-700 leading-relaxed text-justify mb-6">
-                        <?php echo __('services.competence.text'); ?>
-                    </p>
-
                     <div class="bg-gradient-to-br from-cyan-50 to-blue-50 rounded-xl p-6">
                         <h3 class="text-xl font-bold text-gray-900 mb-4"><?php echo __('services.competence.subtitle'); ?></h3>
                         <ul class="grid md:grid-cols-2 gap-x-8 gap-y-3 text-gray-700">

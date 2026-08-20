@@ -48,6 +48,32 @@
                 <?php endif; ?>
             </div>
 
+            <!-- Instructor -->
+            <div>
+                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Instructor</label>
+                <?php if ($isAdmin): ?>
+                    <select name="teacher_id" class="w-full px-6 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-base font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
+                        <option value="">— Sin asignar —</option>
+                        <?php foreach ($teachers as $t): ?>
+                        <option value="<?= $t['id'] ?>" <?= (int)($course['teacher_id'] ?? 0) === (int)$t['id'] ? 'selected' : '' ?>><?= htmlspecialchars($t['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                <?php else: ?>
+                    <?php
+                        $currentTeacher = '— Sin asignar —';
+                        foreach ($teachers as $t) {
+                            if ((int) $t['id'] === (int) ($course['teacher_id'] ?? 0)) {
+                                $currentTeacher = $t['name'];
+                            }
+                        }
+                    ?>
+                    <div class="px-6 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-base font-bold text-slate-500">
+                        <?= htmlspecialchars($currentTeacher) ?>
+                        <span class="text-xs font-medium text-slate-400 ml-2">(solo un administrador puede reasignar el instructor)</span>
+                    </div>
+                <?php endif; ?>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Categoría -->
                 <div>

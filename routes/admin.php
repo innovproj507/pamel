@@ -145,4 +145,7 @@ return function($router) {
     $router->get('/manager/lms/students/create', 'Plugins\Elearning\Controllers\AdminEnrollmentController@create', 'admin.lms.students.create');
     $router->post('/manager/lms/students/store', 'Plugins\Elearning\Controllers\AdminEnrollmentController@store', 'admin.lms.students.store');
     $router->post('/manager/lms/students/:id/delete', 'Plugins\Elearning\Controllers\AdminEnrollmentController@delete', 'admin.lms.students.delete');
+
+    // LMS Instructors
+    $router->get('/manager/lms/teachers', 'Plugins\Elearning\Controllers\AdminTeacherController@index', 'admin.lms.teachers');
 };

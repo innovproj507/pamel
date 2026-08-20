@@ -60,6 +60,31 @@ class BaseController
     }
 
     /**
+     * Fetch a course and ensure the current user may manage it (admin, or the
+     * teacher it's assigned to). Redirects to the course list otherwise.
+     */
+    protected function authorizeCourseOwnership($courseId)
+    {
+        $course = $this->db->fetchOne("SELECT * FROM lms_courses WHERE id = ?", [(int) $courseId]);
+        if (!$course) {
+            $this->redirect('/manager/lms/courses');
+        }
+        $this->assertOwnsCourse($course);
+        return $course;
+    }
+
+    /**
+     * Check ownership on an already-fetched course row (avoids a second query).
+     */
+    protected function assertOwnsCourse(array $course)
+    {
+        if ($this->user['role'] !== 'admin' && (int) ($course['teacher_id'] ?? 0) !== (int) $this->user['id']) {
+            $this->flash('error', 'No tienes permiso para gestionar este curso.');
+            $this->redirect('/manager/lms/courses');
+        }
+    }
+
+    /**
      * Redirect
      */
     protected function redirect($path)

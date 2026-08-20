@@ -68,6 +68,7 @@
             <div class="nav-section">E-Learning</div>
             <a href="/manager/lms/courses"   class="nav-link"><i class="fas fa-graduation-cap w-4 text-center"></i>Cursos</a>
             <a href="/manager/lms/students"  class="nav-link"><i class="fas fa-user-graduate w-4 text-center"></i>Estudiantes</a>
+            <a href="/manager/lms/teachers"  class="nav-link"><i class="fas fa-chalkboard-teacher w-4 text-center"></i>Instructores</a>
             <a href="/manager/lms/quizzes"   class="nav-link"><i class="fas fa-vial-circle-check w-4 text-center"></i>Quizzes</a>
             <a href="/manager/lms/categories" class="nav-link"><i class="fas fa-tags w-4 text-center"></i>Categorías LMS</a>
             <a href="/manager/lms/forums"    class="nav-link"><i class="fas fa-comments w-4 text-center"></i>Foros</a>

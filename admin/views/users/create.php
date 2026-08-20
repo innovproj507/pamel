@@ -97,14 +97,15 @@
                         <label for="role" class="block text-sm font-medium text-gray-700 mb-2">
                             Rol <span class="text-red-500">*</span>
                         </label>
-                        <select name="role" 
-                                id="role" 
+                        <?php $preselectedRole = $_GET['role'] ?? 'student'; ?>
+                        <select name="role"
+                                id="role"
                                 required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                            <option value="student">Estudiante</option>
-                            <option value="teacher">Instructor</option>
-                            <option value="editor">Editor</option>
-                            <option value="admin">Administrador</option>
+                            <option value="student" <?php echo $preselectedRole === 'student' ? 'selected' : ''; ?>>Estudiante</option>
+                            <option value="teacher" <?php echo $preselectedRole === 'teacher' ? 'selected' : ''; ?>>Instructor</option>
+                            <option value="editor" <?php echo $preselectedRole === 'editor' ? 'selected' : ''; ?>>Editor</option>
+                            <option value="admin" <?php echo $preselectedRole === 'admin' ? 'selected' : ''; ?>>Administrador</option>
                         </select>
                         <p class="mt-1 text-xs text-gray-500">
                             <strong>Cliente:</strong> Acceso al panel de usuario<br>
@@ -132,7 +133,7 @@
 
             <!-- Botones de Acción -->
             <div class="flex items-center justify-end space-x-4 pt-4">
-                <a href="/manager/users" 
+                <a href="<?php echo $preselectedRole === 'teacher' ? '/manager/lms/teachers' : '/manager/users'; ?>"
                    class="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all">
                     <i class="fas fa-times mr-2"></i>
                     Cancelar

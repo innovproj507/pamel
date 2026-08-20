@@ -23,15 +23,24 @@ class AdminQuizController extends BaseController
      */
     public function index()
     {
-        $this->requireAuth();
-        
+        $this->requireRole(['admin', 'teacher']);
+
+        $where  = '1=1';
+        $params = [];
+        if ($this->user['role'] === 'teacher') {
+            $where  = 'c.teacher_id = ?';
+            $params = [(int) $this->user['id']];
+        }
+
         $view = new View();
         $quizzes = $this->db->fetchAll(
             "SELECT q.*, c.title as course_title,
                     (SELECT COUNT(*) FROM lms_questions WHERE quiz_id = q.id) as question_count
              FROM lms_quizzes q
              LEFT JOIN lms_courses c ON c.id = q.course_id
-             ORDER BY q.created_at DESC"
+             WHERE {$where}
+             ORDER BY q.created_at DESC",
+            $params
         );
 
         $view->render('admin/views/lms/quizzes/index', [
@@ -45,10 +54,12 @@ class AdminQuizController extends BaseController
      */
     public function create()
     {
-        $this->requireAuth();
-        
+        $this->requireRole(['admin', 'teacher']);
+
         $view = new View();
-        $courses = $this->db->fetchAll("SELECT id, title FROM lms_courses ORDER BY title ASC");
+        $courses = $this->user['role'] === 'teacher'
+            ? $this->db->fetchAll("SELECT id, title FROM lms_courses WHERE teacher_id = ? ORDER BY title ASC", [(int) $this->user['id']])
+            : $this->db->fetchAll("SELECT id, title FROM lms_courses ORDER BY title ASC");
 
         $view->render('admin/views/lms/quizzes/create', [
             'title'   => 'Crear Nuevo Quiz',
@@ -61,15 +72,18 @@ class AdminQuizController extends BaseController
      */
     public function store()
     {
-        $this->requireAuth();
+        $this->requireRole(['admin', 'teacher']);
         $this->validateCsrf('/manager/lms/quizzes');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/manager/lms/quizzes');
         }
 
+        $courseId = (int)($_POST['course_id'] ?? 0);
+        $this->authorizeCourseOwnership($courseId);
+
         $data = [
-            'course_id'       => (int)($_POST['course_id'] ?? 0),
+            'course_id'       => $courseId,
             'title'           => $_POST['title'] ?? '',
             'description'     => $_POST['description'] ?? '',
             'pass_percentage' => (float)($_POST['pass_percentage'] ?? 70),
@@ -89,15 +103,14 @@ class AdminQuizController extends BaseController
      */
     public function edit($id)
     {
-        $this->requireAuth();
-        
-        $quiz = $this->quizModel->find($id);
-        if (!$quiz) {
-            $this->redirect('/manager/lms/quizzes');
-        }
+        $this->requireRole(['admin', 'teacher']);
+
+        $quiz = $this->authorizeQuiz($id);
 
         $view = new View();
-        $courses = $this->db->fetchAll("SELECT id, title FROM lms_courses ORDER BY title ASC");
+        $courses = $this->user['role'] === 'teacher'
+            ? $this->db->fetchAll("SELECT id, title FROM lms_courses WHERE teacher_id = ? ORDER BY title ASC", [(int) $this->user['id']])
+            : $this->db->fetchAll("SELECT id, title FROM lms_courses ORDER BY title ASC");
 
         $view->render('admin/views/lms/quizzes/edit', [
             'title'   => 'Editar Quiz: ' . $quiz['title'],
@@ -111,15 +124,20 @@ class AdminQuizController extends BaseController
      */
     public function update($id)
     {
-        $this->requireAuth();
+        $this->requireRole(['admin', 'teacher']);
         $this->validateCsrf('/manager/lms/quizzes');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/manager/lms/quizzes');
         }
 
+        // Must own the quiz being edited, and (if reassigning) the target course too.
+        $this->authorizeQuiz($id);
+        $courseId = (int)($_POST['course_id'] ?? 0);
+        $this->authorizeCourseOwnership($courseId);
+
         $data = [
-            'course_id'       => (int)($_POST['course_id'] ?? 0),
+            'course_id'       => $courseId,
             'title'           => $_POST['title'] ?? '',
             'description'     => $_POST['description'] ?? '',
             'pass_percentage' => (float)($_POST['pass_percentage'] ?? 70),
@@ -139,12 +157,14 @@ class AdminQuizController extends BaseController
      */
     public function delete($id)
     {
-        $this->requireAuth();
+        $this->requireRole(['admin', 'teacher']);
         $this->validateCsrf('/manager/lms/quizzes');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/manager/lms/quizzes');
         }
+
+        $this->authorizeQuiz($id);
 
         $this->db->query("DELETE FROM lms_quizzes WHERE id = ?", [$id]);
         
@@ -159,12 +179,9 @@ class AdminQuizController extends BaseController
      */
     public function questions($quizId)
     {
-        $this->requireAuth();
-        
-        $quiz = $this->quizModel->find($quizId);
-        if (!$quiz) {
-            $this->redirect('/manager/lms/quizzes');
-        }
+        $this->requireRole(['admin', 'teacher']);
+
+        $quiz = $this->authorizeQuiz($quizId);
 
         $view = new View();
         $questions = $this->db->fetchAll(
@@ -187,12 +204,9 @@ class AdminQuizController extends BaseController
      */
     public function addQuestion($quizId)
     {
-        $this->requireAuth();
-        
-        $quiz = $this->quizModel->find($quizId);
-        if (!$quiz) {
-            $this->redirect('/manager/lms/quizzes');
-        }
+        $this->requireRole(['admin', 'teacher']);
+
+        $quiz = $this->authorizeQuiz($quizId);
 
         $view = new View();
         $view->render('admin/views/lms/quizzes/add_question', [
@@ -206,12 +220,14 @@ class AdminQuizController extends BaseController
      */
     public function storeQuestion($quizId)
     {
-        $this->requireAuth();
+        $this->requireRole(['admin', 'teacher']);
         $this->validateCsrf("/manager/lms/quizzes/{$quizId}/questions/add");
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
         }
+
+        $this->authorizeQuiz($quizId);
 
         $questionText = $_POST['question'] ?? '';
         $points = (int)($_POST['points'] ?? 1);
@@ -251,12 +267,14 @@ class AdminQuizController extends BaseController
      */
     public function deleteQuestion($quizId, $id)
     {
-        $this->requireAuth();
+        $this->requireRole(['admin', 'teacher']);
         $this->validateCsrf("/manager/lms/quizzes/{$quizId}/questions");
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
         }
+
+        $this->authorizeQuiz($quizId);
 
         // Options are deleted by CASCADE in DB (hopefully)
         // If not, we manually delete them
@@ -265,5 +283,18 @@ class AdminQuizController extends BaseController
         
         $this->flash('success', 'Pregunta eliminada.');
         $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
+    }
+
+    /**
+     * Fetch a quiz and ensure the current user owns the course it belongs to.
+     */
+    private function authorizeQuiz($quizId)
+    {
+        $quiz = $this->quizModel->find($quizId);
+        if (!$quiz) {
+            $this->redirect('/manager/lms/quizzes');
+        }
+        $this->authorizeCourseOwnership($quiz['course_id']);
+        return $quiz;
     }
 }

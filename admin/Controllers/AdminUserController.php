@@ -134,8 +134,9 @@ class AdminUserController extends Controller
                 'role' => $role,
                 'created_by' => $_SESSION['user_id'] ?? 'unknown'
             ]);
-            
-            header('Location: /manager/users?success=' . urlencode('Usuario creado exitosamente'));
+
+            $listPath = $role === 'teacher' ? '/manager/lms/teachers' : '/manager/users';
+            header('Location: ' . $listPath . '?success=' . urlencode('Usuario creado exitosamente'));
             exit;
         }
 
