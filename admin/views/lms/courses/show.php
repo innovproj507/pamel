@@ -85,9 +85,11 @@ foreach($categories as $c) {
                         <span class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm">📚</span>
                         Contenido del Curso
                     </h2>
+<?php if (can('lms.lessons.manage')): ?>
                     <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create" class="text-xs font-black text-blue-600 hover:text-blue-700 uppercase tracking-widest">
                         + Añadir Lección
                     </a>
+<?php endif; ?>
                 </div>
 
                 <div class="space-y-2">
@@ -124,9 +126,11 @@ foreach($categories as $c) {
                                 <p class="text-sm font-bold text-slate-700 truncate"><?= htmlspecialchars($quiz['title']) ?></p>
                                 <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Evaluación</p>
                             </div>
+<?php if (can('lms.quizzes.manage')): ?>
                             <a href="/manager/lms/quizzes/<?= $quiz['id'] ?>/edit" class="p-2 text-slate-300 hover:text-amber-600 transition-colors opacity-0 group-hover:opacity-100">
                                 <i class="fas fa-edit"></i>
                             </a>
+<?php endif; ?>
                         </div>
                         <?php endforeach; ?>
                     </div>
@@ -193,14 +197,18 @@ foreach($categories as $c) {
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
                 <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Gestión</h3>
                 <div class="space-y-3">
+<?php if (can('lms.lessons.manage')): ?>
                     <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create" class="flex items-center gap-3 p-4 rounded-xl bg-blue-50 text-blue-600 font-bold hover:bg-blue-100 transition-all">
                         <i class="fas fa-plus text-blue-400"></i>
                         <span class="text-xs">Nueva Lección</span>
                     </a>
+<?php endif; ?>
+<?php if (can('lms.quizzes.manage')): ?>
                     <a href="/manager/lms/quizzes/create?course_id=<?= $course['id'] ?>" class="flex items-center gap-3 p-4 rounded-xl bg-amber-50 text-amber-600 font-bold hover:bg-amber-100 transition-all">
                         <i class="fas fa-vial text-amber-400"></i>
                         <span class="text-xs">Nueva Evaluación</span>
                     </a>
+<?php endif; ?>
                 </div>
             </div>
         </div>

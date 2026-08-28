@@ -21,7 +21,7 @@ class AdminProductController extends Controller
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         // Filters from GET
         $filters = [
@@ -60,7 +60,7 @@ class AdminProductController extends Controller
     public function create()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $this->view->render('plugins/ecommerce/views/admin/product-form', [
             'title' => 'Create Product',
@@ -71,7 +71,7 @@ class AdminProductController extends Controller
     public function store()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->generateSlug($_POST['name']);
@@ -125,7 +125,7 @@ class AdminProductController extends Controller
     public function edit($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $product = $this->productModel->find($id);
 
@@ -138,7 +138,7 @@ class AdminProductController extends Controller
     public function update($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->generateSlug($_POST['name']);
@@ -187,7 +187,7 @@ class AdminProductController extends Controller
     public function delete($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->productModel->delete($id);
@@ -251,7 +251,7 @@ class AdminProductController extends Controller
     public function syncCourses()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/manager/products');

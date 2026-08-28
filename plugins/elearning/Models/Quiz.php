@@ -55,14 +55,62 @@ class Quiz extends Model
     }
 
     /**
+     * Crea una pregunta con sus opciones de forma atómica.
+     *
+     * @param array $question ['quiz_id','question','type','points','order_num']
+     * @param array $options  [['text' => ..., 'is_correct' => 0|1], ...]
+     * @return int|false  ID de la pregunta creada, o false si algo falló.
+     */
+    public function createQuestionWithOptions(array $question, array $options)
+    {
+        $pdo = $this->db->getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $questionId = $this->db->insert('lms_questions', [
+                'quiz_id'   => (int) ($question['quiz_id'] ?? 0),
+                'question'  => trim((string) ($question['question'] ?? '')),
+                'type'      => $question['type'] ?? 'multiple_choice',
+                'points'    => (int) ($question['points'] ?? 1),
+                'order_num' => (int) ($question['order_num'] ?? 0),
+            ]);
+
+            if (!$questionId) {
+                throw new \RuntimeException('No se pudo insertar la pregunta.');
+            }
+
+            foreach (array_values($options) as $i => $option) {
+                $inserted = $this->db->insert('lms_question_options', [
+                    'question_id' => $questionId,
+                    'option_text' => trim((string) ($option['text'] ?? '')),
+                    'is_correct'  => (int) ($option['is_correct'] ?? 0),
+                    'order_num'   => $i,
+                ]);
+
+                if (!$inserted) {
+                    throw new \RuntimeException('No se pudo insertar una opción.');
+                }
+            }
+
+            $pdo->commit();
+            return (int) $questionId;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            error_log('createQuestionWithOptions: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Start a new quiz attempt.
      */
     public function startAttempt($studentId, $quizId)
     {
-        // CMS Core Database uses different method signatures
-        $sql = "INSERT INTO lms_quiz_attempts (student_id, quiz_id, started_at) VALUES (?, ?, NOW())";
-        $this->db->query($sql, [$studentId, $quizId]);
-        return $this->db->lastInsertId();
+        return $this->db->insert('lms_quiz_attempts', [
+            'student_id' => (int) $studentId,
+            'quiz_id'    => (int) $quizId,
+            'started_at' => date('Y-m-d H:i:s'),
+        ]);
     }
 
     /**

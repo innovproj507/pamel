@@ -19,7 +19,7 @@ class AdminForumController extends BaseController
 
     public function index(): void
     {
-        $this->requireAuth();
+        $this->requireCan('lms.forums.view');
         $forums = $this->forumModel->allWithCount();
         $view   = new View();
         $view->render('admin/views/lms/forums/index', compact('forums'), 'admin/views/layout');
@@ -27,7 +27,7 @@ class AdminForumController extends BaseController
 
     public function store(): void
     {
-        $this->requireAuth();
+        $this->requireCan('lms.forums.manage');
         $this->validateCsrf('/manager/lms/forums');
 
         $title = trim($_POST['title'] ?? '');
@@ -56,7 +56,7 @@ class AdminForumController extends BaseController
 
     public function toggle($id): void
     {
-        $this->requireAuth();
+        $this->requireCan('lms.forums.manage');
         $this->validateCsrf('/manager/lms/forums');
 
         $forum = $this->forumModel->find((int) $id);
@@ -69,7 +69,7 @@ class AdminForumController extends BaseController
 
     public function delete($id): void
     {
-        $this->requireAuth();
+        $this->requireCan('lms.forums.manage');
         $this->validateCsrf('/manager/lms/forums');
 
         $topics = $this->db->fetchAll('SELECT id FROM lms_forum_topics WHERE forum_id = ?', [(int) $id]);
@@ -84,7 +84,7 @@ class AdminForumController extends BaseController
 
     public function deleteTopic($id): void
     {
-        $this->requireAuth();
+        $this->requireCan('lms.forums.manage');
         $this->validateCsrf('/manager/lms/forums');
         $this->forumModel->deleteTopic((int) $id);
         $this->redirect('/manager/lms/forums');
@@ -92,7 +92,7 @@ class AdminForumController extends BaseController
 
     public function deletePost($id): void
     {
-        $this->requireAuth();
+        $this->requireCan('lms.forums.manage');
         $this->validateCsrf('/manager/lms/forums');
         $this->forumModel->deletePost((int) $id);
         $this->redirect('/manager/lms/forums');

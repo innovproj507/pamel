@@ -20,7 +20,7 @@ class AdminModalityController extends Controller
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $modalities = $this->modalityModel->all();
         $branches = (new Branch())->all();
@@ -44,7 +44,7 @@ class AdminModalityController extends Controller
     public function create()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $this->view->render('plugins/ecommerce/views/admin/modality-form', [
             'title' => 'Create Modality',
@@ -56,7 +56,7 @@ class AdminModalityController extends Controller
     public function store()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
@@ -77,7 +77,7 @@ class AdminModalityController extends Controller
     public function edit($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $modality = $this->modalityModel->find($id);
 
@@ -91,7 +91,7 @@ class AdminModalityController extends Controller
     public function update($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug = isset($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
@@ -112,7 +112,7 @@ class AdminModalityController extends Controller
     public function delete($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($this->modalityModel->hasProducts($id)) {

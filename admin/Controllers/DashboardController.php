@@ -10,7 +10,7 @@ class DashboardController extends Controller
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('panel.access', '/manager/login');
 
         // Get statistics
         $stats = [

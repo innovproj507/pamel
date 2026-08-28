@@ -51,7 +51,7 @@
             <!-- Instructor -->
             <div>
                 <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Instructor</label>
-                <?php if ($isAdmin): ?>
+                <?php if (!empty($canAssignTeacher)): ?>
                     <select name="teacher_id" class="w-full px-6 py-4 rounded-2xl border border-slate-100 bg-slate-50 text-base font-bold text-slate-700 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all">
                         <option value="">— Sin asignar —</option>
                         <?php foreach ($teachers as $t): ?>

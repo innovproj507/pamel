@@ -38,7 +38,7 @@
                     <div class="option-row flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50/50">
                         <input type="radio" name="correct_option" value="1" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500">
                         <input type="text" name="options[]" required class="flex-1 bg-transparent border-none outline-none text-sm font-medium" placeholder="Opción B">
-                        <button type="button" onclick="this.parentElement.remove()" class="text-gray-300 hover:text-red-500 transition">
+                        <button type="button" onclick="removeOption(this)" class="text-gray-300 hover:text-red-500 transition">
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
@@ -68,20 +68,49 @@
 </form>
 
 <script>
-    let optionCount = 2;
+    /**
+     * El valor de cada radio debe coincidir siempre con la posición de su
+     * campo dentro de options[], que es como el servidor identifica la
+     * respuesta correcta. Se reindexa tras cada alta o baja de opción.
+     */
+    function reindexOptions() {
+        const rows = document.querySelectorAll('#options-container .option-row');
+        rows.forEach((row, i) => {
+            const radio = row.querySelector('input[type="radio"]');
+            if (radio) radio.value = i;
+        });
+
+        // Si se eliminó la fila marcada, la primera pasa a ser la correcta.
+        if (!document.querySelector('#options-container input[type="radio"]:checked')) {
+            const first = document.querySelector('#options-container input[type="radio"]');
+            if (first) first.checked = true;
+        }
+    }
+
+    function removeOption(button) {
+        const rows = document.querySelectorAll('#options-container .option-row');
+        if (rows.length <= 2) {
+            alert('Una pregunta necesita al menos dos opciones.');
+            return;
+        }
+        button.closest('.option-row').remove();
+        reindexOptions();
+    }
 
     function addOption() {
         const container = document.getElementById('options-container');
         const div = document.createElement('div');
         div.className = 'option-row flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50/50';
         div.innerHTML = `
-            <input type="radio" name="correct_option" value="${optionCount}" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500">
+            <input type="radio" name="correct_option" class="w-4 h-4 text-emerald-500 border-gray-300 focus:ring-emerald-500">
             <input type="text" name="options[]" required class="flex-1 bg-transparent border-none outline-none text-sm font-medium" placeholder="Nueva Opción">
-            <button type="button" onclick="this.parentElement.remove()" class="text-gray-300 hover:text-red-500 transition">
+            <button type="button" onclick="removeOption(this)" class="text-gray-300 hover:text-red-500 transition">
                 <i class="fas fa-times"></i>
             </button>
         `;
         container.appendChild(div);
-        optionCount++;
+        reindexOptions();
     }
+
+    document.addEventListener('DOMContentLoaded', reindexOptions);
 </script>

@@ -5,9 +5,11 @@
             <p class="text-slate-500 font-medium"><?= $stats['total'] ?> usuarios registrados</p>
         </div>
         <div class="flex items-center gap-3">
+<?php if (can('lms.students.manage')): ?>
             <a href="/manager/lms/students/create" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-lg shadow-emerald-600/20">
                 <i class="fas fa-user-plus"></i> Inscribir en Curso
             </a>
+<?php endif; ?>
             <a href="/manager/users/create" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-lg shadow-blue-600/20">
                 <i class="fas fa-plus"></i> Crear Usuario
             </a>
@@ -123,9 +125,11 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
+<?php if (can('lms.students.manage')): ?>
                             <a href="/manager/lms/students/create?student_id=<?= $s['id'] ?>" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors text-[10px] font-black uppercase">
                                 <i class="fas fa-graduation-cap"></i> Inscribir
                             </a>
+<?php endif; ?>
                             <a href="/manager/users/<?= $s['id'] ?>/edit" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors text-[10px] font-black uppercase">
                                 <i class="fas fa-edit"></i> Editar
                             </a>

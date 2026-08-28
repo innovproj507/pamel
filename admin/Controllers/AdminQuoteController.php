@@ -23,7 +23,7 @@ class AdminQuoteController extends Controller
 
     public function index()
     {
-        Auth::getInstance()->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('quotes.view', '/manager/login');
 
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $status = isset($_GET['status']) ? $_GET['status'] : '';
@@ -57,7 +57,7 @@ class AdminQuoteController extends Controller
 
     public function show($id)
     {
-        Auth::getInstance()->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('quotes.view', '/manager/login');
 
         $request = $this->quoteRequest->getByIdWithItems($id);
 
@@ -81,7 +81,7 @@ class AdminQuoteController extends Controller
 
     public function sendQuote($id)
     {
-        Auth::getInstance()->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('quotes.manage', '/manager/login');
 
         header('Content-Type: application/json');
 
@@ -139,7 +139,7 @@ class AdminQuoteController extends Controller
 
     public function updateStatus()
     {
-        Auth::getInstance()->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('quotes.manage', '/manager/login');
 
         header('Content-Type: application/json');
 

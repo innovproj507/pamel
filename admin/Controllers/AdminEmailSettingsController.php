@@ -25,7 +25,7 @@ class AdminEmailSettingsController
 
     public function __construct()
     {
-        Auth::getInstance()->requireAdmin();
+        \Core\Auth::getInstance()->requireCan('settings.email', '/manager/login');
         $this->db = Database::getInstance();
     }
 

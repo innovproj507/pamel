@@ -23,7 +23,7 @@ class AdminQuizController extends BaseController
      */
     public function index()
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.view');
 
         $where  = '1=1';
         $params = [];
@@ -54,7 +54,7 @@ class AdminQuizController extends BaseController
      */
     public function create()
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
 
         $view = new View();
         $courses = $this->user['role'] === 'teacher'
@@ -73,7 +73,7 @@ class AdminQuizController extends BaseController
      */
     public function store()
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
         $this->validateCsrf('/manager/lms/quizzes');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -107,7 +107,7 @@ class AdminQuizController extends BaseController
      */
     public function edit($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
 
         $quiz = $this->authorizeQuiz($id);
 
@@ -128,7 +128,7 @@ class AdminQuizController extends BaseController
      */
     public function update($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
         $this->validateCsrf('/manager/lms/quizzes');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -164,7 +164,7 @@ class AdminQuizController extends BaseController
      */
     public function delete($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
         $this->validateCsrf('/manager/lms/quizzes');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -186,7 +186,7 @@ class AdminQuizController extends BaseController
      */
     public function questions($quizId)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.view');
 
         $quiz = $this->authorizeQuiz($quizId);
 
@@ -211,7 +211,7 @@ class AdminQuizController extends BaseController
      */
     public function addQuestion($quizId)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
 
         $quiz = $this->authorizeQuiz($quizId);
 
@@ -227,7 +227,7 @@ class AdminQuizController extends BaseController
      */
     public function storeQuestion($quizId)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
         $this->validateCsrf("/manager/lms/quizzes/{$quizId}/questions/add");
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -257,13 +257,17 @@ class AdminQuizController extends BaseController
             $this->redirect("/manager/lms/quizzes/{$quizId}/questions/add");
         }
 
-        // Use the model's helper
-        $this->quizModel->createQuestionWithOptions([
+        $created = $this->quizModel->createQuestionWithOptions([
             'quiz_id'   => $quizId,
             'question'  => $questionText,
             'points'    => $points,
             'order_num' => $orderNum
         ], $options);
+
+        if (!$created) {
+            $this->flash('error', 'No se pudo guardar la pregunta. Revisa el log de errores de PHP.');
+            $this->redirect("/manager/lms/quizzes/{$quizId}/questions/add");
+        }
 
         $this->flash('success', 'Pregunta añadida correctamente.');
         $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
@@ -274,7 +278,7 @@ class AdminQuizController extends BaseController
      */
     public function deleteQuestion($quizId, $id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.quizzes.manage');
         $this->validateCsrf("/manager/lms/quizzes/{$quizId}/questions");
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

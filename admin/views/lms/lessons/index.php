@@ -8,9 +8,11 @@
             <p class="text-sm text-gray-500"><?= htmlspecialchars($course['title']) ?></p>
         </div>
     </div>
+<?php if (can('lms.lessons.manage')): ?>
     <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition shadow-md">
         <i class="fas fa-plus"></i> Añadir Lección
     </a>
+<?php endif; ?>
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -51,6 +53,7 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
+<?php if (can('lms.lessons.manage')): ?>
                             <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/edit" class="p-2 text-gray-400 hover:text-blue-600 transition">
                                 <i class="fas fa-edit"></i>
                             </a>
@@ -60,6 +63,7 @@
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
+<?php endif; ?>
                         </div>
                     </td>
                 </tr>

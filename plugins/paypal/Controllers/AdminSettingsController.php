@@ -18,7 +18,7 @@ class AdminSettingsController
     {
         // Check admin authentication
         $auth = \Core\Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('settings.paypal', '/manager/login');
         
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -39,6 +39,8 @@ class AdminSettingsController
     
     public function save()
     {
+        \Core\Auth::getInstance()->requireCan('settings.paypal', '/manager/login');
+
         $settings = [
             'paypal_mode' => $_POST['paypal_mode'] ?? 'sandbox',
             'paypal_client_id' => $_POST['paypal_client_id'] ?? '',

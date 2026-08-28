@@ -56,6 +56,9 @@ class Application
 
         // Initialize language
         Language::init();
+
+        // Carga el mapa de permisos y expone el helper global can()
+        Permissions::boot();
     }
 
     public function getRouter()

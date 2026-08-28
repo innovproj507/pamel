@@ -23,7 +23,7 @@ class AdminCourseController extends BaseController
      */
     public function index()
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.courses.view');
 
         $perPage    = 20;
         $page       = max(1, (int)($_GET['page'] ?? 1));
@@ -92,7 +92,7 @@ class AdminCourseController extends BaseController
         );
 
         $categories = $this->db->fetchAll("SELECT id, name FROM lms_categories ORDER BY name ASC");
-        $teachers   = $this->user['role'] === 'admin'
+        $teachers   = $this->can('lms.teachers.assign')
             ? $this->db->fetchAll("SELECT id, name FROM users WHERE role = 'teacher' ORDER BY name ASC")
             : [];
 
@@ -120,7 +120,7 @@ class AdminCourseController extends BaseController
      */
     public function create()
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.courses.manage');
 
         $view       = new View();
         $teachers   = $this->db->fetchAll("SELECT id, name FROM users WHERE role IN ('admin', 'teacher')");
@@ -146,7 +146,7 @@ class AdminCourseController extends BaseController
      */
     public function store()
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.courses.manage');
         $this->validateCsrf('/manager/lms/courses');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -193,7 +193,7 @@ class AdminCourseController extends BaseController
      */
     public function edit($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.courses.manage');
 
         // Fetch raw lms_courses row (no COALESCE) so the form shows the actual course values
         $course = $this->db->fetchOne(
@@ -230,7 +230,7 @@ class AdminCourseController extends BaseController
             'teachers'   => $teachers,
             'categories' => $categories,
             'products'   => $products,
-            'isAdmin'    => $this->user['role'] === 'admin',
+            'canAssignTeacher' => $this->can('lms.teachers.assign'),
         ], 'admin/views/layout');
     }
 
@@ -239,7 +239,7 @@ class AdminCourseController extends BaseController
      */
     public function show($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.courses.view');
 
         $course = $this->courseModel->find($id);
         if (!$course) {
@@ -273,7 +273,7 @@ class AdminCourseController extends BaseController
      */
     public function update($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.courses.manage');
         $this->validateCsrf('/manager/lms/courses');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -334,8 +334,9 @@ class AdminCourseController extends BaseController
             $data['course_code'] = strtoupper(trim($_POST['course_code'] ?? ''));
         }
 
-        // Only admins may reassign the instructor; the field isn't even shown to teachers.
-        if ($this->user['role'] === 'admin' && isset($_POST['teacher_id'])) {
+        // Solo quien puede asignar instructores (admin y dirección académica)
+        // reasigna el docente; a los instructores ni se les muestra el campo.
+        if ($this->can('lms.teachers.assign') && isset($_POST['teacher_id'])) {
             $data['teacher_id'] = !empty($_POST['teacher_id']) ? (int)$_POST['teacher_id'] : null;
         }
 
@@ -354,7 +355,7 @@ class AdminCourseController extends BaseController
      */
     public function delete($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.courses.manage');
         $this->validateCsrf('/manager/lms/courses');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -371,7 +372,7 @@ class AdminCourseController extends BaseController
 
     public function courseStudents($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.students.view');
 
         $course = $this->db->fetchOne(
             "SELECT c.*, p.course_code FROM lms_courses c LEFT JOIN products p ON p.id = c.product_id WHERE c.id = ?",
@@ -401,7 +402,7 @@ class AdminCourseController extends BaseController
 
     public function unenrollStudent($id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.students.manage');
         $this->validateCsrf('/manager/lms/courses');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -437,7 +438,7 @@ class AdminCourseController extends BaseController
      */
     public function lessons($courseId)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.lessons.view');
 
         $course = $this->courseModel->find($courseId);
         if (!$course) {
@@ -463,7 +464,7 @@ class AdminCourseController extends BaseController
      */
     public function createLesson($courseId)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.lessons.manage');
 
         $course = $this->courseModel->find($courseId);
         if (!$course) {
@@ -483,7 +484,7 @@ class AdminCourseController extends BaseController
      */
     public function storeLesson($courseId)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.lessons.manage');
         $this->validateCsrf("/manager/lms/courses/{$courseId}/lessons");
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -516,7 +517,7 @@ class AdminCourseController extends BaseController
      */
     public function editLesson($courseId, $id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.lessons.manage');
 
         $course = $this->courseModel->find($courseId);
         $lesson = $this->db->fetchOne("SELECT * FROM lms_lessons WHERE id = ?", [$id]);
@@ -539,7 +540,7 @@ class AdminCourseController extends BaseController
      */
     public function updateLesson($courseId, $id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.lessons.manage');
         $this->validateCsrf("/manager/lms/courses/{$courseId}/lessons");
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -574,7 +575,7 @@ class AdminCourseController extends BaseController
      */
     public function deleteLesson($courseId, $id)
     {
-        $this->requireRole(['admin', 'teacher']);
+        $this->requireCan('lms.lessons.manage');
         $this->validateCsrf("/manager/lms/courses/{$courseId}/lessons");
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

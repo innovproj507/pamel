@@ -102,10 +102,12 @@
                                 id="role"
                                 required
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors">
-                            <option value="student" <?php echo $preselectedRole === 'student' ? 'selected' : ''; ?>>Estudiante</option>
-                            <option value="teacher" <?php echo $preselectedRole === 'teacher' ? 'selected' : ''; ?>>Instructor</option>
-                            <option value="editor" <?php echo $preselectedRole === 'editor' ? 'selected' : ''; ?>>Editor</option>
-                            <option value="admin" <?php echo $preselectedRole === 'admin' ? 'selected' : ''; ?>>Administrador</option>
+<?php
+                            $assignable = \Core\Permissions::assignableRoles(\Core\Auth::getInstance()->user()['role'] ?? '');
+                            foreach ($assignable as $r):
+                            ?>
+                            <option value="<?= $r ?>" <?= ($preselectedRole) === $r ? 'selected' : '' ?>><?= htmlspecialchars(\Core\Permissions::label($r)) ?></option>
+                            <?php endforeach; ?>
                         </select>
                         <p class="mt-1 text-xs text-gray-500">
                             <strong>Cliente:</strong> Acceso al panel de usuario<br>

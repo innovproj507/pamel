@@ -8,9 +8,11 @@
             <p class="text-sm text-gray-500"><?= htmlspecialchars($quiz['title']) ?></p>
         </div>
     </div>
+<?php if (can('lms.quizzes.manage')): ?>
     <a href="/manager/lms/quizzes/<?= $quiz['id'] ?>/questions/add" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition shadow-md">
         <i class="fas fa-plus"></i> Añadir Pregunta
     </a>
+<?php endif; ?>
 </div>
 
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -42,12 +44,14 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
+<?php if (can('lms.quizzes.manage')): ?>
                             <form method="POST" action="/manager/lms/quizzes/<?= $quiz['id'] ?>/questions/<?= $q['id'] ?>/delete" onsubmit="return confirm('¿Eliminar esta pregunta?');" class="inline">
                                 <?php echo \Core\Security::getCsrfField(); ?>
                                 <button type="submit" class="p-2 text-gray-400 hover:text-red-600 transition" title="Eliminar">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
+<?php endif; ?>
                         </div>
                     </td>
                 </tr>

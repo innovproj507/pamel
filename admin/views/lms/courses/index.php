@@ -38,10 +38,12 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
                 <i class="fas fa-sync-alt text-xs"></i> Sincronizar Productos
             </button>
         </form>
+<?php if (can('lms.courses.manage')): ?>
         <a href="/manager/lms/courses/create"
            class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition shadow-lg shadow-blue-600/20">
             <i class="fas fa-plus"></i> Nuevo Curso
         </a>
+<?php endif; ?>
     </div>
 </div>
 
@@ -239,22 +241,29 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
                     <!-- Acciones -->
                     <td class="px-8 py-5 text-right">
                         <div class="flex items-center justify-end gap-2 flex-wrap">
+<?php if (can('lms.courses.manage')): ?>
                             <a href="/manager/lms/courses/<?= $course['id'] ?>/edit"
                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 text-[9px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all border border-slate-100">
                                 <i class="fas fa-edit text-[10px]"></i> Editar
                             </a>
+<?php endif; ?>
                             <a href="/manager/lms/courses/<?= $course['id'] ?>/students"
                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest border border-emerald-100">
                                 <i class="fas fa-user-graduate text-[10px]"></i> Estudiantes
                             </a>
+<?php if (can('lms.lessons.manage')): ?>
                             <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create"
                                class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest border border-blue-100">
                                 + Lección
                             </a>
-                            <a href="/manager/lms/courses/<?= $course['id'] ?>/quizzes/create"
+<?php endif; ?>
+<?php if (can('lms.quizzes.manage')): ?>
+                            <a href="/manager/lms/quizzes/create?course_id=<?= $course['id'] ?>"
                                class="px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest border border-amber-100">
                                 + Quiz
                             </a>
+<?php endif; ?>
+<?php if (can('lms.courses.manage')): ?>
                             <form method="POST" action="/manager/lms/courses/<?= $course['id'] ?>/delete"
                                   onsubmit="return confirm('¿Eliminar el curso «<?= htmlspecialchars(addslashes($course['title'])) ?>»? Esta acción no se puede deshacer.')">
                                 <?= \Core\Security::getCsrfField() ?>
@@ -263,6 +272,7 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
                                     <i class="fas fa-trash text-[10px]"></i> Eliminar
                                 </button>
                             </form>
+<?php endif; ?>
                         </div>
                     </td>
                 </tr>

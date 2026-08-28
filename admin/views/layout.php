@@ -1,3 +1,9 @@
+<?php
+/** Permisos del usuario en sesión: condicionan el menú y la etiqueta del rol. */
+$currentUser = \Core\Auth::getInstance()->user();
+$currentRole = $currentUser['role'] ?? '';
+$roleLabel   = \Core\Permissions::label($currentRole);
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -54,7 +60,7 @@
                 <div class="min-w-0">
                     <div class="text-white font-bold text-xs truncate"><?= htmlspecialchars($_SESSION['username'] ?? 'Admin') ?></div>
                     <div class="text-[9px] text-slate-500 font-bold uppercase tracking-wider flex items-center gap-1 mt-0.5">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>Admin
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span><?= htmlspecialchars($roleLabel) ?>
                     </div>
                 </div>
             </div>
@@ -63,32 +69,70 @@
         <!-- Nav -->
         <nav class="flex-1 px-3 py-4 space-y-0.5">
             <a href="/manager"              class="nav-link"><i class="fas fa-home w-4 text-center"></i>Dashboard</a>
+            <?php if (can('lms.courses.view')): ?>
             <a href="/manager/lms/courses"  class="nav-link"><i class="fas fa-book w-4 text-center"></i>Catálogo LMS</a>
+            <?php endif; ?>
 
+            <?php if (can('lms.courses.view') || can('lms.students.view') || can('lms.forums.view')): ?>
             <div class="nav-section">E-Learning</div>
+            <?php endif; ?>
+            <?php if (can('lms.courses.view')): ?>
             <a href="/manager/lms/courses"   class="nav-link"><i class="fas fa-graduation-cap w-4 text-center"></i>Cursos</a>
+            <?php endif; ?>
+            <?php if (can('lms.students.view')): ?>
             <a href="/manager/lms/students"  class="nav-link"><i class="fas fa-user-graduate w-4 text-center"></i>Estudiantes</a>
+            <?php endif; ?>
+            <?php if (can('lms.teachers.view')): ?>
             <a href="/manager/lms/teachers"  class="nav-link"><i class="fas fa-chalkboard-teacher w-4 text-center"></i>Instructores</a>
+            <?php endif; ?>
+            <?php if (can('lms.quizzes.view')): ?>
             <a href="/manager/lms/quizzes"   class="nav-link"><i class="fas fa-vial-circle-check w-4 text-center"></i>Quizzes</a>
+            <?php endif; ?>
+            <?php if (can('lms.categories.manage')): ?>
             <a href="/manager/lms/categories" class="nav-link"><i class="fas fa-tags w-4 text-center"></i>Categorías LMS</a>
+            <?php endif; ?>
+            <?php if (can('lms.forums.view')): ?>
             <a href="/manager/lms/forums"    class="nav-link"><i class="fas fa-comments w-4 text-center"></i>Foros</a>
+            <?php endif; ?>
 
+            <?php if (can('shop.manage') || can('shop.orders.view') || can('quotes.view')): ?>
             <div class="nav-section">Comercio</div>
+            <?php endif; ?>
+            <?php if (can('shop.manage')): ?>
             <a href="/manager/products"    class="nav-link"><i class="fas fa-box-archive w-4 text-center"></i>Productos</a>
             <a href="/manager/categories"  class="nav-link"><i class="fas fa-folder-tree w-4 text-center"></i>Categorías</a>
             <a href="/manager/branches"    class="nav-link"><i class="fas fa-code-branch w-4 text-center"></i>Branches</a>
             <a href="/manager/modalities"  class="nav-link"><i class="fas fa-laptop w-4 text-center"></i>Modalities</a>
+            <?php endif; ?>
+            <?php if (can('shop.orders.view')): ?>
             <a href="/manager/orders"      class="nav-link"><i class="fas fa-receipt w-4 text-center"></i>Pedidos</a>
+            <?php endif; ?>
+            <?php if (can('quotes.view')): ?>
             <a href="/manager/quote-requests" class="nav-link"><i class="fas fa-file-invoice-dollar w-4 text-center"></i>Cotizaciones</a>
+            <?php endif; ?>
 
+            <?php if (can('admissions.view') || can('surveys.view')): ?>
             <div class="nav-section">Servicios</div>
+            <?php endif; ?>
+            <?php if (can('admissions.view')): ?>
             <a href="/manager/admission-requests"  class="nav-link"><i class="fas fa-file-signature w-4 text-center"></i>Solicitudes</a>
+            <?php endif; ?>
+            <?php if (can('surveys.view')): ?>
             <a href="/manager/satisfaction-surveys" class="nav-link"><i class="fas fa-poll w-4 text-center"></i>Encuestas</a>
+            <?php endif; ?>
 
+            <?php if (can('users.view') || can('settings.email') || can('settings.plugins')): ?>
             <div class="nav-section">Sistema</div>
+            <?php endif; ?>
+            <?php if (can('users.view')): ?>
             <a href="/manager/users"        class="nav-link"><i class="fas fa-users w-4 text-center"></i>Usuarios</a>
+            <?php endif; ?>
+            <?php if (can('settings.email')): ?>
             <a href="/manager/email-settings" class="nav-link"><i class="fas fa-paper-plane w-4 text-center"></i>Email SMTP</a>
+            <?php endif; ?>
+            <?php if (can('settings.plugins')): ?>
             <a href="/manager/plugins"      class="nav-link"><i class="fas fa-puzzle-piece w-4 text-center"></i>Plugins</a>
+            <?php endif; ?>
             <a href="/" target="_blank"     class="nav-link"><i class="fas fa-globe w-4 text-center"></i>Ver Sitio Web</a>
         </nav>
     </aside>

@@ -14,7 +14,7 @@ class AdminMaintenanceController extends Controller
     {
         parent::__construct();
         $this->flagFile = Config::get('paths.cache') . '/maintenance.flag';
-        Auth::getInstance()->requireAdmin();
+        \Core\Auth::getInstance()->requireCan('settings.maintenance', '/manager/login');
     }
 
     public function index(): void

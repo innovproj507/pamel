@@ -8,7 +8,7 @@ class AdminCategoryController extends BaseController
 {
     public function index()
     {
-        $this->requireAuth();
+        $this->requireCan('lms.categories.manage');
         
         $view = new View();
         $categories = $this->db->fetchAll(
@@ -24,7 +24,7 @@ class AdminCategoryController extends BaseController
 
     public function store()
     {
-        $this->requireAuth();
+        $this->requireCan('lms.categories.manage');
         $this->validateCsrf('/manager/lms/categories');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -46,7 +46,7 @@ class AdminCategoryController extends BaseController
 
     public function delete($id)
     {
-        $this->requireAuth();
+        $this->requireCan('lms.categories.manage');
         $this->validateCsrf('/manager/lms/categories');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

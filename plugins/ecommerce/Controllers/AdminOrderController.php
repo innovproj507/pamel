@@ -19,7 +19,7 @@ class AdminOrderController extends Controller
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.orders.view', '/manager/login');
 
         $orders = $this->orderModel->all();
 
@@ -32,7 +32,7 @@ class AdminOrderController extends Controller
     public function show($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.orders.view', '/manager/login');
 
         $order = $this->orderModel->getWithItems($id);
 

@@ -60,6 +60,28 @@ class BaseController
     }
 
     /**
+     * Exige una capacidad del mapa central de permisos (Core\Permissions).
+     */
+    protected function requireCan(string $capability): void
+    {
+        $this->requireAuth();
+
+        if (!\Core\Permissions::roleCan($this->user['role'] ?? null, $capability)) {
+            http_response_code(403);
+            echo 'Acceso denegado.';
+            exit;
+        }
+    }
+
+    /**
+     * ¿El usuario actual tiene la capacidad indicada? (para condicionar vistas)
+     */
+    protected function can(string $capability): bool
+    {
+        return \Core\Permissions::roleCan($this->user['role'] ?? null, $capability);
+    }
+
+    /**
      * Fetch a course and ensure the current user may manage it (admin, or the
      * teacher it's assigned to). Redirects to the course list otherwise.
      */
@@ -78,7 +100,13 @@ class BaseController
      */
     protected function assertOwnsCourse(array $course)
     {
-        if ($this->user['role'] !== 'admin' && (int) ($course['teacher_id'] ?? 0) !== (int) $this->user['id']) {
+        $seesAllCourses = in_array(
+            $this->user['role'],
+            [\Core\Permissions::ADMIN, \Core\Permissions::ACADEMIC_DIRECTOR],
+            true
+        );
+
+        if (!$seesAllCourses && (int) ($course['teacher_id'] ?? 0) !== (int) $this->user['id']) {
             $this->flash('error', 'No tienes permiso para gestionar este curso.');
             $this->redirect('/manager/lms/courses');
         }

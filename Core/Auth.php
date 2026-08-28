@@ -123,4 +123,27 @@ class Auth
             exit;
         }
     }
+
+    /**
+     * ¿El usuario actual tiene la capacidad indicada?
+     */
+    public function can($capability)
+    {
+        return $this->user && Permissions::roleCan($this->user['role'] ?? null, $capability);
+    }
+
+    /**
+     * Exige una capacidad. Envía al login si no hay sesión, 403 si la hay
+     * pero sin permiso (así no se confunde "no autenticado" con "no autorizado").
+     */
+    public function requireCan($capability, $redirect = '/manager/login')
+    {
+        $this->requireAuth($redirect);
+
+        if (!$this->can($capability)) {
+            http_response_code(403);
+            echo 'Acceso denegado.';
+            exit;
+        }
+    }
 }

@@ -20,7 +20,7 @@ class AdminSatisfactionController
     public function index()
     {
         // Require admin authentication
-        Auth::getInstance()->requireAdmin();
+        \Core\Auth::getInstance()->requireCan('surveys.view', '/manager/login');
 
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $perPage = 20;
@@ -96,7 +96,7 @@ class AdminSatisfactionController
     public function show($id)
     {
         // Require admin authentication
-        Auth::getInstance()->requireAdmin();
+        \Core\Auth::getInstance()->requireCan('surveys.view', '/manager/login');
 
         // Validate ID
         if (!Security::validateId($id)) {
@@ -124,7 +124,7 @@ class AdminSatisfactionController
     public function delete($id)
     {
         // Require admin authentication
-        Auth::getInstance()->requireAdmin();
+        \Core\Auth::getInstance()->requireCan('surveys.manage', '/manager/login');
 
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
@@ -159,7 +159,7 @@ class AdminSatisfactionController
     public function downloadWord($id)
     {
         // Require admin authentication
-        Auth::getInstance()->requireAdmin();
+        \Core\Auth::getInstance()->requireCan('surveys.view', '/manager/login');
 
         // Validate ID
         if (!Security::validateId($id)) {

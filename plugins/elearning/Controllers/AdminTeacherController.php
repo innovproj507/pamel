@@ -11,7 +11,7 @@ class AdminTeacherController extends BaseController
      */
     public function index()
     {
-        $this->requireRole(['admin']);
+        $this->requireCan('lms.teachers.view');
 
         $view = new View();
 

@@ -19,7 +19,7 @@ class AdminCategoryController extends Controller
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $categories = $this->categoryModel->getAllWithHierarchy();
         
@@ -39,7 +39,7 @@ class AdminCategoryController extends Controller
     public function create()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $parentCategories = $this->categoryModel->getParentCategories();
 
@@ -53,7 +53,7 @@ class AdminCategoryController extends Controller
     public function store()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug = strtolower(str_replace(' ', '-', $_POST['name']));
@@ -76,7 +76,7 @@ class AdminCategoryController extends Controller
     public function edit($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $category = $this->categoryModel->find($id);
         $parentCategories = $this->categoryModel->getParentCategories();
@@ -91,7 +91,7 @@ class AdminCategoryController extends Controller
     public function update($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $slug = isset($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
@@ -114,7 +114,7 @@ class AdminCategoryController extends Controller
     public function delete($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Check if category has subcategories

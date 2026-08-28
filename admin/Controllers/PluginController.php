@@ -11,7 +11,7 @@ class PluginController extends Controller
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('settings.plugins', '/manager/login');
 
         $pluginManager = PluginManager::getInstance();
         $loadedPlugins = $pluginManager->getLoadedPlugins();

@@ -23,7 +23,7 @@ class AdminEnrollmentController extends BaseController
      */
     public function index()
     {
-        $this->requireAuth();
+        $this->requireCan('lms.students.view');
         
         $view = new View();
         
@@ -55,7 +55,7 @@ class AdminEnrollmentController extends BaseController
      */
     public function create()
     {
-        $this->requireAuth();
+        $this->requireCan('lms.students.manage');
 
         $preselectedStudentId = (int)($_GET['student_id'] ?? 0);
         $preselectedCourseId  = (int)($_GET['course_id'] ?? 0);
@@ -123,7 +123,7 @@ class AdminEnrollmentController extends BaseController
      */
     public function store()
     {
-        $this->requireAuth();
+        $this->requireCan('lms.students.manage');
         $this->validateCsrf('/manager/lms/students');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -160,7 +160,7 @@ class AdminEnrollmentController extends BaseController
      */
     public function delete($id)
     {
-        $this->requireAuth();
+        $this->requireCan('lms.students.manage');
         $this->validateCsrf('/manager/lms/students');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {

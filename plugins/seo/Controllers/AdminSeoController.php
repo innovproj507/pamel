@@ -19,7 +19,7 @@ class AdminSeoController extends Controller
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('settings.seo', '/manager/login');
 
         $metaTags = $this->metaTagModel->getAllPages();
         
@@ -36,7 +36,7 @@ class AdminSeoController extends Controller
     public function saveMeta()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('settings.seo', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->metaTagModel->upsert($_POST['page_url'], [
@@ -55,7 +55,7 @@ class AdminSeoController extends Controller
     public function saveRobots()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('settings.seo', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $existing = $this->db->fetchOne("SELECT * FROM settings WHERE setting_key = 'robots_txt'");

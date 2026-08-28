@@ -18,10 +18,44 @@ class AdminUserController extends Controller
         $this->userModel = new User();
     }
 
+    /** Rol del usuario que ejecuta la acción. */
+    private function actorRole()
+    {
+        $user = Auth::getInstance()->user();
+        return $user['role'] ?? '';
+    }
+
+    /**
+     * Aborta si el usuario actual no puede administrar la cuenta indicada.
+     * Un Director Académico no toca cuentas de admin ni de otro director.
+     */
+    private function guardTargetUser($id)
+    {
+        $target = $this->userModel->find($id);
+        if (!$target) {
+            header('Location: /manager/users?error=' . urlencode('Usuario no encontrado'));
+            exit;
+        }
+        if (!\Core\Permissions::canManageUserWithRole($this->actorRole(), $target['role'] ?? '')) {
+            header('Location: /manager/users?error=' . urlencode('No tienes permiso para administrar esta cuenta'));
+            exit;
+        }
+        return $target;
+    }
+
+    /**
+     * Limita el rol recibido del formulario a los que el actor puede asignar.
+     */
+    private function sanitizeRole($role)
+    {
+        $allowed = \Core\Permissions::assignableRoles($this->actorRole());
+        return in_array($role, $allowed, true) ? $role : \Core\Permissions::STUDENT;
+    }
+
     public function index()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('users.view', '/manager/login');
 
         $page    = max(1, (int)($_GET['page'] ?? 1));
         $perPage = 10;
@@ -50,7 +84,7 @@ class AdminUserController extends Controller
     public function create()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('users.manage', '/manager/login');
 
         $this->view->render('admin/views/users/create', [
             'title' => 'Create User'
@@ -60,7 +94,7 @@ class AdminUserController extends Controller
     public function store()
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('users.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /manager/users');
@@ -109,10 +143,8 @@ class AdminUserController extends Controller
             exit;
         }
 
-        // Validar rol
-        if (!in_array($role, ['admin', 'student', 'teacher', 'editor'])) {
-            $role = 'student';
-        }
+        // Validar rol contra los que el usuario actual puede asignar
+        $role = $this->sanitizeRole($role);
 
         // Validar estado
         if (!in_array($status, ['active', 'inactive'])) {
@@ -147,7 +179,7 @@ class AdminUserController extends Controller
     public function edit($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('users.manage', '/manager/login');
 
         // Validar ID
         $id = Security::validateId($id);
@@ -155,6 +187,8 @@ class AdminUserController extends Controller
             header('Location: /manager/users?error=' . urlencode('ID de usuario inválido'));
             exit;
         }
+
+        $this->guardTargetUser($id);
 
         $user = $this->userModel->find($id);
         if (!$user) {
@@ -171,7 +205,7 @@ class AdminUserController extends Controller
     public function update($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('users.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             header('Location: /manager/users');
@@ -192,6 +226,8 @@ class AdminUserController extends Controller
             exit;
         }
 
+        $this->guardTargetUser($id);
+
         // Validar datos
         $data = [
             'name' => trim($_POST['name'] ?? ''),
@@ -211,10 +247,8 @@ class AdminUserController extends Controller
             exit;
         }
 
-        // Validar rol
-        if (!in_array($data['role'], ['admin', 'student', 'teacher', 'editor'])) {
-            $data['role'] = 'student';
-        }
+        // Validar rol contra los que el usuario actual puede asignar
+        $data['role'] = $this->sanitizeRole($data['role']);
 
         // Validar estado
         if (!in_array($data['status'], ['active', 'inactive'])) {
@@ -254,7 +288,7 @@ class AdminUserController extends Controller
     public function delete($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('users.manage', '/manager/login');
 
         // Validar ID
         $id = Security::validateId($id);
@@ -262,6 +296,8 @@ class AdminUserController extends Controller
             header('Location: /manager/users?error=' . urlencode('ID de usuario inválido'));
             exit;
         }
+
+        $this->guardTargetUser($id);
 
         // No permitir eliminar el propio usuario
         if ($id == ($_SESSION['user_id'] ?? 0)) {
@@ -286,7 +322,7 @@ class AdminUserController extends Controller
     public function toggleStatus($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAdmin('/manager/login');
+        \Core\Auth::getInstance()->requireCan('users.manage', '/manager/login');
 
         // Validar ID
         $id = Security::validateId($id);
@@ -294,6 +330,8 @@ class AdminUserController extends Controller
             header('Location: /manager/users?error=' . urlencode('ID de usuario inválido'));
             exit;
         }
+
+        $this->guardTargetUser($id);
 
         // No permitir desactivar el propio usuario
         if ($id == ($_SESSION['user_id'] ?? 0)) {

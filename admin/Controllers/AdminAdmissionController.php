@@ -21,7 +21,7 @@ class AdminAdmissionController extends Controller
     {
         // Require authentication
         $auth = Auth::getInstance();
-        $auth->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('admissions.view', '/manager/login');
 
         // Get filters from query string
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -55,7 +55,7 @@ class AdminAdmissionController extends Controller
     public function show($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('admissions.view', '/manager/login');
 
         $request = $this->admissionRequest->getById($id);
 
@@ -73,7 +73,7 @@ class AdminAdmissionController extends Controller
     public function downloadWord($id)
     {
         $auth = Auth::getInstance();
-        $auth->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('admissions.view', '/manager/login');
 
         $request = $this->admissionRequest->getById($id);
 
@@ -111,7 +111,7 @@ class AdminAdmissionController extends Controller
     {
         // Require authentication
         $auth = Auth::getInstance();
-        $auth->requireAuth('/manager/login');
+        \Core\Auth::getInstance()->requireCan('admissions.manage', '/manager/login');
 
         header('Content-Type: application/json');
 

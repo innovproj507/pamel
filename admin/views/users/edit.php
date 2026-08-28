@@ -71,10 +71,12 @@
                         </div>
                         <select id="role" name="role" 
                             class="block w-full pl-11 pr-4 py-3 bg-gray-50 border-gray-200 border rounded-xl text-gray-900 focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none transition-all outline-none">
-                            <option value="student" <?php echo ($user['role'] ?? 'student') === 'student' ? 'selected' : ''; ?>>Estudiante</option>
-                            <option value="teacher" <?php echo ($user['role'] ?? '') === 'teacher' ? 'selected' : ''; ?>>Instructor</option>
-                            <option value="editor" <?php echo ($user['role'] ?? '') === 'editor' ? 'selected' : ''; ?>>Editor</option>
-                            <option value="admin" <?php echo ($user['role'] ?? '') === 'admin' ? 'selected' : ''; ?>>Admin</option>
+<?php
+                            $assignable = \Core\Permissions::assignableRoles(\Core\Auth::getInstance()->user()['role'] ?? '');
+                            foreach ($assignable as $r):
+                            ?>
+                            <option value="<?= $r ?>" <?= ($user['role'] ?? 'student') === $r ? 'selected' : '' ?>><?= htmlspecialchars(\Core\Permissions::label($r)) ?></option>
+                            <?php endforeach; ?>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
                             <i class="fas fa-chevron-down text-xs"></i>

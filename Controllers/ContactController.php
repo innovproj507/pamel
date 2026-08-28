@@ -68,7 +68,7 @@ class ContactController extends Controller
     {
         // Admin view
         $auth = \Core\Auth::getInstance();
-        $auth->requireAdmin();
+        \Core\Auth::getInstance()->requireCan('contact.view', '/manager/login');
 
         $messages = $this->contactModel->getAll();
 
