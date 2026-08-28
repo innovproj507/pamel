@@ -62,8 +62,9 @@ class AdminQuizController extends BaseController
             : $this->db->fetchAll("SELECT id, title FROM lms_courses ORDER BY title ASC");
 
         $view->render('admin/views/lms/quizzes/create', [
-            'title'   => 'Crear Nuevo Quiz',
-            'courses' => $courses,
+            'title'            => 'Crear Nuevo Quiz',
+            'courses'          => $courses,
+            'selectedCourseId' => (int) ($_GET['course_id'] ?? 0),
         ], 'admin/views/layout');
     }
 
@@ -92,8 +93,11 @@ class AdminQuizController extends BaseController
             'created_at'      => date('Y-m-d H:i:s')
         ];
 
-        $this->db->insert('lms_quizzes', $data);
-        
+        if (!$this->db->insert('lms_quizzes', $data)) {
+            $this->flash('error', 'No se pudo crear el quiz. Revisa el log de errores de PHP.');
+            $this->redirect('/manager/lms/quizzes/create?course_id=' . $courseId);
+        }
+
         $this->flash('success', 'Quiz creado correctamente.');
         $this->redirect('/manager/lms/quizzes');
     }
@@ -146,8 +150,11 @@ class AdminQuizController extends BaseController
             'updated_at'      => date('Y-m-d H:i:s')
         ];
 
-        $this->db->update('lms_quizzes', $data, 'id = :id', ['id' => $id]);
-        
+        if ($this->db->update('lms_quizzes', $data, 'id = :id', ['id' => $id]) === false) {
+            $this->flash('error', 'No se pudo guardar el quiz. Revisa el log de errores de PHP.');
+            $this->redirect("/manager/lms/quizzes/{$id}/edit");
+        }
+
         $this->flash('success', 'Quiz actualizado correctamente.');
         $this->redirect('/manager/lms/quizzes');
     }

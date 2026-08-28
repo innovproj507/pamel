@@ -197,7 +197,7 @@ foreach($categories as $c) {
                         <i class="fas fa-plus text-blue-400"></i>
                         <span class="text-xs">Nueva Lección</span>
                     </a>
-                    <a href="/manager/lms/courses/<?= $course['id'] ?>/quizzes/create" class="flex items-center gap-3 p-4 rounded-xl bg-amber-50 text-amber-600 font-bold hover:bg-amber-100 transition-all">
+                    <a href="/manager/lms/quizzes/create?course_id=<?= $course['id'] ?>" class="flex items-center gap-3 p-4 rounded-xl bg-amber-50 text-amber-600 font-bold hover:bg-amber-100 transition-all">
                         <i class="fas fa-vial text-amber-400"></i>
                         <span class="text-xs">Nueva Evaluación</span>
                     </a>

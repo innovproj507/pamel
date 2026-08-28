@@ -21,7 +21,7 @@
             <select name="course_id" required class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition">
                 <option value="">-- Seleccionar Curso --</option>
                 <?php foreach ($courses as $course): ?>
-                <option value="<?= $course['id'] ?>"><?= htmlspecialchars($course['title']) ?></option>
+                <option value="<?= $course['id'] ?>" <?= (!empty($selectedCourseId) && $selectedCourseId == $course['id']) ? 'selected' : '' ?>><?= htmlspecialchars($course['title']) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>

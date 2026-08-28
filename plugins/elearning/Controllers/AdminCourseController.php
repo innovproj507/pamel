@@ -560,8 +560,11 @@ class AdminCourseController extends BaseController
             'updated_at'=> date('Y-m-d H:i:s')
         ];
 
-        $this->db->update('lms_lessons', $data, 'id = :id', ['id' => $id]);
-        
+        if ($this->db->update('lms_lessons', $data, 'id = :id', ['id' => $id]) === false) {
+            $this->flash('error', 'No se pudo guardar la lección. Revisa el log de errores de PHP.');
+            $this->redirect("/manager/lms/courses/{$courseId}/lessons/{$id}/edit");
+        }
+
         $this->flash('success', 'Lección actualizada correctamente.');
         $this->redirect("/manager/lms/courses/{$courseId}/lessons");
     }
