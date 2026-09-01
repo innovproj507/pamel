@@ -56,7 +56,19 @@
                             <a href="/manager/lms/quizzes/<?= $quiz['id'] ?>/edit" class="p-2 text-gray-400 hover:text-blue-600 transition" title="Editar">
                                 <i class="fas fa-edit"></i>
                             </a>
-                            <form method="POST" action="/manager/lms/quizzes/<?= $quiz['id'] ?>/delete" onsubmit="return confirm('¿Estás seguro de eliminar este quiz?');" class="inline">
+                            <?php
+                            // El borrado arrastra preguntas, opciones e intentos.
+                            $_qCount = (int) ($quiz['question_count'] ?? 0);
+                            $_confirmQuiz = $_qCount > 0
+                                ? sprintf(
+                                    "Se eliminará el quiz «%s» junto con sus %d pregunta(s), "
+                                    . "sus opciones y los intentos de alumnos asociados.\n\n¿Continuar?",
+                                    $quiz['title'],
+                                    $_qCount
+                                  )
+                                : sprintf('¿Eliminar el quiz «%s»?', $quiz['title']);
+                            ?>
+                            <form method="POST" action="/manager/lms/quizzes/<?= $quiz['id'] ?>/delete" onsubmit="return confirm(<?= htmlspecialchars(json_encode($_confirmQuiz), ENT_QUOTES, 'UTF-8') ?>);" class="inline">
                                 <?php echo \Core\Security::getCsrfField(); ?>
                                 <button type="submit" class="p-2 text-gray-400 hover:text-red-600 transition" title="Eliminar">
                                     <i class="fas fa-trash"></i>

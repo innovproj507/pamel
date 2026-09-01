@@ -45,7 +45,19 @@
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
 <?php if (can('lms.quizzes.manage')): ?>
-                            <form method="POST" action="/manager/lms/quizzes/<?= $quiz['id'] ?>/questions/<?= $q['id'] ?>/delete" onsubmit="return confirm('¿Eliminar esta pregunta?');" class="inline">
+                            <?php
+                            // Si la pregunta tiene historial, la confirmación lo advierte.
+                            $_answers = (int) ($q['answer_count'] ?? 0);
+                            $_confirm = $_answers > 0
+                                ? sprintf(
+                                    "Esta pregunta ya fue respondida por %d alumno(s).\n\n"
+                                    . "Al eliminarla se borrarán también esas respuestas y se perderá "
+                                    . "el detalle de esas evaluaciones.\n\n¿Continuar?",
+                                    $_answers
+                                  )
+                                : '¿Eliminar esta pregunta?';
+                            ?>
+                            <form method="POST" action="/manager/lms/quizzes/<?= $quiz['id'] ?>/questions/<?= $q['id'] ?>/delete" onsubmit="return confirm(<?= htmlspecialchars(json_encode($_confirm), ENT_QUOTES, 'UTF-8') ?>);" class="inline">
                                 <?php echo \Core\Security::getCsrfField(); ?>
                                 <button type="submit" class="p-2 text-gray-400 hover:text-red-600 transition" title="Eliminar">
                                     <i class="fas fa-trash"></i>

@@ -173,9 +173,19 @@ class AdminQuizController extends BaseController
 
         $this->authorizeQuiz($id);
 
-        $this->db->query("DELETE FROM lms_quizzes WHERE id = ?", [$id]);
-        
-        $this->flash('success', 'Quiz eliminado correctamente.');
+        // Se cuenta antes para informar qué contenido se llevó por delante.
+        $content = $this->quizModel->quizContentCount($id);
+
+        if (!$this->quizModel->deleteQuizWithContent($id)) {
+            $this->flash('error', 'No se pudo eliminar el quiz. Revisa el log de errores de PHP.');
+            $this->redirect('/manager/lms/quizzes');
+        }
+
+        $this->flash('success', sprintf(
+            'Quiz eliminado junto con %d pregunta(s) y %d intento(s) de alumnos.',
+            $content['preguntas'],
+            $content['intentos']
+        ));
         $this->redirect('/manager/lms/quizzes');
     }
 
@@ -192,7 +202,9 @@ class AdminQuizController extends BaseController
 
         $view = new View();
         $questions = $this->db->fetchAll(
-            "SELECT q.*, (SELECT COUNT(*) FROM lms_question_options WHERE question_id = q.id) as option_count
+            "SELECT q.*,
+                    (SELECT COUNT(*) FROM lms_question_options WHERE question_id = q.id) as option_count,
+                    (SELECT COUNT(*) FROM lms_quiz_answers      WHERE question_id = q.id) as answer_count
              FROM lms_questions q
              WHERE q.quiz_id = ?
              ORDER BY q.order_num ASC",
@@ -287,12 +299,17 @@ class AdminQuizController extends BaseController
 
         $this->authorizeQuiz($quizId);
 
-        // Options are deleted by CASCADE in DB (hopefully)
-        // If not, we manually delete them
-        $this->db->query("DELETE FROM lms_question_options WHERE question_id = ?", [$id]);
-        $this->db->query("DELETE FROM lms_questions WHERE id = ?", [$id]);
-        
-        $this->flash('success', 'Pregunta eliminada.');
+        // Se cuenta antes para poder informar qué historial se destruyó.
+        $answers = $this->quizModel->questionAnswerCount($id);
+
+        if (!$this->quizModel->deleteQuestionWithOptions($id)) {
+            $this->flash('error', 'No se pudo eliminar la pregunta. Revisa el log de errores de PHP.');
+            $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
+        }
+
+        $this->flash('success', $answers > 0
+            ? sprintf('Pregunta eliminada junto con %d respuesta(s) de alumnos.', $answers)
+            : 'Pregunta eliminada.');
         $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
     }
 

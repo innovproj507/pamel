@@ -102,6 +102,116 @@ class Quiz extends Model
     }
 
     /**
+     * Elimina un quiz con todo su contenido, en una transacción.
+     *
+     * lms_questions y lms_question_options no tienen clave foránea hacia el
+     * quiz, así que hay que borrarlas explícitamente o quedan huérfanas.
+     * Las respuestas se borran antes que las preguntas porque la FK
+     * fk_lms_answers_question es NO ACTION y bloquearía el borrado.
+     * Los intentos los arrastra la FK del propio quiz (CASCADE).
+     *
+     * @return bool
+     */
+    public function deleteQuizWithContent($quizId): bool
+    {
+        $quizId = (int) $quizId;
+        $pdo = $this->db->getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $pdo->prepare(
+                "DELETE FROM lms_quiz_answers
+                 WHERE question_id IN (SELECT id FROM lms_questions WHERE quiz_id = ?)"
+            )->execute([$quizId]);
+
+            $pdo->prepare(
+                "DELETE FROM lms_question_options
+                 WHERE question_id IN (SELECT id FROM lms_questions WHERE quiz_id = ?)"
+            )->execute([$quizId]);
+
+            $pdo->prepare("DELETE FROM lms_questions WHERE quiz_id = ?")
+                ->execute([$quizId]);
+
+            // Arrastra lms_quiz_attempts y, por cascada, sus respuestas.
+            $pdo->prepare("DELETE FROM lms_quizzes WHERE id = ?")
+                ->execute([$quizId]);
+
+            $pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            error_log('deleteQuizWithContent: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Resumen de lo que se perdería al borrar un quiz.
+     */
+    public function quizContentCount($quizId): array
+    {
+        $quizId = (int) $quizId;
+        $row = $this->db->fetchOne(
+            "SELECT
+               (SELECT COUNT(*) FROM lms_questions WHERE quiz_id = ?) AS preguntas,
+               (SELECT COUNT(*) FROM lms_quiz_attempts WHERE quiz_id = ?) AS intentos",
+            [$quizId, $quizId]
+        );
+        return [
+            'preguntas' => (int) ($row['preguntas'] ?? 0),
+            'intentos'  => (int) ($row['intentos'] ?? 0),
+        ];
+    }
+
+    /**
+     * Cuántos alumnos han respondido ya esta pregunta.
+     */
+    public function questionAnswerCount($questionId): int
+    {
+        $row = $this->db->fetchOne(
+            "SELECT COUNT(*) AS c FROM lms_quiz_answers WHERE question_id = ?",
+            [(int) $questionId]
+        );
+        return (int) ($row['c'] ?? 0);
+    }
+
+    /**
+     * Elimina una pregunta, sus opciones y las respuestas de alumnos que la
+     * referencian, todo en una transacción.
+     *
+     * El borrado de las respuestas es imprescindible: la FK
+     * fk_lms_answers_question es NO ACTION y bloquearía el borrado. Implica
+     * perder el detalle por pregunta de los intentos ya realizados; la
+     * calificación guardada en lms_quiz_attempts (score, passed) no cambia.
+     *
+     * @return bool
+     */
+    public function deleteQuestionWithOptions($questionId): bool
+    {
+        $questionId = (int) $questionId;
+        $pdo = $this->db->getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $pdo->prepare("DELETE FROM lms_quiz_answers WHERE question_id = ?")
+                ->execute([$questionId]);
+
+            $pdo->prepare("DELETE FROM lms_question_options WHERE question_id = ?")
+                ->execute([$questionId]);
+
+            $pdo->prepare("DELETE FROM lms_questions WHERE id = ?")
+                ->execute([$questionId]);
+
+            $pdo->commit();
+            return true;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            error_log('deleteQuestionWithOptions: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
      * Start a new quiz attempt.
      */
     public function startAttempt($studentId, $quizId)
