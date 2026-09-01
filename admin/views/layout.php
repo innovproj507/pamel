@@ -3,6 +3,15 @@
 $currentUser = \Core\Auth::getInstance()->user();
 $currentRole = $currentUser['role'] ?? '';
 $roleLabel   = \Core\Permissions::label($currentRole);
+
+// Preguntas que quedaron sin quiz: se muestran como insignia en el menú.
+$unassignedQuestions = 0;
+if (\Core\Permissions::roleCan($currentRole, 'lms.quizzes.manage')) {
+    $unassignedQuestions = (int) (\Core\Database::getInstance()->fetchOne(
+        "SELECT COUNT(*) AS c FROM lms_questions q
+         WHERE NOT EXISTS (SELECT 1 FROM lms_quizzes z WHERE z.id = q.quiz_id)"
+    )['c'] ?? 0);
+}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -87,6 +96,11 @@ $roleLabel   = \Core\Permissions::label($currentRole);
             <?php endif; ?>
             <?php if (can('lms.quizzes.view')): ?>
             <a href="/manager/lms/quizzes"   class="nav-link"><i class="fas fa-vial-circle-check w-4 text-center"></i>Quizzes</a>
+            <?php endif; ?>
+            <?php if (can('lms.quizzes.manage') && !empty($unassignedQuestions)): ?>
+            <a href="/manager/lms/questions/unassigned" class="nav-link"><i class="fas fa-inbox w-4 text-center"></i>Sin asignar
+                <span class="ml-auto text-[9px] font-black bg-amber-500 text-white px-1.5 py-0.5 rounded-full"><?= $unassignedQuestions ?></span>
+            </a>
             <?php endif; ?>
             <?php if (can('lms.categories.manage')): ?>
             <a href="/manager/lms/categories" class="nav-link"><i class="fas fa-tags w-4 text-center"></i>Categorías LMS</a>

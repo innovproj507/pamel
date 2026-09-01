@@ -101,3 +101,6 @@ $RECYCLE.BIN/
 
 #carpeta de cursos
 /cursos/
+
+# Exportaciones generadas por scripts/ (contenido de cursos)
+/export_huerfanas/

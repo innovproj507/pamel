@@ -65,7 +65,7 @@
             <h3 class="text-sm font-black text-navy uppercase tracking-wider mb-4">Contenido del Quiz</h3>
             <div class="space-y-4">
                 <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 text-center">
-                    <p class="text-xs text-gray-500 font-medium mb-3">Este quiz tiene <?= $quiz['question_count'] ?? 0 ?> preguntas.</p>
+                    <p class="text-xs text-gray-500 font-medium mb-3"><?php $_qc = (int) ($quiz['question_count'] ?? 0); ?>Este quiz tiene <?= $_qc ?> <?= $_qc === 1 ? 'pregunta' : 'preguntas' ?>.</p>
                     <a href="/manager/lms/quizzes/<?= $quiz['id'] ?>/questions" class="inline-flex items-center gap-2 text-blue-600 font-bold text-sm hover:underline">
                         <i class="fas fa-list-check"></i> Gestionar Preguntas
                     </a>

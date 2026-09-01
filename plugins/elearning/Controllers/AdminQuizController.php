@@ -25,27 +25,116 @@ class AdminQuizController extends BaseController
     {
         $this->requireCan('lms.quizzes.view');
 
-        $where  = '1=1';
-        $params = [];
-        if ($this->user['role'] === 'teacher') {
-            $where  = 'c.teacher_id = ?';
-            $params = [(int) $this->user['id']];
-        }
+        $perPage  = 8;   // cursos por página
+        $page     = max(1, (int) ($_GET['page'] ?? 1));
+        $q        = trim($_GET['q'] ?? '');
+        $courseId = (int) ($_GET['course_id'] ?? 0);
+        $status   = $_GET['status'] ?? '';
+        $empty    = $_GET['empty'] ?? '';
 
-        $view = new View();
-        $quizzes = $this->db->fetchAll(
-            "SELECT q.*, c.title as course_title,
-                    (SELECT COUNT(*) FROM lms_questions WHERE quiz_id = q.id) as question_count
-             FROM lms_quizzes q
-             LEFT JOIN lms_courses c ON c.id = q.course_id
-             WHERE {$where}
-             ORDER BY q.created_at DESC",
+        // Condiciones que filtran los QUIZZES
+        $where  = ['1=1'];
+        $params = [];
+
+        if ($this->user['role'] === 'teacher') {
+            $where[]  = 'c.teacher_id = ?';
+            $params[] = (int) $this->user['id'];
+        }
+        if ($q !== '') {
+            $where[]  = '(z.title LIKE ? OR c.title LIKE ?)';
+            $params[] = "%{$q}%";
+            $params[] = "%{$q}%";
+        }
+        if ($courseId > 0) {
+            $where[]  = 'c.id = ?';
+            $params[] = $courseId;
+        }
+        if ($status === 'active') {
+            $where[] = 'z.is_active = 1';
+        } elseif ($status === 'hidden') {
+            $where[] = 'z.is_active = 0';
+        }
+        if ($empty === '1') {
+            $where[] = 'NOT EXISTS (SELECT 1 FROM lms_questions qq WHERE qq.quiz_id = z.id)';
+        }
+        $whereStr = implode(' AND ', $where);
+
+        // Cursos que tienen al menos un quiz que cumple el filtro
+        $total = (int) ($this->db->fetchOne(
+            "SELECT COUNT(DISTINCT c.id) AS t
+             FROM lms_quizzes z
+             JOIN lms_courses c ON c.id = z.course_id
+             WHERE {$whereStr}",
+            $params
+        )['t'] ?? 0);
+
+        $offset  = ($page - 1) * $perPage;
+        $courses = $this->db->fetchAll(
+            "SELECT c.id, c.title, c.status,
+                    COUNT(z.id) AS quiz_count,
+                    COALESCE(SUM((SELECT COUNT(*) FROM lms_questions qq WHERE qq.quiz_id = z.id)), 0) AS question_total,
+                    SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM lms_questions qq WHERE qq.quiz_id = z.id) THEN 1 ELSE 0 END) AS empty_count
+             FROM lms_quizzes z
+             JOIN lms_courses c ON c.id = z.course_id
+             WHERE {$whereStr}
+             GROUP BY c.id, c.title, c.status
+             ORDER BY c.title ASC
+             LIMIT {$perPage} OFFSET {$offset}",
             $params
         );
 
+        // Quizzes de los cursos de esta página
+        $quizzesByCourse = [];
+        if ($courses) {
+            $ids  = array_map(static fn($c) => (int) $c['id'], $courses);
+            $in   = implode(',', array_fill(0, count($ids), '?'));
+            $rows = $this->db->fetchAll(
+                "SELECT z.*,
+                        (SELECT COUNT(*) FROM lms_questions qq WHERE qq.quiz_id = z.id) AS question_count,
+                        (SELECT COUNT(*) FROM lms_quiz_attempts t WHERE t.quiz_id = z.id) AS attempt_count
+                 FROM lms_quizzes z
+                 JOIN lms_courses c ON c.id = z.course_id
+                 WHERE {$whereStr} AND c.id IN ({$in})
+                 ORDER BY z.title ASC, z.id ASC",
+                array_merge($params, $ids)
+            );
+            foreach ($rows as $row) {
+                $quizzesByCourse[(int) $row['course_id']][] = $row;
+            }
+        }
+
+        // Resumen global (sin filtros de página, sí con el ámbito del rol)
+        $scope       = $this->user['role'] === 'teacher' ? 'c.teacher_id = ?' : '1=1';
+        $scopeParams = $this->user['role'] === 'teacher' ? [(int) $this->user['id']] : [];
+        $stats = $this->db->fetchOne(
+            "SELECT COUNT(*) AS quizzes,
+                    COALESCE(SUM((SELECT COUNT(*) FROM lms_questions qq WHERE qq.quiz_id = z.id)), 0) AS preguntas,
+                    SUM(CASE WHEN NOT EXISTS (SELECT 1 FROM lms_questions qq WHERE qq.quiz_id = z.id) THEN 1 ELSE 0 END) AS vacios
+             FROM lms_quizzes z
+             JOIN lms_courses c ON c.id = z.course_id
+             WHERE {$scope}",
+            $scopeParams
+        );
+
+        $courseOptions = $this->user['role'] === 'teacher'
+            ? $this->db->fetchAll("SELECT id, title FROM lms_courses WHERE teacher_id = ? ORDER BY title ASC", [(int) $this->user['id']])
+            : $this->db->fetchAll("SELECT id, title FROM lms_courses ORDER BY title ASC");
+
+        $view = new View();
         $view->render('admin/views/lms/quizzes/index', [
-            'title'   => 'Gestión de Quizzes',
-            'quizzes' => $quizzes,
+            'title'           => 'Gestión de Quizzes',
+            'courses'         => $courses,
+            'quizzesByCourse' => $quizzesByCourse,
+            'courseOptions'   => $courseOptions,
+            'stats'           => $stats,
+            'total'           => $total,
+            'page'            => $page,
+            'perPage'         => $perPage,
+            'lastPage'        => max(1, (int) ceil($total / $perPage)),
+            'q'               => $q,
+            'filterCourse'    => $courseId,
+            'filterStatus'    => $status,
+            'filterEmpty'     => $empty,
         ], 'admin/views/layout');
     }
 
@@ -115,6 +204,12 @@ class AdminQuizController extends BaseController
         $courses = $this->user['role'] === 'teacher'
             ? $this->db->fetchAll("SELECT id, title FROM lms_courses WHERE teacher_id = ? ORDER BY title ASC", [(int) $this->user['id']])
             : $this->db->fetchAll("SELECT id, title FROM lms_courses ORDER BY title ASC");
+
+        // find() no trae el conteo; la vista lo necesita para el panel lateral.
+        $quiz['question_count'] = (int) ($this->db->fetchOne(
+            "SELECT COUNT(*) AS c FROM lms_questions WHERE quiz_id = ?",
+            [(int) $quiz['id']]
+        )['c'] ?? 0);
 
         $view->render('admin/views/lms/quizzes/edit', [
             'title'   => 'Editar Quiz: ' . $quiz['title'],

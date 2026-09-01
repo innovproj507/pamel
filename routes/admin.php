@@ -146,6 +146,12 @@ return function($router) {
     $router->post('/manager/lms/students/store', 'Plugins\Elearning\Controllers\AdminEnrollmentController@store', 'admin.lms.students.store');
     $router->post('/manager/lms/students/:id/delete', 'Plugins\Elearning\Controllers\AdminEnrollmentController@delete', 'admin.lms.students.delete');
 
+    // LMS Banco de preguntas sin asignar
+    $router->get('/manager/lms/questions/unassigned', 'Plugins\Elearning\Controllers\AdminQuestionBankController@index', 'admin.lms.questions.bank');
+    $router->get('/manager/lms/questions/unassigned/:setId', 'Plugins\Elearning\Controllers\AdminQuestionBankController@show', 'admin.lms.questions.bank.show');
+    $router->post('/manager/lms/questions/unassigned/:setId/assign', 'Plugins\Elearning\Controllers\AdminQuestionBankController@assign', 'admin.lms.questions.bank.assign');
+    $router->post('/manager/lms/questions/unassigned/:setId/delete', 'Plugins\Elearning\Controllers\AdminQuestionBankController@delete', 'admin.lms.questions.bank.delete');
+
     // LMS Instructors
     $router->get('/manager/lms/teachers', 'Plugins\Elearning\Controllers\AdminTeacherController@index', 'admin.lms.teachers');
 };
