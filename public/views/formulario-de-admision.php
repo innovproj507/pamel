@@ -290,6 +290,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         throw new Error('Los archivos son demasiado grandes para el servidor. '
                             + 'Cada documento debe pesar como máximo ' + tope + ' MB.');
                     }
+                    if (response.status === 502 || response.status === 504) {
+                        // El servidor cortó la respuesta, pero el envío pudo completarse.
+                        throw new Error('No pudimos confirmar el envío por un problema del servidor.\n\n'
+                            + 'Es posible que tu solicitud SÍ se haya registrado. '
+                            + 'No la envíes de nuevo: escríbenos a info@pamel.edu.pa para confirmarlo.');
+                    }
                     throw new Error('El servidor respondió de forma inesperada (código '
                         + response.status + '). Inténtalo de nuevo o escríbenos.');
                 }

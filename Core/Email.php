@@ -72,11 +72,23 @@ class Email
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             }
 
-            // Log SMTP conversation to error_log for debugging
-            $mail->SMTPDebug  = 2;
-            $mail->Debugoutput = function(string $str, int $level) {
-                error_log("PHPMailer [$level]: " . trim($str));
-            };
+            // Traza SMTP: apagada salvo que se active a propósito con
+            // SMTP_DEBUG en el .env. Con adjuntos, cualquier nivel > 0 vuelca
+            // el cuerpo base64 completo al log; bajo PHP-FPM eso desborda el
+            // buffer de cabeceras de nginx y devuelve un 502 aunque el correo
+            // haya salido. Por eso también se trunca cada línea.
+            $debugLevel = (int) ($_ENV['SMTP_DEBUG'] ?? 0);
+            $mail->SMTPDebug = $debugLevel;
+
+            if ($debugLevel > 0) {
+                $mail->Debugoutput = function (string $str, int $level) {
+                    $line = trim($str);
+                    if (strlen($line) > 200) {
+                        $line = substr($line, 0, 200) . '… [truncado]';
+                    }
+                    error_log("PHPMailer [$level]: " . $line);
+                };
+            }
 
             $mail->setFrom($config['from_email'] ?? '', $config['from_name'] ?? '');
             $mail->addAddress($to);
