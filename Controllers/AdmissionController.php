@@ -14,6 +14,57 @@ class AdmissionController
         $this->admissionRequest = new AdmissionRequest();
     }
 
+    /** Límite propio para los documentos adjuntos. */
+    private const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+
+    /** Nombre legible de cada documento, para los mensajes de error. */
+    private const FILE_LABELS = [
+        'cedula'            => 'Cédula / Pasaporte',
+        'certificado_salud' => 'Certificado de salud',
+    ];
+
+    /**
+     * Tamaño máximo real por archivo: el menor entre nuestro límite y lo que
+     * permita el servidor (upload_max_filesize / post_max_size). Sin esto,
+     * anunciaríamos un máximo que PHP rechazaría antes de llegar aquí.
+     */
+    public static function maxUploadBytes(): int
+    {
+        $limits = array_filter([
+            self::iniBytes((string) ini_get('upload_max_filesize')),
+            self::iniBytes((string) ini_get('post_max_size')),
+        ]);
+
+        return $limits ? (int) min(self::MAX_UPLOAD_BYTES, min($limits)) : self::MAX_UPLOAD_BYTES;
+    }
+
+    /** Convierte los valores tipo "8M" o "2G" de php.ini a bytes. */
+    private static function iniBytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        $unit   = strtolower($value[strlen($value) - 1]);
+        $number = (int) $value;
+
+        switch ($unit) {
+            case 'g': return $number * 1024 * 1024 * 1024;
+            case 'm': return $number * 1024 * 1024;
+            case 'k': return $number * 1024;
+            default:  return $number;
+        }
+    }
+
+    /** Formatea bytes para mostrarlos al usuario. */
+    private static function formatSize(int $bytes): string
+    {
+        if ($bytes >= 1024 * 1024) {
+            return number_format($bytes / (1024 * 1024), 1, ',', '.') . ' MB';
+        }
+        return number_format(max(0, $bytes) / 1024, 0, ',', '.') . ' KB';
+    }
     public function submit()
     {
         header('Content-Type: application/json');
@@ -25,6 +76,16 @@ class AdmissionController
         }
 
         try {
+            // Si el envío supera post_max_size, PHP descarta $_POST y $_FILES por
+            // completo; sin este aviso el usuario vería "el campo X es requerido".
+            if (empty($_POST) && (int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > 0) {
+                throw new \Exception(sprintf(
+                    'El envío es demasiado grande (%s). Cada documento adjunto puede pesar como máximo %s.',
+                    self::formatSize((int) $_SERVER['CONTENT_LENGTH']),
+                    self::formatSize(self::maxUploadBytes())
+                ));
+            }
+
             // Validate required fields using the actual HTML form field names
             $required = ['full_name', 'id_passport', 'dob', 'nationality', 'email', 'address', 'phone', 'course'];
 
@@ -79,9 +140,10 @@ class AdmissionController
             ];
 
             // Handle file uploads
-            $uploadDir        = \Core\Config::get('paths.root') . '/public/uploads/admissions/';
+            $uploadDir         = \Core\Config::get('paths.root') . '/public/uploads/admissions/';
             $allowedExtensions = ['jpg', 'jpeg', 'png', 'pdf'];
-            $maxFileSize      = 5 * 1024 * 1024; // 5 MB
+            $maxFileSize       = self::maxUploadBytes();
+            $maxLabel          = self::formatSize($maxFileSize);
 
             $filesToUpload = [
                 'id_file'                  => 'cedula',
@@ -89,23 +151,32 @@ class AdmissionController
             ];
 
             foreach ($filesToUpload as $dbField => $inputName) {
-                if (isset($_FILES[$inputName]) && $_FILES[$inputName]['error'] === UPLOAD_ERR_OK) {
+                $label = self::FILE_LABELS[$inputName] ?? $inputName;
+                $error = $_FILES[$inputName]['error'] ?? UPLOAD_ERR_NO_FILE;
+
+                if ($error === UPLOAD_ERR_OK) {
                     $tmpPath   = $_FILES[$inputName]['tmp_name'];
                     $fileName  = $_FILES[$inputName]['name'];
-                    $fileSize  = $_FILES[$inputName]['size'];
+                    $fileSize  = (int) $_FILES[$inputName]['size'];
                     $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
 
                     if (!\in_array($extension, $allowedExtensions)) {
-                        throw new \Exception("Formato no permitido para {$inputName}. Use JPG, PNG o PDF.");
+                        throw new \Exception("«{$label}»: formato no permitido. Use JPG, PNG o PDF.");
                     }
                     if ($fileSize > $maxFileSize) {
-                        throw new \Exception("El archivo {$inputName} supera el máximo de 5 MB.");
+                        throw new \Exception(sprintf(
+                            '«%s»: el archivo pesa %s y el máximo permitido es %s. '
+                            . 'Comprime el PDF o reduce la resolución del escaneo e inténtalo de nuevo.',
+                            $label,
+                            self::formatSize($fileSize),
+                            $maxLabel
+                        ));
                     }
 
                     $allowedMimes = ['image/jpeg', 'image/png', 'application/pdf'];
                     $mime = mime_content_type($tmpPath);
                     if (!\in_array($mime, $allowedMimes, true)) {
-                        throw new \Exception("Tipo de archivo no permitido para {$inputName}.");
+                        throw new \Exception("«{$label}»: tipo de archivo no permitido.");
                     }
 
                     $newName  = uniqid($inputName . '_', true) . '.' . $extension;
@@ -114,10 +185,18 @@ class AdmissionController
                     if (move_uploaded_file($tmpPath, $destPath)) {
                         $data[$dbField] = '/public/uploads/admissions/' . $newName;
                     } else {
-                        throw new \Exception("Error al guardar el archivo {$inputName}.");
+                        throw new \Exception("«{$label}»: no se pudo guardar el archivo en el servidor.");
                     }
-                } elseif (isset($_FILES[$inputName]) && $_FILES[$inputName]['error'] !== UPLOAD_ERR_NO_FILE) {
-                    throw new \Exception("Error en la carga del archivo {$inputName}: " . $_FILES[$inputName]['error']);
+                } elseif ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
+                    // PHP lo cortó antes de llegar aquí: el límite del servidor manda.
+                    throw new \Exception(
+                        "«{$label}»: el archivo supera el máximo permitido por el servidor ({$maxLabel})."
+                    );
+                } elseif ($error === UPLOAD_ERR_PARTIAL) {
+                    throw new \Exception("«{$label}»: la carga se interrumpió. Vuelve a intentarlo.");
+                } elseif ($error !== UPLOAD_ERR_NO_FILE) {
+                    error_log("Admisión: error de carga {$error} en {$inputName}");
+                    throw new \Exception("«{$label}»: no se pudo procesar el archivo. Inténtalo de nuevo.");
                 } else {
                     $data[$dbField] = null;
                 }

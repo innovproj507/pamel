@@ -1,3 +1,8 @@
+<?php
+// Límite real de subida: se comparte con la validación del servidor.
+$maxUploadBytes = \Controllers\AdmissionController::maxUploadBytes();
+$maxUploadLabel = number_format($maxUploadBytes / (1024 * 1024), 0) . ' MB';
+?>
 <div class="bg-white">
     <!-- Hero Section -->
     <section class="hero-gradient text-white py-32 relative overflow-hidden">
@@ -157,6 +162,7 @@
                             </label>
                             <input type="file" name="cedula" accept=".jpg,.jpeg,.png,.pdf"
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition">
+                            <p class="text-xs text-gray-500 mt-1.5">JPG, PNG o PDF · máximo <?= $maxUploadLabel ?></p>
                         </div>
 
                         <!-- Health Certificate -->
@@ -166,6 +172,7 @@
                             </label>
                             <input type="file" name="certificado_salud" accept=".jpg,.jpeg,.png,.pdf"
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition">
+                            <p class="text-xs text-gray-500 mt-1.5">JPG, PNG o PDF · máximo <?= $maxUploadLabel ?></p>
                         </div>
                         <!-- Consent Checkbox -->
                         <div class="bg-cyan-50 p-6 rounded-xl border-2 border-cyan-100 mt-8 mb-4">
@@ -236,6 +243,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Debe aceptar los términos para continuar.');
                 return;
             }
+
+            // Se revisa el tamaño aquí para no hacer esperar una subida
+            // completa que el servidor va a rechazar igualmente.
+            const MAX_BYTES = <?= (int) $maxUploadBytes ?>;
+            const ETIQUETAS = {
+                cedula: 'Cédula / Pasaporte',
+                certificado_salud: 'Certificado de salud'
+            };
+            for (const input of this.querySelectorAll('input[type="file"]')) {
+                const archivo = input.files && input.files[0];
+                if (archivo && archivo.size > MAX_BYTES) {
+                    const pesa  = (archivo.size / (1024 * 1024)).toFixed(1);
+                    const tope  = Math.round(MAX_BYTES / (1024 * 1024));
+                    const campo = ETIQUETAS[input.name] || input.name;
+                    alert('❌ «' + campo + '»: el archivo pesa ' + pesa + ' MB y el máximo es ' + tope + ' MB.\n\n'
+                        + 'Comprime el PDF o reduce la resolución del escaneo e inténtalo de nuevo.');
+                    input.focus();
+                    return;
+                }
+            }
             
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
@@ -252,12 +279,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 method: 'POST',
                 body: formData
             })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => { throw err; });
+            .then(response => response.text().then(texto => {
+                try {
+                    return JSON.parse(texto);
+                } catch (e) {
+                    // Respuesta que no es JSON: casi siempre el servidor web
+                    // rechazando el envío por tamaño antes de llegar a PHP.
+                    if (response.status === 413) {
+                        const tope = Math.round(MAX_BYTES / (1024 * 1024));
+                        throw new Error('Los archivos son demasiado grandes para el servidor. '
+                            + 'Cada documento debe pesar como máximo ' + tope + ' MB.');
+                    }
+                    throw new Error('El servidor respondió de forma inesperada (código '
+                        + response.status + '). Inténtalo de nuevo o escríbenos.');
                 }
-                return response.json();
-            })
+            }))
             .then(data => {
                 if (data.success) {
                     // Show success message
