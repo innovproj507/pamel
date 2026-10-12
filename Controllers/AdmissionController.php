@@ -17,12 +17,6 @@ class AdmissionController
     /** Límite propio para los documentos adjuntos. */
     private const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
 
-    /** Nombre legible de cada documento, para los mensajes de error. */
-    private const FILE_LABELS = [
-        'cedula'            => 'Cédula / Pasaporte',
-        'certificado_salud' => 'Certificado de salud',
-    ];
-
     /**
      * Tamaño máximo real por archivo: el menor entre nuestro límite y lo que
      * permita el servidor (upload_max_filesize / post_max_size). Sin esto,
@@ -147,62 +141,13 @@ class AdmissionController
             $maxFileSize       = self::maxUploadBytes();
             $maxLabel          = self::formatSize($maxFileSize);
 
-            $filesToUpload = [
-                'id_file'                  => 'cedula',
-                'health_certificate_file'  => 'certificado_salud',
-            ];
-
-            foreach ($filesToUpload as $dbField => $inputName) {
-                $label = self::FILE_LABELS[$inputName] ?? $inputName;
-                $error = $_FILES[$inputName]['error'] ?? UPLOAD_ERR_NO_FILE;
-
-                if ($error === UPLOAD_ERR_OK) {
-                    $tmpPath   = $_FILES[$inputName]['tmp_name'];
-                    $fileName  = $_FILES[$inputName]['name'];
-                    $fileSize  = (int) $_FILES[$inputName]['size'];
-                    $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-                    if (!\in_array($extension, $allowedExtensions)) {
-                        throw new \Exception("«{$label}»: formato no permitido. Use JPG, PNG o PDF.");
-                    }
-                    if ($fileSize > $maxFileSize) {
-                        throw new \Exception(sprintf(
-                            '«%s»: el archivo pesa %s y el máximo permitido es %s. '
-                            . 'Comprime el PDF o reduce la resolución del escaneo e inténtalo de nuevo.',
-                            $label,
-                            self::formatSize($fileSize),
-                            $maxLabel
-                        ));
-                    }
-
-                    $allowedMimes = ['image/jpeg', 'image/png', 'application/pdf'];
-                    $mime = mime_content_type($tmpPath);
-                    if (!\in_array($mime, $allowedMimes, true)) {
-                        throw new \Exception("«{$label}»: tipo de archivo no permitido.");
-                    }
-
-                    $newName  = uniqid($inputName . '_', true) . '.' . $extension;
-                    $destPath = $uploadDir . $newName;
-
-                    if (move_uploaded_file($tmpPath, $destPath)) {
-                        $data[$dbField] = '/public/uploads/admissions/' . $newName;
-                    } else {
-                        throw new \Exception("«{$label}»: no se pudo guardar el archivo en el servidor.");
-                    }
-                } elseif ($error === UPLOAD_ERR_INI_SIZE || $error === UPLOAD_ERR_FORM_SIZE) {
-                    // PHP lo cortó antes de llegar aquí: el límite del servidor manda.
-                    throw new \Exception(
-                        "«{$label}»: el archivo supera el máximo permitido por el servidor ({$maxLabel})."
-                    );
-                } elseif ($error === UPLOAD_ERR_PARTIAL) {
-                    throw new \Exception("«{$label}»: la carga se interrumpió. Vuelve a intentarlo.");
-                } elseif ($error !== UPLOAD_ERR_NO_FILE) {
-                    error_log("Admisión: error de carga {$error} en {$inputName}");
-                    throw new \Exception("«{$label}»: no se pudo procesar el archivo. Inténtalo de nuevo.");
-                } else {
-                    $data[$dbField] = null;
-                }
-            }
+            // El formulario ya no trae campos fijos de identificación ni de
+            // certificado médico: ahora llegan como requisitos del curso,
+            // igual que los demás. Las columnas id_file y
+            // health_certificate_file se conservan porque las solicitudes
+            // anteriores las usan, pero ya no se rellenan.
+            $data['id_file']                 = null;
+            $data['health_certificate_file'] = null;
 
             // ── Adjuntos exigidos por los requisitos del curso ──────────
             // Se validan ANTES de crear la solicitud: si algo falla, no se

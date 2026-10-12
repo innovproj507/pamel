@@ -186,29 +186,13 @@ $maxUploadLabel = number_format($maxUploadBytes / (1024 * 1024), 0) . ' MB';
                             <p class="text-xs text-gray-500 mb-4"><?php echo __('admission.form.requirements_hint'); ?></p>
                             <ul id="reqList" class="space-y-2"></ul>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-900 mb-6 pt-4 pb-4 border-b-2 border-gray-200">
-                            <?php echo __('admission.form.documents'); ?>
-                        </h3>
+                        <!--
+                            Aquí había dos campos fijos, identificación y certificado
+                            médico, visibles desde el principio aunque no se hubiera
+                            elegido curso. Ahora los documentos salen de los requisitos
+                            del curso, que es donde está escrito qué pide cada uno.
+                        -->
 
-                        <!-- ID / Cedula Copy -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                <?php echo __('admission.form.id_doc'); ?>
-                            </label>
-                            <input type="file" name="cedula" accept=".jpg,.jpeg,.png,.pdf"
-                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition">
-                            <p class="text-xs text-gray-500 mt-1.5">JPG, PNG o PDF · máximo <?= $maxUploadLabel ?></p>
-                        </div>
-
-                        <!-- Health Certificate -->
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                <?php echo __('admission.form.health_doc'); ?>
-                            </label>
-                            <input type="file" name="certificado_salud" accept=".jpg,.jpeg,.png,.pdf"
-                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition">
-                            <p class="text-xs text-gray-500 mt-1.5">JPG, PNG o PDF · máximo <?= $maxUploadLabel ?></p>
-                        </div>
                         <!-- Consent Checkbox -->
                         <div class="bg-cyan-50 p-6 rounded-xl border-2 border-cyan-100 mt-8 mb-4">
                             <div class="flex items-start">
@@ -370,8 +354,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Requisitos por curso y modo, servidos desde la base.
     const REQUISITOS = <?= json_encode($requirements ?? [], JSON_UNESCAPED_UNICODE) ?>;
     const TEXTOS = {
-        adjunto:  <?= json_encode(__('admission.form.req_attach'), JSON_UNESCAPED_UNICODE) ?>,
-        cubierto: <?= json_encode(__('admission.form.req_covered'), JSON_UNESCAPED_UNICODE) ?>
+        adjunto: <?= json_encode(__('admission.form.req_attach'), JSON_UNESCAPED_UNICODE) ?>
     };
 
     (function () {
@@ -421,9 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const icono = document.createElement('i');
                 icono.className = r.adjunto
                     ? 'fas fa-paperclip text-cyan-600 mt-1 flex-shrink-0'
-                    : (r.cubierto
-                        ? 'fas fa-check text-emerald-600 mt-1 flex-shrink-0'
-                        : 'fas fa-circle-info text-gray-400 mt-1 flex-shrink-0');
+                    : 'fas fa-circle-info text-gray-400 mt-1 flex-shrink-0';
                 li.appendChild(icono);
 
                 const cuerpo = document.createElement('div');
@@ -433,13 +414,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 texto.className = 'text-gray-700';
                 texto.textContent = r.label;
                 cuerpo.appendChild(texto);
-
-                if (r.cubierto) {
-                    const nota = document.createElement('p');
-                    nota.className = 'text-xs text-emerald-700 mt-0.5';
-                    nota.textContent = TEXTOS.cubierto;
-                    cuerpo.appendChild(nota);
-                }
 
                 if (r.adjunto) {
                     const campo = document.createElement('input');

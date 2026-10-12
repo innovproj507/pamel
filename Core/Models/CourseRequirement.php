@@ -276,27 +276,6 @@ class CourseRequirement extends Model
     }
 
     /**
-     * Requisitos ya cubiertos por los campos fijos del formulario.
-     * No se vuelven a pedir como adjunto aparte.
-     */
-    private const YA_EN_FORMULARIO = [
-        'id / passport',
-        'good health, certified by means of a medical certificate',
-    ];
-
-    /** ¿Este requisito lo cubre ya un campo fijo del formulario? */
-    public static function cubiertoPorCampoFijo(string $label): bool
-    {
-        $l = mb_strtolower(trim($label), 'UTF-8');
-        foreach (self::YA_EN_FORMULARIO as $fijo) {
-            if ($l === $fijo || str_starts_with($l, $fijo)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
      * Todos los requisitos agrupados por curso y modo, para incrustarlos en
      * el formulario de admisión.
      *
@@ -316,11 +295,9 @@ class CourseRequirement extends Model
             $pid  = (int) $f['product_id'];
             $modo = $f['mode'];
             $out[$pid][$modo][] = [
-                'id'       => (int) $f['id'],
-                'label'    => $f['label'],
-                'adjunto'  => (int) $f['requires_file'] === 1
-                              && !self::cubiertoPorCampoFijo($f['label']),
-                'cubierto' => self::cubiertoPorCampoFijo($f['label']),
+                'id'      => (int) $f['id'],
+                'label'   => $f['label'],
+                'adjunto' => (int) $f['requires_file'] === 1,
             ];
         }
 
@@ -345,7 +322,7 @@ class CourseRequirement extends Model
     {
         $out = [];
         foreach ($this->forProduct($productId, $mode) as $r) {
-            if ((int) $r['requires_file'] === 1 && !self::cubiertoPorCampoFijo($r['label'])) {
+            if ((int) $r['requires_file'] === 1) {
                 $out[(int) $r['id']] = $r['label'];
             }
         }
