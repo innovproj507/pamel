@@ -294,7 +294,10 @@ class AdmissionController
             $resultado[] = [
                 'requirement_id' => (int) $reqId,
                 'label'          => $label,
-                'file_path'      => '/public/uploads/admissions/' . $destino,
+                // El servidor sirve public/ como raíz, así que la URL NO
+                // lleva ese segmento: con /public delante daba 404 y los
+                // adjuntos no se podían abrir desde el panel.
+                'file_path'      => '/uploads/admissions/' . $destino,
                 'original_name'  => mb_substr($nombre, 0, 255),
                 'size_bytes'     => $tamano,
             ];
