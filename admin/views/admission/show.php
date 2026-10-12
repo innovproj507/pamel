@@ -114,6 +114,15 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                 </h2>
                 <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-5 mb-4">
                     <p class="text-gray-900 font-semibold text-lg"><?= htmlspecialchars($request['course']) ?></p>
+                    <?php
+                    $_modo = $request['course_mode'] ?? 'new';
+                    ?>
+                    <span class="inline-flex items-center gap-1.5 mt-1 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full <?=
+                        $_modo === 'refresher'
+                            ? 'bg-violet-50 text-violet-600 border border-violet-200'
+                            : 'bg-blue-50 text-blue-600 border border-blue-200' ?>">
+                        <?= $_modo === 'refresher' ? 'Renovación' : 'Primera vez' ?>
+                    </span>
                 </div>
                 <div class="bg-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-50 border border-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-200 rounded-xl p-5">
                     <p class="text-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-700 font-semibold text-sm">
@@ -124,6 +133,33 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
             </div>
 
             <!-- Attached Documents -->
+            <?php if (!empty($requirementFiles)): ?>
+            <div class="mb-8">
+                <h3 class="text-sm font-black text-gray-500 uppercase tracking-widest mb-4">
+                    Documentos por requisito del curso
+                </h3>
+                <div class="space-y-2">
+                    <?php foreach ($requirementFiles as $_f): ?>
+                    <a href="<?= htmlspecialchars($_f['file_path']) ?>" target="_blank"
+                       class="flex items-start gap-3 p-4 rounded-xl border border-gray-200 hover:border-cyan-400 hover:bg-cyan-50/40 transition group">
+                        <i class="fas fa-paperclip text-cyan-600 mt-1 flex-shrink-0"></i>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-semibold text-gray-800 group-hover:text-cyan-700">
+                                <?= htmlspecialchars($_f['label']) ?>
+                            </p>
+                            <p class="text-xs text-gray-400 mt-0.5">
+                                <?= htmlspecialchars((string) $_f['original_name']) ?>
+                                <?php if (!empty($_f['size_bytes'])): ?>
+                                · <?= number_format($_f['size_bytes'] / 1024, 0, ',', '.') ?> KB
+                                <?php endif; ?>
+                            </p>
+                        </div>
+                        <i class="fas fa-arrow-up-right-from-square text-gray-300 group-hover:text-cyan-600 text-xs mt-1"></i>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
             <?php if (!empty($request['id_file']) || !empty($request['health_certificate_file'])): ?>
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">

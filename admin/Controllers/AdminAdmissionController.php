@@ -64,7 +64,17 @@ class AdminAdmissionController extends Controller
             exit;
         }
 
+        // Documentos adjuntados por requisito
+        $requisitos = $this->db->fetchAll(
+            "SELECT requirement_id, label, file_path, original_name, size_bytes, uploaded_at
+             FROM admission_request_files
+             WHERE admission_request_id = ?
+             ORDER BY id ASC",
+            [(int) $id]
+        );
+
         $this->view->render('admin/views/admission/show', [
+            'requirementFiles' => $requisitos,
             'title'   => 'Admission Request #' . $id,
             'request' => $request,
         ], 'admin/views/layout');

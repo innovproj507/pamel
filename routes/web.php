@@ -104,10 +104,14 @@ return function($router) {
         $productModel = new \Plugins\Ecommerce\Models\Product();
         $courses = $productModel->getActive();
         
+        // Requisitos por curso y modo, para mostrarlos al elegir el curso
+        $requirementModel = new \Core\Models\CourseRequirement();
+
         $view = new View();
         $view->render('public/views/formulario-de-admision', [
-            'title' => 'Formulario de Admisión',
-            'courses' => $courses
+            'title'        => 'Formulario de Admisión',
+            'courses'      => $courses,
+            'requirements' => $requirementModel->allForForm(),
         ], 'public/views/layout');
     }, 'formulario-de-admision');
 

@@ -146,6 +146,14 @@ return function($router) {
     $router->post('/manager/lms/students/store', 'Plugins\Elearning\Controllers\AdminEnrollmentController@store', 'admin.lms.students.store');
     $router->post('/manager/lms/students/:id/delete', 'Plugins\Elearning\Controllers\AdminEnrollmentController@delete', 'admin.lms.students.delete');
 
+    // Requisitos de admisión por curso
+    $router->get('/manager/requisitos', 'Admin\Controllers\AdminRequirementController@index', 'admin.requisitos');
+    $router->post('/manager/requisitos/:id/asignar', 'Admin\Controllers\AdminRequirementController@assign', 'admin.requisitos.asignar');
+    $router->post('/manager/requisitos/:id/publicar', 'Admin\Controllers\AdminRequirementController@publish', 'admin.requisitos.publicar');
+    $router->post('/manager/requisitos/:id/descartar', 'Admin\Controllers\AdminRequirementController@ignore', 'admin.requisitos.descartar');
+    $router->get('/manager/requisitos/curso/:id', 'Admin\Controllers\AdminRequirementController@course', 'admin.requisitos.curso');
+    $router->post('/manager/requisitos/curso/:id/guardar', 'Admin\Controllers\AdminRequirementController@save', 'admin.requisitos.guardar');
+
     // LMS Banco de preguntas sin asignar
     $router->get('/manager/lms/questions/unassigned', 'Plugins\Elearning\Controllers\AdminQuestionBankController@index', 'admin.lms.questions.bank');
     $router->get('/manager/lms/questions/unassigned/:setId', 'Plugins\Elearning\Controllers\AdminQuestionBankController@show', 'admin.lms.questions.bank.show');

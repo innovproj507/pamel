@@ -22,6 +22,7 @@ class AdmissionRequest extends Model
             'capacity' => $data['capacity'] ?? null,
             'phone' => $data['phone'],
             'course' => $data['course'],
+            'course_mode' => $data['course_mode'] ?? 'new',
             'consent_accepted' => $data['consent_accepted'] ?? 1,
             'id_file' => $data['id_file'] ?? null,
             'health_certificate_file' => $data['health_certificate_file'] ?? null

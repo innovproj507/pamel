@@ -6,6 +6,9 @@
 .env.*.local
 *.env
 *.local
+.cursor/
+.vscode/
+.agent/
 
 # ==========================================
 # Dependencias y Paquetes de Terceros
@@ -79,6 +82,8 @@ $RECYCLE.BIN/
 *.tgz
 *.rar
 *.7z
+*.docx
+*.pdf
 
 # Base de datos (Ignorar dumps locales, pero mantener el schema estructurado)
 *.sql

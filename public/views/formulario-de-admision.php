@@ -136,7 +136,8 @@ $maxUploadLabel = number_format($maxUploadBytes / (1024 * 1024), 0) . ' MB';
                                 
                                 <?php if (isset($courses) && !empty($courses)): ?>
                                     <?php foreach ($courses as $course): ?>
-                                        <option value="<?= htmlspecialchars($course['name']) ?>">
+                                        <option value="<?= htmlspecialchars($course['name']) ?>"
+                                                data-pid="<?= (int) $course['id'] ?>">
                                             <?= htmlspecialchars($course['name']) ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -151,6 +152,40 @@ $maxUploadLabel = number_format($maxUploadBytes / (1024 * 1024), 0) . ' MB';
                             </select>
                         </div>
 
+                        <!-- Modalidad: primera vez o renovación -->
+                        <div id="modeWrap" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <?php echo __('admission.form.mode_label'); ?>
+                            </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <label class="flex items-start gap-3 p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-cyan-400 transition has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-50">
+                                    <input type="radio" name="course_mode" value="new" checked
+                                           class="mt-1 w-4 h-4 text-cyan-600 focus:ring-cyan-500">
+                                    <span>
+                                        <span class="block text-sm font-bold text-gray-800"><?php echo __('admission.form.mode_new'); ?></span>
+                                        <span class="block text-xs text-gray-500 mt-0.5"><?php echo __('admission.form.mode_new_hint'); ?></span>
+                                    </span>
+                                </label>
+                                <label id="modeRefresherWrap" class="flex items-start gap-3 p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-cyan-400 transition has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-50">
+                                    <input type="radio" name="course_mode" value="refresher"
+                                           class="mt-1 w-4 h-4 text-cyan-600 focus:ring-cyan-500">
+                                    <span>
+                                        <span class="block text-sm font-bold text-gray-800"><?php echo __('admission.form.mode_refresher'); ?></span>
+                                        <span class="block text-xs text-gray-500 mt-0.5"><?php echo __('admission.form.mode_refresher_hint'); ?></span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Requisitos del curso elegido -->
+                        <div id="reqPanel" class="hidden rounded-xl border-2 border-cyan-100 bg-cyan-50/40 p-5">
+                            <h4 class="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2">
+                                <i class="fas fa-clipboard-check text-cyan-600"></i>
+                                <?php echo __('admission.form.requirements_title'); ?>
+                            </h4>
+                            <p class="text-xs text-gray-500 mb-4"><?php echo __('admission.form.requirements_hint'); ?></p>
+                            <ul id="reqList" class="space-y-2"></ul>
+                        </div>
                         <h3 class="text-2xl font-bold text-gray-900 mb-6 pt-4 pb-4 border-b-2 border-gray-200">
                             <?php echo __('admission.form.documents'); ?>
                         </h3>
@@ -329,4 +364,106 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+</script>
+
+<script>
+    // Requisitos por curso y modo, servidos desde la base.
+    const REQUISITOS = <?= json_encode($requirements ?? [], JSON_UNESCAPED_UNICODE) ?>;
+    const TEXTOS = {
+        adjunto:  <?= json_encode(__('admission.form.req_attach'), JSON_UNESCAPED_UNICODE) ?>,
+        cubierto: <?= json_encode(__('admission.form.req_covered'), JSON_UNESCAPED_UNICODE) ?>
+    };
+
+    (function () {
+        const select     = document.querySelector('select[name="course"]');
+        const modeWrap   = document.getElementById('modeWrap');
+        const refWrap    = document.getElementById('modeRefresherWrap');
+        const panel      = document.getElementById('reqPanel');
+        const lista      = document.getElementById('reqList');
+        if (!select || !panel) { return; }
+
+        function modoElegido() {
+            const r = document.querySelector('input[name="course_mode"]:checked');
+            return r ? r.value : 'new';
+        }
+
+        function pintar() {
+            const opt = select.options[select.selectedIndex];
+            const pid = opt ? opt.getAttribute('data-pid') : null;
+            const def = pid ? REQUISITOS[pid] : null;
+
+            lista.innerHTML = '';
+
+            if (!def) {                       // curso sin requisitos cargados
+                panel.classList.add('hidden');
+                modeWrap.classList.add('hidden');
+                return;
+            }
+
+            modeWrap.classList.remove('hidden');
+
+            // El refresco solo se ofrece si ese curso tiene su propia lista
+            const hayRefresco = (def.refresher || []).length > 0;
+            refWrap.style.display = hayRefresco ? '' : 'none';
+            if (!hayRefresco) {
+                const n = document.querySelector('input[name="course_mode"][value="new"]');
+                if (n) { n.checked = true; }
+            }
+
+            const items = def[modoElegido()] || [];
+            if (!items.length) { panel.classList.add('hidden'); return; }
+            panel.classList.remove('hidden');
+
+            items.forEach(function (r) {
+                const li = document.createElement('li');
+                li.className = 'flex items-start gap-3 text-sm';
+
+                const icono = document.createElement('i');
+                icono.className = r.adjunto
+                    ? 'fas fa-paperclip text-cyan-600 mt-1 flex-shrink-0'
+                    : (r.cubierto
+                        ? 'fas fa-check text-emerald-600 mt-1 flex-shrink-0'
+                        : 'fas fa-circle-info text-gray-400 mt-1 flex-shrink-0');
+                li.appendChild(icono);
+
+                const cuerpo = document.createElement('div');
+                cuerpo.className = 'flex-1 min-w-0';
+
+                const texto = document.createElement('p');
+                texto.className = 'text-gray-700';
+                texto.textContent = r.label;
+                cuerpo.appendChild(texto);
+
+                if (r.cubierto) {
+                    const nota = document.createElement('p');
+                    nota.className = 'text-xs text-emerald-700 mt-0.5';
+                    nota.textContent = TEXTOS.cubierto;
+                    cuerpo.appendChild(nota);
+                }
+
+                if (r.adjunto) {
+                    const campo = document.createElement('input');
+                    campo.type = 'file';
+                    campo.name = 'req_file[' + r.id + ']';
+                    campo.accept = '.jpg,.jpeg,.png,.pdf';
+                    campo.className = 'mt-2 w-full text-xs px-3 py-2 border-2 border-gray-300 rounded-lg bg-white focus:border-cyan-500 focus:outline-none';
+                    cuerpo.appendChild(campo);
+
+                    const pista = document.createElement('p');
+                    pista.className = 'text-[11px] text-gray-500 mt-1';
+                    pista.textContent = TEXTOS.adjunto;
+                    cuerpo.appendChild(pista);
+                }
+
+                li.appendChild(cuerpo);
+                lista.appendChild(li);
+            });
+        }
+
+        select.addEventListener('change', pintar);
+        document.querySelectorAll('input[name="course_mode"]').forEach(function (r) {
+            r.addEventListener('change', pintar);
+        });
+        pintar();
+    })();
 </script>
