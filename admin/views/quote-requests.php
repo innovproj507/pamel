@@ -182,19 +182,36 @@
 </div>
 
 <style>
+/*
+    CSS normal, no @apply: Tailwind viene por CDN y en ese modo @apply no se
+    procesa, así que estas reglas no pintaban nada. Las tarjetas de filtro y
+    las pastillas de estado salían sin estilo.
+*/
 .status-card {
-    @apply bg-white rounded-lg p-4 border-2 border-gray-200 hover:border-cyan-500 transition cursor-pointer;
+    display: block;
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    border-radius: .5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color .15s, background-color .15s;
 }
-.status-card.active {
-    @apply border-cyan-500 bg-cyan-50;
-}
+.status-card:hover  { border-color: #06b6d4; }
+.status-card.active { border-color: #06b6d4; background: #ecfeff; }
+
 .status-badge {
-    @apply px-3 inline-flex text-xs leading-5 font-semibold rounded-full;
+    display: inline-flex;
+    align-items: center;
+    padding: .125rem .625rem;
+    font-size: .75rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    border-radius: 9999px;
 }
-.status-pending   { @apply bg-yellow-100 text-yellow-800; }
-.status-quoted    { @apply bg-blue-100 text-blue-800; }
-.status-completed { @apply bg-green-100 text-green-800; }
-.status-cancelled { @apply bg-red-100 text-red-800; }
+.status-pending   { background: #fef9c3; color: #854d0e; }
+.status-quoted    { background: #dbeafe; color: #1e40af; }
+.status-completed { background: #dcfce7; color: #166534; }
+.status-cancelled { background: #fee2e2; color: #991b1b; }
 </style>
 
 <script>

@@ -1,22 +1,22 @@
-<div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Admission Requests</h1>
+<div class="container mx-auto px-4 py-5">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-gray-900">Admission Requests</h1>
         <div class="flex items-center space-x-2">
             <span class="text-sm text-gray-600">Total: <?php echo $totalCount; ?></span>
         </div>
     </div>
 
     <!-- Status Filters -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <div class="bg-white rounded-lg shadow-md p-3 mb-4">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
             <a href="/manager/admission-requests" 
                class="status-card <?php echo empty($currentStatus) ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">All Requests</p>
-                        <p class="text-2xl font-bold"><?php echo array_sum($statusCounts); ?></p>
+                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">All Requests</p>
+                        <p class="text-xl font-black"><?php echo array_sum($statusCounts); ?></p>
                     </div>
-                    <i class="fas fa-list text-gray-400 text-2xl"></i>
+                    <i class="fas fa-list text-gray-300 text-lg"></i>
                 </div>
             </a>
 
@@ -24,10 +24,10 @@
                class="status-card <?php echo $currentStatus === 'pending' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">Pending</p>
-                        <p class="text-2xl font-bold text-yellow-600"><?php echo $statusCounts['pending']; ?></p>
+                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Pending</p>
+                        <p class="text-xl font-black text-yellow-600"><?php echo $statusCounts['pending']; ?></p>
                     </div>
-                    <i class="fas fa-clock text-yellow-400 text-2xl"></i>
+                    <i class="fas fa-clock text-yellow-400 text-lg"></i>
                 </div>
             </a>
 
@@ -35,10 +35,10 @@
                class="status-card <?php echo $currentStatus === 'reviewed' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">Reviewed</p>
-                        <p class="text-2xl font-bold text-blue-600"><?php echo $statusCounts['reviewed']; ?></p>
+                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Reviewed</p>
+                        <p class="text-xl font-black text-blue-600"><?php echo $statusCounts['reviewed']; ?></p>
                     </div>
-                    <i class="fas fa-eye text-blue-400 text-2xl"></i>
+                    <i class="fas fa-eye text-blue-400 text-lg"></i>
                 </div>
             </a>
 
@@ -46,10 +46,10 @@
                class="status-card <?php echo $currentStatus === 'approved' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">Approved</p>
-                        <p class="text-2xl font-bold text-green-600"><?php echo $statusCounts['approved']; ?></p>
+                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Approved</p>
+                        <p class="text-xl font-black text-green-600"><?php echo $statusCounts['approved']; ?></p>
                     </div>
-                    <i class="fas fa-check-circle text-green-400 text-2xl"></i>
+                    <i class="fas fa-check-circle text-green-400 text-lg"></i>
                 </div>
             </a>
 
@@ -57,17 +57,17 @@
                class="status-card <?php echo $currentStatus === 'rejected' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-600">Rejected</p>
-                        <p class="text-2xl font-bold text-red-600"><?php echo $statusCounts['rejected']; ?></p>
+                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Rejected</p>
+                        <p class="text-xl font-black text-red-600"><?php echo $statusCounts['rejected']; ?></p>
                     </div>
-                    <i class="fas fa-times-circle text-red-400 text-2xl"></i>
+                    <i class="fas fa-times-circle text-red-400 text-lg"></i>
                 </div>
             </a>
         </div>
     </div>
 
     <!-- Search Bar -->
-    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+    <div class="bg-white rounded-lg shadow-md p-3 mb-4">
         <form method="GET" action="/manager/admission-requests" class="flex gap-4">
             <?php if ($currentStatus): ?>
                 <input type="hidden" name="status" value="<?php echo htmlspecialchars($currentStatus); ?>">
@@ -88,74 +88,103 @@
         </form>
     </div>
 
-    <!-- Requests Table -->
+    <!--
+        Tabla compacta: el contenido se cortaba porque cada celda llevaba
+        px-6 py-4 y el nombre del curso estaba limitado a max-w-xs. Ahora el
+        relleno es menor, el texto más pequeño y el curso se lleva el ancho
+        sobrante; lo que no cabe se corta con puntos suspensivos y el texto
+        completo queda en el title.
+    -->
+    <?php
+    // Estado -> icono, color y etiqueta. El icono sustituye a la palabra.
+    $estados = [
+        'pending'  => ['fa-clock',        'amber',   'Pending'],
+        'reviewed' => ['fa-eye',          'blue',    'Reviewed'],
+        'approved' => ['fa-circle-check', 'emerald', 'Approved'],
+        'rejected' => ['fa-circle-xmark', 'rose',    'Rejected'],
+    ];
+    ?>
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
+            <table class="min-w-full table-fixed divide-y divide-gray-200 text-[13px]">
                 <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Course</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th class="px-3 py-2 w-16">ID</th>
+                        <th class="px-3 py-2 w-48">Name</th>
+                        <th class="px-3 py-2 w-56">Email</th>
+                        <th class="px-3 py-2">Course</th>
+                        <th class="px-2 py-2 w-14 text-center">St.</th>
+                        <th class="px-3 py-2 w-28">Date</th>
+                        <th class="px-3 py-2 w-24 text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody class="bg-white divide-y divide-gray-100">
                     <?php if (empty($requests)): ?>
                         <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="7" class="px-3 py-12 text-center text-gray-500">
                                 <i class="fas fa-inbox text-4xl mb-2"></i>
                                 <p>No admission requests found.</p>
                             </td>
                         </tr>
                     <?php else: ?>
-                        <?php foreach ($requests as $request): ?>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <?php foreach ($requests as $request):
+                            $st = $request['status'] ?? 'pending';
+                            [$icono, $color, $etiqueta] = $estados[$st] ?? $estados['pending'];
+                            $curso = (string) $request['course'];
+                        ?>
+                            <tr class="hover:bg-gray-50 align-middle">
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-400 font-semibold">
                                     #<?php echo $request['id']; ?>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm font-medium text-gray-900">
+                                <td class="px-3 py-2">
+                                    <div class="font-semibold text-gray-900 truncate"
+                                         title="<?php echo htmlspecialchars($request['given_name'] . ' ' . $request['surname']); ?>">
                                         <?php echo htmlspecialchars($request['given_name'] . ' ' . $request['surname']); ?>
                                     </div>
-                                    <div class="text-sm text-gray-500">
-                                        <?php echo htmlspecialchars($request['nationality']); ?>
+                                    <div class="text-[11px] text-gray-400 truncate">
+                                        <?php echo htmlspecialchars((string) $request['nationality']); ?>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <?php echo htmlspecialchars($request['email']); ?>
+                                <td class="px-3 py-2">
+                                    <a href="mailto:<?php echo htmlspecialchars($request['email']); ?>"
+                                       class="block truncate text-gray-600 hover:text-cyan-600"
+                                       title="<?php echo htmlspecialchars($request['email']); ?>">
+                                        <?php echo htmlspecialchars($request['email']); ?>
+                                    </a>
                                 </td>
-                                <td class="px-6 py-4 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate">
-                                        <?php echo htmlspecialchars($request['course']); ?>
+                                <td class="px-3 py-2">
+                                    <div class="truncate text-gray-800" title="<?php echo htmlspecialchars($curso); ?>">
+                                        <?php echo htmlspecialchars($curso); ?>
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="status-badge status-<?php echo $request['status']; ?>">
-                                        <?php echo ucfirst($request['status']); ?>
+                                <td class="px-2 py-2 text-center">
+                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-<?php echo $color; ?>-50 text-<?php echo $color; ?>-600 border border-<?php echo $color; ?>-200"
+                                          title="<?php echo $etiqueta; ?>">
+                                        <i class="fas <?php echo $icono; ?> text-xs"></i>
+                                        <span class="sr-only"><?php echo $etiqueta; ?></span>
                                     </span>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?>
+                                <td class="px-3 py-2 whitespace-nowrap text-gray-500">
+                                    <?php $t = strtotime($request['created_at']); ?>
+                                    <div><?php echo date('d/m/Y', $t); ?></div>
+                                    <div class="text-[11px] text-gray-400"><?php echo date('H:i', $t); ?></div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="/manager/admission-requests/<?php echo $request['id']; ?>" 
-                                       class="text-cyan-600 hover:text-cyan-900 mr-3">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                    <a href="/manager/admission-requests/<?php echo $request['id']; ?>/download-word"
-                                       class="text-green-600 hover:text-green-900 mr-3"
-                                       title="Download Word">
-                                        <i class="fas fa-file-word"></i> Word
-                                    </a>
-                                    <!-- Inline status dropdown -->
-                                    <div class="inline-block">
+                                <td class="px-3 py-2 whitespace-nowrap text-right">
+                                    <div class="inline-flex items-center gap-1">
+                                        <a href="/manager/admission-requests/<?php echo $request['id']; ?>"
+                                           class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-cyan-50 hover:text-cyan-600 transition"
+                                           title="View request">
+                                            <i class="fas fa-eye text-xs"></i>
+                                        </a>
+                                        <a href="/manager/admission-requests/<?php echo $request['id']; ?>/download-word"
+                                           class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                                           title="Download Word">
+                                            <i class="fas fa-file-word text-xs"></i>
+                                        </a>
                                         <button onclick="toggleDropdown(event, 'dd-<?php echo $request['id']; ?>')"
-                                                class="text-blue-600 hover:text-blue-900 font-medium">
-                                            <i class="fas fa-edit"></i> Status
+                                                class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition"
+                                                title="Change status">
+                                            <i class="fas fa-pen-to-square text-xs"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -238,22 +267,50 @@
 </div>
 
 <style>
+/*
+    CSS normal, no @apply: Tailwind se carga por CDN y en ese modo @apply
+    no se procesa, así que estas reglas no pintaban absolutamente nada.
+    Por eso las tarjetas de filtro y las pastillas de estado salían sin
+    estilo.
+*/
 .status-card {
-    @apply bg-white rounded-lg p-4 border-2 border-gray-200 hover:border-cyan-500 transition cursor-pointer;
+    display: block;
+    background: #fff;
+    border: 2px solid #e5e7eb;
+    border-radius: .5rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: border-color .15s, background-color .15s;
 }
-.status-card.active {
-    @apply border-cyan-500 bg-cyan-50;
+.status-card:hover  { border-color: #06b6d4; }
+.status-card.active { border-color: #06b6d4; background: #ecfeff; }
+
+.detail-row {
+    display: flex;
+    padding: .75rem 0;
+    border-bottom: 1px solid #f3f4f6;
 }
-.status-badge {
-    @apply px-3 inline-flex text-xs leading-5 font-semibold rounded-full;
+.detail-row:last-child { border-bottom: 0; }
+.detail-label {
+    width: 11rem;
+    flex-shrink: 0;
+    font-size: .75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: .05em;
 }
-.status-pending  { @apply bg-yellow-100 text-yellow-800; }
-.status-reviewed { @apply bg-blue-100 text-blue-800; }
-.status-approved { @apply bg-green-100 text-green-800; }
-.status-rejected { @apply bg-red-100 text-red-800; }
-.detail-row { @apply flex py-3 border-b border-gray-100 last:border-0; }
-.detail-label { @apply w-44 flex-shrink-0 text-xs font-semibold text-gray-500 uppercase tracking-wide; }
-.detail-value { @apply text-gray-900 text-sm flex-1; }
+.detail-value { flex: 1; font-size: .875rem; color: #111827; }
+
+/* Oculto a la vista, legible por lectores de pantalla */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+}
 </style>
 
 <script>
