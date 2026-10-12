@@ -106,7 +106,14 @@
     ?>
     <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full table-fixed divide-y divide-gray-200 text-[13px]">
+            <!--
+                w-full, no min-w-full: con min-width la tabla crece hasta
+                caber el texto más largo, el recorte nunca se aplica y las
+                últimas columnas quedan fuera de la pantalla. Con w-full el
+                ancho es el del contenedor, cada columna respeta el suyo y
+                el nombre del curso se corta con puntos suspensivos.
+            -->
+            <table class="w-full table-fixed divide-y divide-gray-200 text-[13px]">
                 <thead class="bg-gray-50">
                     <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                         <th class="px-3 py-2 w-16">ID</th>
