@@ -17,6 +17,7 @@ class AdmissionRequest extends Model
             'nationality' => $data['nationality'],
             'date_of_birth' => $data['date_of_birth'],
             'country_of_birth' => $data['country_of_birth'],
+            'education_level' => $data['education_level'] ?? null,
             'email' => $data['email'],
             'address' => $data['address'],
             'capacity' => $data['capacity'] ?? null,

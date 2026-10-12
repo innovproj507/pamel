@@ -336,6 +336,7 @@ class Email
             'Nacionalidad'        => $data['nationality'],
             'Fecha de nacimiento' => $data['date_of_birth'],
             'País de nacimiento'  => $data['country_of_birth'],
+            'Nivel educativo'     => $data['education_level'] ?? '',
             'Email'               => $data['email'],
             'Teléfono'            => $data['phone'],
             'Dirección'           => $data['address'],

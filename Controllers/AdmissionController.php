@@ -18,6 +18,28 @@ class AdmissionController
     private const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
 
     /**
+     * Niveles educativos admitidos. Se guarda la etiqueta en español porque
+     * es la que se imprime en el formulario oficial F-41, con independencia
+     * del idioma en que el solicitante rellene la página.
+     */
+    private const NIVELES_EDUCATIVOS = [
+        'Primaria',
+        'Secundaria',
+        'Técnico / Vocacional',
+        'Universitario',
+        'Postgrado',
+        'Otro',
+    ];
+
+    /** Sólo admite un nivel de la lista; cualquier otra cosa queda vacía. */
+    private static function nivelEducativoValido($valor): string
+    {
+        $valor = trim((string) $valor);
+
+        return in_array($valor, self::NIVELES_EDUCATIVOS, true) ? $valor : '';
+    }
+
+    /**
      * Tamaño máximo real por archivo: el menor entre nuestro límite y lo que
      * permita el servidor (upload_max_filesize / post_max_size). Sin esto,
      * anunciaríamos un máximo que PHP rechazaría antes de llegar aquí.
@@ -81,7 +103,10 @@ class AdmissionController
             }
 
             // Validate required fields using the actual HTML form field names
-            $required = ['full_name', 'id_passport', 'dob', 'nationality', 'email', 'address', 'phone', 'course'];
+            $required = [
+                'full_name', 'id_passport', 'dob', 'nationality', 'country_of_birth',
+                'education_level', 'email', 'address', 'phone', 'course',
+            ];
 
             foreach ($required as $field) {
                 if (empty($_POST[$field])) {
@@ -124,7 +149,8 @@ class AdmissionController
                 'passport_id'     => $sanitize($_POST['id_passport']),
                 'date_of_birth'   => $sanitize($_POST['dob']),
                 'nationality'     => $sanitize($_POST['nationality']),
-                'country_of_birth'=> '',
+                'country_of_birth'=> $sanitize($_POST['country_of_birth'] ?? ''),
+                'education_level' => self::nivelEducativoValido($_POST['education_level'] ?? ''),
                 'email'           => filter_var($_POST['email'], FILTER_SANITIZE_EMAIL),
                 'address'         => $sanitize($_POST['address']),
                 'phone'           => $sanitize($_POST['phone']),

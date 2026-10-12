@@ -90,8 +90,45 @@ $maxUploadLabel = number_format($maxUploadBytes / (1024 * 1024), 0) . ' MB';
                             <label class="block text-sm font-semibold text-gray-700 mb-2">
                                 <?php echo __('admission.form.nationality'); ?>
                             </label>
-                            <input type="text" name="nationality" required 
+                            <input type="text" name="nationality" required
                                 class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition">
+                        </div>
+
+                        <!-- Country of Birth -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <?php echo __('admission.form.country_of_birth'); ?>
+                            </label>
+                            <input type="text" name="country_of_birth" required
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition">
+                        </div>
+
+                        <!--
+                            Nivel educativo: lista cerrada en vez de texto libre. El valor
+                            que se guarda es la etiqueta en español, que es la que se
+                            imprime en el formulario oficial F-41, sin depender del idioma
+                            con que el solicitante rellene la página.
+                        -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <?php echo __('admission.form.education_level'); ?>
+                            </label>
+                            <select name="education_level" required
+                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition bg-white">
+                                <option value=""><?php echo __('admission.form.education_select'); ?></option>
+                                <?php foreach ([
+                                    'Primaria'            => 'education_primary',
+                                    'Secundaria'          => 'education_secondary',
+                                    'Técnico / Vocacional' => 'education_technical',
+                                    'Universitario'       => 'education_university',
+                                    'Postgrado'           => 'education_postgraduate',
+                                    'Otro'                => 'education_other',
+                                ] as $valor => $clave): ?>
+                                <option value="<?= htmlspecialchars($valor) ?>">
+                                    <?php echo __('admission.form.' . $clave); ?>
+                                </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
 
                         <!-- Email -->

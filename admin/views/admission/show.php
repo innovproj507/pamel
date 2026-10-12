@@ -77,7 +77,11 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                     </div>
                     <div>
                         <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Country of Birth</label>
-                        <p class="text-gray-900 mt-1"><?= htmlspecialchars($request['country_of_birth']) ?></p>
+                        <p class="text-gray-900 mt-1"><?= htmlspecialchars((string) $request['country_of_birth']) ?: '<span class="text-gray-300">—</span>' ?></p>
+                    </div>
+                    <div>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Education Level</label>
+                        <p class="text-gray-900 mt-1"><?= htmlspecialchars((string) ($request['education_level'] ?? '')) ?: '<span class="text-gray-300">—</span>' ?></p>
                     </div>
                 </div>
             </div>
