@@ -219,7 +219,11 @@ class CourseRequirement extends Model
                LEFT JOIN course_requirements cr ON cr.product_id = p.id
               WHERE p.status = 'active'
               GROUP BY p.id, p.name, p.course_code
-              ORDER BY (n_nuevo + n_refresco) = 0 DESC, p.name ASC"
+              -- Primero los cursos sin ningún requisito, que son los que hay
+              -- que atender. Se repite el agregado en vez de usar los alias:
+              -- MariaDB no admite referirse a ellos dentro de una expresión
+              -- del ORDER BY, y la consulta entera fallaba en producción.
+              ORDER BY COUNT(cr.id) = 0 DESC, p.name ASC"
         );
     }
 

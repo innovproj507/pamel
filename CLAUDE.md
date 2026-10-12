@@ -97,6 +97,15 @@ The **elearning plugin** (`plugins/elearning/`) is the largest plugin — it add
 
 Direct PDO queries through `Core\Database`. No ORM.
 
+**Production runs MariaDB 10.11; local dev (Laragon) runs MySQL 8.0.** Write
+portable SQL — differences between the two have already caused production-only
+failures. Known trap: MariaDB rejects a `SELECT` alias used *inside an
+expression* in `ORDER BY` when the alias is an aggregate
+(`ORDER BY (n_a + n_b) = 0` → error 1247), which MySQL 8 accepts. Repeat the
+aggregate instead. `Core\Database` swallows the PDOException and returns an
+empty array, so the page renders blank rather than erroring — test queries
+against production before shipping.
+
 Key methods:
 - `$db->fetchAll($sql, $params)` — returns array of rows
 - `$db->fetchOne($sql, $params)` — returns a single row or `null`
