@@ -219,14 +219,52 @@ class WordGenerator
         );
     }
 
+    /** Categoría de productos cuyos cursos usan el formulario F-41. */
+    private const CATEGORIA_LOGISTICA = 10;
+
     /**
-     * Generate Word document for admission request using F-46 template
+     * Plantilla que corresponde al curso de una solicitud.
+     *
+     * Los cursos de logística y puertos usan el F-41; el resto, el F-46.
+     * El curso se localiza por nombre, que es lo que guarda la solicitud.
+     */
+    private static function plantillaParaCurso(?string $curso): string
+    {
+        $docs = __DIR__ . '/../public/assets/documents/';
+        $f46  = $docs . 'F-46 Solicitud y admisión de curso (ES).docx';
+        $f41  = $docs . 'F-41 Inscripción para cursos logísticos y portuarios.docx';
+
+        $curso = trim((string) $curso);
+        if ($curso === '' || !file_exists($f41)) {
+            return $f46;
+        }
+
+        try {
+            $fila = \Core\Database::getInstance()->fetchOne(
+                'SELECT category_id FROM products WHERE name = ? LIMIT 1',
+                [$curso]
+            );
+        } catch (\Throwable $e) {
+            error_log('WordGenerator: no se pudo leer la categoría del curso: ' . $e->getMessage());
+            return $f46;
+        }
+
+        return (int) ($fila['category_id'] ?? 0) === self::CATEGORIA_LOGISTICA ? $f41 : $f46;
+    }
+
+    /**
+     * Generate Word document for admission request.
+     *
+     * Usa el F-41 para los cursos de logística y puertos y el F-46 para los
+     * demás. Cada plantilla se rellena con los campos que ella misma
+     * declara, así que no importa que no tengan los mismos.
+     *
      * @param array $data Admission request data from database
      * @return string Path to generated file
      */
     public static function generateAdmissionDocument($data)
     {
-        $templatePath = __DIR__ . '/../public/assets/documents/F-46 Solicitud y admisión de curso (ES).docx';
+        $templatePath = self::plantillaParaCurso($data['course'] ?? null);
 
         if (!file_exists($templatePath)) {
             return self::generateAdmissionFromScratch($data);
@@ -234,6 +272,21 @@ class WordGenerator
 
         try {
             $tp = new TemplateProcessor($templatePath);
+
+            // Los campos de la plantilla se leen ANTES de rellenar nada:
+            // setValue los consume, y en el F-41 se rellenan todos, con lo
+            // que después la lista saldría vacía y el documento se
+            // descartaría por bueno que fuese.
+            $allVars = $tp->getVariables();
+
+            // El F-41 lleva el nombre del curso escrito; el F-46 lo marca
+            // con casillas. setValue ignora los campos que no existan.
+            $tp->setValue('course_name', $data['course'] ?? '');
+
+            // Nivel educativo: el F-41 lo pide, pero el formulario de
+            // admisión todavía no lo recoge. Se deja en blanco para que el
+            // solicitante lo complete al firmar.
+            $tp->setValue('education_level', $data['education_level'] ?? '');
 
             // ── Personal fields ────────────────────────────────────────────
             $tp->setValue('given_name',       $data['given_name']       ?? '');
@@ -250,7 +303,6 @@ class WordGenerator
             $tp->setValue('terms_consent',    '☑ Doy mi consentimiento y acepto los términos.');
 
             // ── Detect how many course_check_N variables exist ─────────────
-            $allVars   = $tp->getVariables();
             $checkVars = array_values(array_unique(array_filter($allVars, fn($v) => str_starts_with($v, 'course_check_'))));
             natsort($checkVars); // natural sort: course_check_1, course_check_2 ...
             $checkVars = array_values($checkVars);
