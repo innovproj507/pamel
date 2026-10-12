@@ -113,16 +113,22 @@
                 ancho es el del contenedor, cada columna respeta el suyo y
                 el nombre del curso se corta con puntos suspensivos.
             -->
-            <table class="w-full table-fixed divide-y divide-gray-200 text-[13px]">
+            <table class="w-full min-w-[900px] table-fixed divide-y divide-gray-200 text-[13px]">
                 <thead class="bg-gray-50">
+                    <!--
+                        Anchos en porcentaje y sumando 100 exactos. Con anchos
+                        en píxeles, el sobrante iba entero a la columna del
+                        curso: se estiraba sin límite y empujaba las últimas
+                        columnas fuera de la pantalla.
+                    -->
                     <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <th class="px-3 py-2 w-16">ID</th>
-                        <th class="px-3 py-2 w-48">Name</th>
-                        <th class="px-3 py-2 w-56">Email</th>
-                        <th class="px-3 py-2">Course</th>
-                        <th class="px-2 py-2 w-14 text-center">St.</th>
-                        <th class="px-3 py-2 w-28">Date</th>
-                        <th class="px-3 py-2 w-24 text-right">Actions</th>
+                        <th class="px-3 py-2 w-[5%]">ID</th>
+                        <th class="px-3 py-2 w-[16%]">Name</th>
+                        <th class="px-3 py-2 w-[19%]">Email</th>
+                        <th class="px-3 py-2 w-[34%]">Course</th>
+                        <th class="px-2 py-2 w-[5%] text-center">St.</th>
+                        <th class="px-3 py-2 w-[11%]">Date</th>
+                        <th class="px-3 py-2 w-[10%] text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
