@@ -99,8 +99,8 @@ Direct PDO queries through `Core\Database`. No ORM.
 
 Key methods:
 - `$db->fetchAll($sql, $params)` — returns array of rows
-- `$db->fetch($sql, $params)` — alias for `fetchOne()`, returns single row or `null`
-- `$db->execute($sql, $params)` — run INSERT/UPDATE/DELETE, returns `PDOStatement|false`
+- `$db->fetchOne($sql, $params)` — returns a single row or `null`
+- `$db->query($sql, $params)` — run raw SQL (INSERT/UPDATE/DELETE), returns `PDOStatement|false`
 - `$db->insert($table, $data)` — returns last insert ID (int) or `false`
 - `$db->update($table, $data, $where, $whereParams)` — returns bool
 - `$db->delete($table, $where, $params)` — returns bool

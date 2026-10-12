@@ -127,22 +127,12 @@ class QuizzesApiController extends Controller
             $this->apiResponse(['status' => 'error', 'message' => 'Quiz no encontrado'], 404);
         }
 
-        // Delete cascade: answers → attempts → options → questions → quiz
-        $this->db->execute(
-            "DELETE qa FROM lms_quiz_answers qa
-             JOIN lms_quiz_attempts a ON a.id = qa.attempt_id
-             WHERE a.quiz_id = ?",
-            [(int) $id]
-        );
-        $this->db->execute("DELETE FROM lms_quiz_attempts WHERE quiz_id = ?", [(int) $id]);
-        $this->db->execute(
-            "DELETE qo FROM lms_question_options qo
-             JOIN lms_questions q ON q.id = qo.question_id
-             WHERE q.quiz_id = ?",
-            [(int) $id]
-        );
-        $this->db->execute("DELETE FROM lms_questions WHERE quiz_id = ?", [(int) $id]);
-        $this->db->execute("DELETE FROM lms_quizzes WHERE id = ?", [(int) $id]);
+        // El borrado en cascada (respuestas → intentos → opciones →
+        // preguntas → quiz) vive en el modelo y va en una transacción: si
+        // algo falla a mitad, no queda el quiz medio borrado.
+        if (!$this->quizModel->deleteQuizWithContent((int) $id)) {
+            $this->apiResponse(['status' => 'error', 'message' => 'No se pudo eliminar el quiz'], 500);
+        }
 
         $this->apiResponse(['status' => 'success', 'message' => 'Quiz eliminado']);
     }
@@ -285,8 +275,12 @@ class QuizzesApiController extends Controller
             $this->apiResponse(['status' => 'error', 'message' => 'Autenticación requerida'], 401);
         }
 
-        $this->db->execute('DELETE FROM lms_question_options WHERE question_id = ?', [(int) $id]);
-        $this->db->execute('DELETE FROM lms_questions WHERE id = ?', [(int) $id]);
+        // Arrastra también las respuestas ya dadas por los estudiantes, en
+        // una transacción. Borrar sólo opciones y pregunta dejaba respuestas
+        // apuntando a una pregunta inexistente.
+        if (!$this->quizModel->deleteQuestionWithOptions((int) $id)) {
+            $this->apiResponse(['status' => 'error', 'message' => 'No se pudo eliminar la pregunta'], 500);
+        }
 
         $this->apiResponse(['status' => 'success', 'message' => 'Pregunta eliminada']);
     }
