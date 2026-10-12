@@ -112,6 +112,23 @@ class AdminRequirementController extends Controller
         $this->volver();
     }
 
+    /**
+     * Todos los cursos activos con sus requisitos.
+     *
+     * La bandeja lista documentos Word, así que un curso sin documento no
+     * aparecía en ninguna parte. Esta es la entrada por curso.
+     */
+    public function courses(): void
+    {
+        \Core\Auth::getInstance()->requireCan('lms.courses.manage', '/manager/login');
+
+        (new View())->render('admin/views/requirements/courses', [
+            'title'   => 'Requisitos por curso',
+            'cursos'  => $this->model->cursosConRequisitos(),
+            'conteos' => $this->model->importCounts(),
+        ], 'admin/views/layout');
+    }
+
     /** Requisitos publicados de un curso, editables. */
     public function course($productId): void
     {
@@ -124,14 +141,26 @@ class AdminRequirementController extends Controller
         );
         if (!$curso) {
             $this->flash('error', 'El curso no existe.');
-            $this->redirect('/manager/requisitos');
+            $this->redirect('/manager/requisitos/cursos');
         }
 
         (new View())->render('admin/views/requirements/course', [
-            'title'     => 'Requisitos: ' . $curso['name'],
-            'curso'     => $curso,
-            'nuevo'     => $this->model->forProduct($productId, 'new'),
-            'refresco'  => $this->model->forProduct($productId, 'refresher'),
+            'title'    => 'Requisitos: ' . $curso['name'],
+            'curso'    => $curso,
+            'nuevo'    => $this->model->forProduct($productId, 'new'),
+            'refresco' => $this->model->forProduct($productId, 'refresher'),
+            'reglas'   => [
+                'new'       => $this->model->reglas('new'),
+                'refresher' => $this->model->reglas('refresher'),
+            ],
+            'marcadas' => [
+                'new'       => $this->model->reglasMarcadas($productId, 'new'),
+                'refresher' => $this->model->reglasMarcadas($productId, 'refresher'),
+            ],
+            'sueltas'  => [
+                'new'       => $this->model->sueltasDeProducto($productId, 'new'),
+                'refresher' => $this->model->sueltasDeProducto($productId, 'refresher'),
+            ],
         ], 'admin/views/layout');
     }
 
@@ -147,22 +176,25 @@ class AdminRequirementController extends Controller
             $modo = 'new';
         }
 
-        $labels  = $_POST['label']         ?? [];
-        $files   = $_POST['requires_file'] ?? [];
-        $lista   = [];
+        // Reglas marcadas del catálogo
+        $ruleIds = array_map('intval', (array) ($_POST['rule_id'] ?? []));
 
+        // Líneas escritas a mano para este curso
+        $labels  = (array) ($_POST['label'] ?? []);
+        $files   = (array) ($_POST['requires_file'] ?? []);
+        $sueltas = [];
         foreach ($labels as $i => $label) {
             $label = trim((string) $label);
             if ($label === '') {
                 continue;
             }
-            $lista[] = [
+            $sueltas[] = [
                 'label'         => $label,
                 'requires_file' => !empty($files[$i]) ? 1 : 0,
             ];
         }
 
-        $n = $this->model->replaceForProduct($productId, $modo, $lista);
+        $n = $this->model->aplicarReglas($productId, $modo, $ruleIds, $sueltas);
 
         $this->flash(
             $n === false ? 'error' : 'success',
@@ -172,6 +204,75 @@ class AdminRequirementController extends Controller
         );
 
         $this->redirect('/manager/requisitos/curso/' . $productId);
+    }
+
+    // ─── Catálogo de reglas ───────────────────────────────────────────
+
+    /** Catálogo de reglas reutilizables. */
+    public function rules(): void
+    {
+        \Core\Auth::getInstance()->requireCan('lms.courses.manage', '/manager/login');
+
+        (new View())->render('admin/views/requirements/rules', [
+            'title'           => 'Catálogo de requisitos',
+            'reglas'          => $this->model->reglas(),
+            'desactualizadas' => $this->model->desactualizadas(),
+        ], 'admin/views/layout');
+    }
+
+    /** Alta o edición de una regla. */
+    public function saveRule(): void
+    {
+        \Core\Auth::getInstance()->requireCan('lms.courses.manage', '/manager/login');
+        $this->guardPost();
+
+        $id = (int) ($_POST['id'] ?? 0);
+        $ok = $this->model->guardarRegla($_POST, $id > 0 ? $id : null);
+
+        $this->flash(
+            $ok === false ? 'error' : 'success',
+            $ok === false
+                ? 'No se pudo guardar la regla. ¿El texto está vacío o repetido?'
+                : ($id > 0 ? 'Regla actualizada.' : 'Regla añadida al catálogo.')
+        );
+
+        $this->redirect('/manager/requisitos/reglas');
+    }
+
+    /** Copia el texto actual de una regla a los cursos que la usan. */
+    public function propagateRule($id): void
+    {
+        \Core\Auth::getInstance()->requireCan('lms.courses.manage', '/manager/login');
+        $this->guardPost();
+
+        $n = $this->model->propagarRegla((int) $id);
+
+        $this->flash(
+            $n === false ? 'error' : 'success',
+            $n === false
+                ? 'No se pudo actualizar.'
+                : sprintf('Actualizados %d requisito(s) en los cursos que usan esta regla.', $n)
+        );
+
+        $this->redirect('/manager/requisitos/reglas');
+    }
+
+    /** Quita una regla del catálogo sin tocar lo ya publicado. */
+    public function deleteRule($id): void
+    {
+        \Core\Auth::getInstance()->requireCan('lms.courses.manage', '/manager/login');
+        $this->guardPost();
+
+        $ok = $this->model->borrarRegla((int) $id);
+
+        $this->flash(
+            $ok ? 'success' : 'error',
+            $ok
+                ? 'Regla retirada del catálogo. Los requisitos ya publicados se conservan en cada curso.'
+                : 'No se pudo retirar la regla.'
+        );
+
+        $this->redirect('/manager/requisitos/reglas');
     }
 
     // ─── Apoyo ────────────────────────────────────────────────────────

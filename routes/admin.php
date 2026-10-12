@@ -151,8 +151,13 @@ return function($router) {
     $router->post('/manager/requisitos/:id/asignar', 'Admin\Controllers\AdminRequirementController@assign', 'admin.requisitos.asignar');
     $router->post('/manager/requisitos/:id/publicar', 'Admin\Controllers\AdminRequirementController@publish', 'admin.requisitos.publicar');
     $router->post('/manager/requisitos/:id/descartar', 'Admin\Controllers\AdminRequirementController@ignore', 'admin.requisitos.descartar');
+    $router->get('/manager/requisitos/cursos', 'Admin\Controllers\AdminRequirementController@courses', 'admin.requisitos.cursos');
     $router->get('/manager/requisitos/curso/:id', 'Admin\Controllers\AdminRequirementController@course', 'admin.requisitos.curso');
     $router->post('/manager/requisitos/curso/:id/guardar', 'Admin\Controllers\AdminRequirementController@save', 'admin.requisitos.guardar');
+    $router->get('/manager/requisitos/reglas', 'Admin\Controllers\AdminRequirementController@rules', 'admin.requisitos.reglas');
+    $router->post('/manager/requisitos/reglas/guardar', 'Admin\Controllers\AdminRequirementController@saveRule', 'admin.requisitos.reglas.guardar');
+    $router->post('/manager/requisitos/reglas/:id/propagar', 'Admin\Controllers\AdminRequirementController@propagateRule', 'admin.requisitos.reglas.propagar');
+    $router->post('/manager/requisitos/reglas/:id/borrar', 'Admin\Controllers\AdminRequirementController@deleteRule', 'admin.requisitos.reglas.borrar');
 
     // LMS Banco de preguntas sin asignar
     $router->get('/manager/lms/questions/unassigned', 'Plugins\Elearning\Controllers\AdminQuestionBankController@index', 'admin.lms.questions.bank');

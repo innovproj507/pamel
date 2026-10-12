@@ -18,6 +18,211 @@ class CourseRequirement extends Model
     /** Modos admitidos: curso regular o refresco. */
     public const MODOS = ['new', 'refresher'];
 
+    // ─────────────────────────────────────────────────────────────────
+    //  Catálogo de reglas
+    //
+    //  Cada texto se guarda una vez en requirement_rules. En la ficha del
+    //  curso se marcan las que aplican y se COPIAN a course_requirements,
+    //  que sigue siendo lo que lee el formulario de admisión.
+    //
+    //  La copia es deliberada: corregir una regla no reescribe sola lo ya
+    //  publicado. desactualizadas() dice qué cursos se quedaron atrás y
+    //  propagarRegla() los pone al día cuando se decida.
+    // ─────────────────────────────────────────────────────────────────
+
+    /**
+     * Catálogo completo. Con $mode devuelve sólo las reglas que se ofrecen
+     * en esa modalidad (las de alcance 'any' salen siempre).
+     */
+    public function reglas(?string $mode = null): array
+    {
+        $sql    = "SELECT r.*,
+                          (SELECT COUNT(DISTINCT cr.product_id) FROM course_requirements cr
+                            WHERE cr.rule_id = r.id) AS cursos
+                   FROM requirement_rules r";
+        $params = [];
+
+        if ($mode !== null && in_array($mode, self::MODOS, true)) {
+            $sql     .= " WHERE r.scope IN ('any', ?)";
+            $params[] = $mode;
+        }
+
+        return $this->db->fetchAll($sql . ' ORDER BY r.is_default DESC, r.order_num, r.id', $params);
+    }
+
+    /**
+     * Reglas marcadas hoy para un curso y modalidad.
+     *
+     * @return array<int,bool> Indexado por id de regla.
+     */
+    public function reglasMarcadas(int $productId, string $mode): array
+    {
+        $filas = $this->db->fetchAll(
+            "SELECT DISTINCT rule_id FROM {$this->table}
+              WHERE product_id = ? AND mode = ? AND rule_id IS NOT NULL",
+            [$productId, $mode]
+        );
+
+        return array_fill_keys(array_map('intval', array_column($filas, 'rule_id')), true);
+    }
+
+    /**
+     * Líneas escritas a mano para ese curso, las que no vienen del catálogo.
+     */
+    public function sueltasDeProducto(int $productId, string $mode): array
+    {
+        return $this->db->fetchAll(
+            "SELECT label, requires_file FROM {$this->table}
+              WHERE product_id = ? AND mode = ? AND rule_id IS NULL
+              ORDER BY order_num, id",
+            [$productId, $mode]
+        );
+    }
+
+    /**
+     * Reescribe los requisitos de un curso y modalidad a partir de las
+     * reglas marcadas más las líneas sueltas.
+     *
+     * @param int[]   $ruleIds Ids de reglas marcadas, en el orden deseado.
+     * @param array[] $sueltas Cada una ['label' => string, 'requires_file' => int].
+     * @return int|false Requisitos escritos, o false si falló.
+     */
+    public function aplicarReglas(int $productId, string $mode, array $ruleIds, array $sueltas = [])
+    {
+        $lista = [];
+
+        if ($ruleIds) {
+            $ruleIds = array_values(array_unique(array_map('intval', $ruleIds)));
+            $marcas  = implode(',', array_fill(0, count($ruleIds), '?'));
+            $reglas  = $this->db->fetchAll(
+                "SELECT id, label, requires_file FROM requirement_rules WHERE id IN ({$marcas})",
+                $ruleIds
+            );
+
+            // Respetar el orden en que llegaron las casillas
+            $porId = [];
+            foreach ($reglas as $r) {
+                $porId[(int) $r['id']] = $r;
+            }
+            foreach ($ruleIds as $id) {
+                if (!isset($porId[$id])) {
+                    continue;
+                }
+                $lista[] = [
+                    'rule_id'       => $id,
+                    'label'         => $porId[$id]['label'],
+                    'requires_file' => (int) $porId[$id]['requires_file'],
+                ];
+            }
+        }
+
+        foreach ($sueltas as $s) {
+            $label = trim((string) ($s['label'] ?? ''));
+            if ($label === '') {
+                continue;
+            }
+            $lista[] = [
+                'rule_id'       => 0,
+                'label'         => $label,
+                'requires_file' => (int) ($s['requires_file'] ?? 0),
+            ];
+        }
+
+        return $this->replaceForProduct($productId, $mode, $lista);
+    }
+
+    /**
+     * Cursos que copiaron una versión del texto distinta a la que hoy
+     * tiene la regla, agrupados por regla.
+     */
+    public function desactualizadas(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT r.id, r.label, COUNT(DISTINCT cr.product_id) AS cursos
+               FROM requirement_rules r
+               JOIN course_requirements cr ON cr.rule_id = r.id
+              WHERE cr.label COLLATE utf8mb4_unicode_ci <> r.label COLLATE utf8mb4_unicode_ci
+              GROUP BY r.id, r.label
+              ORDER BY cursos DESC"
+        );
+    }
+
+    /**
+     * Copia el texto actual de una regla a todos los cursos que la usan.
+     *
+     * @return int|false Requisitos actualizados.
+     */
+    public function propagarRegla(int $ruleId)
+    {
+        $regla = $this->db->fetchOne(
+            "SELECT label, requires_file FROM requirement_rules WHERE id = ?",
+            [$ruleId]
+        );
+        if (!$regla) {
+            return false;
+        }
+
+        $st = $this->db->query(
+            "UPDATE {$this->table} SET label = ?, requires_file = ? WHERE rule_id = ?",
+            [$regla['label'], (int) $regla['requires_file'], $ruleId]
+        );
+
+        return $st === false ? false : $st->rowCount();
+    }
+
+    /** Alta o edición de una regla del catálogo. */
+    public function guardarRegla(array $datos, ?int $id = null)
+    {
+        $label = trim((string) ($datos['label'] ?? ''));
+        if ($label === '') {
+            return false;
+        }
+
+        $fila = [
+            'label'         => $label,
+            'requires_file' => !empty($datos['requires_file']) ? 1 : 0,
+            'scope'         => in_array($datos['scope'] ?? '', ['any', 'new', 'refresher'], true)
+                                    ? $datos['scope'] : 'any',
+            'is_default'    => !empty($datos['is_default']) ? 1 : 0,
+            'order_num'     => (int) ($datos['order_num'] ?? 0),
+        ];
+
+        return $id
+            ? $this->db->update('requirement_rules', $fila, 'id = ?', [$id])
+            : $this->db->insert('requirement_rules', $fila);
+    }
+
+    /**
+     * Borra una regla del catálogo. Lo ya publicado no se toca: esas líneas
+     * quedan como sueltas, porque son requisitos que los cursos siguen
+     * exigiendo aunque la regla deje de ofrecerse.
+     */
+    public function borrarRegla(int $id): bool
+    {
+        $this->db->query("UPDATE {$this->table} SET rule_id = NULL WHERE rule_id = ?", [$id]);
+
+        return $this->db->delete('requirement_rules', 'id = ?', [$id]);
+    }
+
+    /**
+     * Todos los cursos activos con cuántos requisitos tienen en cada
+     * modalidad. Es la lista que faltaba: un curso sin documento Word no
+     * aparecía por ninguna parte.
+     */
+    public function cursosConRequisitos(): array
+    {
+        return $this->db->fetchAll(
+            "SELECT p.id, p.name, p.course_code,
+                    SUM(CASE WHEN cr.mode = 'new'       THEN 1 ELSE 0 END) AS n_nuevo,
+                    SUM(CASE WHEN cr.mode = 'refresher' THEN 1 ELSE 0 END) AS n_refresco
+               FROM products p
+               LEFT JOIN course_requirements cr ON cr.product_id = p.id
+              WHERE p.status = 'active'
+              GROUP BY p.id, p.name, p.course_code
+              ORDER BY (n_nuevo + n_refresco) = 0 DESC, p.name ASC"
+        );
+    }
+
     /**
      * Requisitos publicados de un curso, en orden.
      */
@@ -173,8 +378,8 @@ class CourseRequirement extends Model
                 ->execute([$productId, $mode]);
 
             $insert = $pdo->prepare(
-                "INSERT INTO {$this->table} (product_id, mode, label, requires_file, order_num)
-                 VALUES (?, ?, ?, ?, ?)"
+                "INSERT INTO {$this->table} (product_id, mode, rule_id, label, requires_file, order_num)
+                 VALUES (?, ?, ?, ?, ?, ?)"
             );
 
             $orden = 0;
@@ -183,9 +388,11 @@ class CourseRequirement extends Model
                 if ($label === '') {
                     continue;
                 }
+                $ruleId = (int) ($item['rule_id'] ?? 0);
                 $insert->execute([
                     $productId,
                     $mode,
+                    $ruleId > 0 ? $ruleId : null,
                     $label,
                     (int) ($item['requires_file'] ?? 0),
                     ++$orden,

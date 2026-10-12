@@ -175,7 +175,7 @@ if (\Core\Permissions::roleCan($currentRole, 'lms.quizzes.manage')) {
             <a href="/manager/lms/categories" class="nav-link"><i class="fas fa-tags w-4 text-center"></i>Categorías LMS</a>
             <?php endif; ?>
             <?php if (can('lms.courses.manage')): ?>
-            <a href="/manager/requisitos" class="nav-link"><i class="fas fa-clipboard-check w-4 text-center"></i>Requisitos
+            <a href="/manager/requisitos/cursos" class="nav-link"><i class="fas fa-clipboard-check w-4 text-center"></i>Requisitos
                 <?php if (!empty($requisitosPendientes)): ?>
                 <span class="ml-auto text-[9px] font-black bg-amber-500 text-white px-1.5 py-0.5 rounded-full"><?= $requisitosPendientes ?></span>
                 <?php endif; ?>
