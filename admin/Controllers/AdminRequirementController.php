@@ -34,26 +34,24 @@ class AdminRequirementController extends Controller
             $estado = 'pending';
         }
 
-        $perPage = 10;
-        $page    = max(1, (int) ($_GET['page'] ?? 1));
-        $total   = $this->model->countImports($estado);
-
-        $docs = $this->model->imports($estado, $perPage, ($page - 1) * $perPage);
+        // Sin paginar: son poco más de un centenar de documentos en total y
+        // la pantalla los filtra al escribir. Paginar obligaba a bajar hasta
+        // el final para buscar un curso que podía estar en cualquier página.
+        $total = $this->model->countImports($estado);
+        $docs  = $this->model->imports($estado, 500, 0);
         foreach ($docs as &$d) {
             $d['lista'] = json_decode((string) $d['requirements'], true) ?: [];
         }
         unset($d);
 
         (new View())->render('admin/views/requirements/index', [
-            'title'    => 'Requisitos de admisión',
-            'docs'     => $docs,
-            'estado'   => $estado,
-            'conteos'  => $this->model->importCounts(),
-            'resumen'  => $this->model->summary(),
-            'cursos'   => $this->cursosDisponibles(),
-            'total'    => $total,
-            'page'     => $page,
-            'lastPage' => max(1, (int) ceil($total / $perPage)),
+            'title'   => 'Requisitos de admisión',
+            'docs'    => $docs,
+            'estado'  => $estado,
+            'conteos' => $this->model->importCounts(),
+            'resumen' => $this->model->summary(),
+            'cursos'  => $this->cursosDisponibles(),
+            'total'   => $total,
         ], 'admin/views/layout');
     }
 
@@ -211,7 +209,6 @@ class AdminRequirementController extends Controller
     {
         $qs = http_build_query(array_filter([
             'estado' => $_POST['volver_estado'] ?? null,
-            'page'   => $_POST['volver_page']   ?? null,
         ]));
         $this->redirect('/manager/requisitos' . ($qs ? "?{$qs}" : ''));
     }
