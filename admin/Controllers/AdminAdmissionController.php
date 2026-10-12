@@ -9,6 +9,11 @@ use Core\WordGenerator;
 
 class AdminAdmissionController extends Controller
 {
+    /** Opciones de filas por pantalla que ofrece la lista. */
+    private const POR_PAGINA = [5, 10, 15, 25, 50];
+
+    private const POR_PAGINA_DEFECTO = 15;
+
     private $admissionRequest;
 
     public function __construct()
@@ -28,16 +33,26 @@ class AdminAdmissionController extends Controller
         $status = isset($_GET['status']) ? $_GET['status'] : '';
         $search = isset($_GET['search']) ? $_GET['search'] : '';
 
+        // Cuántas filas por pantalla. Sólo se admiten las de la lista: un
+        // valor libre en la URL permitiría pedir cien mil de golpe.
+        $perPage = (int) ($_GET['per_page'] ?? self::POR_PAGINA_DEFECTO);
+        if (!in_array($perPage, self::POR_PAGINA, true)) {
+            $perPage = self::POR_PAGINA_DEFECTO;
+        }
+
         $filters = [];
         if ($status) $filters['status'] = $status;
         if ($search) $filters['search'] = $search;
 
-        // Get admission requests
-        $requests = $this->admissionRequest->getAllWithPagination($page, 20, $filters);
         $totalCount = $this->admissionRequest->getCount($filters);
-        $statusCounts = $this->admissionRequest->getStatusCounts();
+        $totalPages = max(1, (int) ceil($totalCount / $perPage));
 
-        $totalPages = ceil($totalCount / 20);
+        // Si al reducir las filas por pantalla la página actual se queda
+        // fuera de rango, se vuelve a la última que existe.
+        $page = max(1, min($page, $totalPages));
+
+        $requests     = $this->admissionRequest->getAllWithPagination($page, $perPage, $filters);
+        $statusCounts = $this->admissionRequest->getStatusCounts();
 
         // Render view
         $this->view->render('admin/views/admission-requests', [
@@ -48,7 +63,9 @@ class AdminAdmissionController extends Controller
             'totalCount' => $totalCount,
             'statusCounts' => $statusCounts,
             'currentStatus' => $status,
-            'currentSearch' => $search
+            'currentSearch' => $search,
+            'perPage' => $perPage,
+            'perPageOptions' => self::POR_PAGINA,
         ], 'admin/views/layout');
     }
 

@@ -1,3 +1,14 @@
+<?php
+/**
+ * Listado de solicitudes de admisión.
+ *
+ * Valores por defecto arriba: la vista se dibuja aunque el controlador no
+ * mande las filas por pantalla, y así $perPage ya existe cuando lo usan
+ * los enlaces de las tarjetas de estado.
+ */
+$perPage        = $perPage        ?? 15;
+$perPageOptions = $perPageOptions ?? [5, 10, 15, 25, 50];
+?>
 <div class="container mx-auto px-4 py-5">
     <div class="flex justify-between items-center mb-4">
         <h1 class="text-2xl font-bold text-gray-900">Admission Requests</h1>
@@ -9,7 +20,7 @@
     <!-- Status Filters -->
     <div class="bg-white rounded-lg shadow-md p-3 mb-4">
         <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-            <a href="/manager/admission-requests" 
+            <a href="/manager/admission-requests?per_page=<?php echo $perPage; ?>"
                class="status-card <?php echo empty($currentStatus) ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
@@ -20,7 +31,7 @@
                 </div>
             </a>
 
-            <a href="/manager/admission-requests?status=pending" 
+            <a href="/manager/admission-requests?status=pending&per_page=<?php echo $perPage; ?>" 
                class="status-card <?php echo $currentStatus === 'pending' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
@@ -31,7 +42,7 @@
                 </div>
             </a>
 
-            <a href="/manager/admission-requests?status=reviewed" 
+            <a href="/manager/admission-requests?status=reviewed&per_page=<?php echo $perPage; ?>" 
                class="status-card <?php echo $currentStatus === 'reviewed' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
@@ -42,7 +53,7 @@
                 </div>
             </a>
 
-            <a href="/manager/admission-requests?status=approved" 
+            <a href="/manager/admission-requests?status=approved&per_page=<?php echo $perPage; ?>" 
                class="status-card <?php echo $currentStatus === 'approved' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
@@ -53,7 +64,7 @@
                 </div>
             </a>
 
-            <a href="/manager/admission-requests?status=rejected" 
+            <a href="/manager/admission-requests?status=rejected&per_page=<?php echo $perPage; ?>" 
                class="status-card <?php echo $currentStatus === 'rejected' ? 'active' : ''; ?>">
                 <div class="flex items-center justify-between">
                     <div>
@@ -66,27 +77,65 @@
         </div>
     </div>
 
-    <!-- Search Bar -->
-    <div class="bg-white rounded-lg shadow-md p-3 mb-4">
-        <form method="GET" action="/manager/admission-requests" class="flex gap-4">
-            <?php if ($currentStatus): ?>
-                <input type="hidden" name="status" value="<?php echo htmlspecialchars($currentStatus); ?>">
-            <?php endif; ?>
-            <input type="text" 
-                   name="search" 
-                   value="<?php echo htmlspecialchars($currentSearch); ?>"
-                   placeholder="Search by name or email..." 
-                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-            <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg transition">
-                <i class="fas fa-search mr-2"></i>Search
-            </button>
-            <?php if ($currentSearch || $currentStatus): ?>
-                <a href="/manager/admission-requests" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition">
-                    <i class="fas fa-times mr-2"></i>Clear
-                </a>
-            <?php endif; ?>
-        </form>
-    </div>
+    <!--
+        Barra de filtros en una sola línea: buscar, estado y cuántas filas
+        mostrar. Los desplegables se envían solos al cambiar, así que el
+        único botón que queda es el de buscar.
+    -->
+    <?php
+    $etiquetasEstado = [
+        ''         => 'All statuses',
+        'pending'  => 'Pending',
+        'reviewed' => 'Reviewed',
+        'approved' => 'Approved',
+        'rejected' => 'Rejected',
+    ];
+    ?>
+    <form method="GET" action="/manager/admission-requests"
+          class="bg-white rounded-lg shadow-md p-2.5 mb-4 flex flex-wrap items-center gap-2">
+
+        <!-- Buscar -->
+        <div class="relative flex-1 min-w-[220px]">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+            <input type="search" name="search" value="<?php echo htmlspecialchars($currentSearch); ?>"
+                   placeholder="Search by name or email…"
+                   class="w-full pl-9 pr-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:border-cyan-500 focus:outline-none transition">
+        </div>
+
+        <!-- Estado -->
+        <select name="status" onchange="this.form.submit()"
+                class="py-2 pl-3 pr-8 text-[13px] border border-gray-200 rounded-lg bg-white focus:border-cyan-500 focus:outline-none transition cursor-pointer">
+            <?php foreach ($etiquetasEstado as $valor => $texto): ?>
+            <option value="<?php echo $valor; ?>" <?php echo $currentStatus === $valor ? 'selected' : ''; ?>>
+                <?php echo $texto; ?>
+            </option>
+            <?php endforeach; ?>
+        </select>
+
+        <!-- Filas por pantalla -->
+        <label class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">
+            Show
+            <select name="per_page" onchange="this.form.submit()"
+                    class="py-2 pl-2.5 pr-7 text-[13px] font-normal normal-case tracking-normal text-gray-700 border border-gray-200 rounded-lg bg-white focus:border-cyan-500 focus:outline-none transition cursor-pointer">
+                <?php foreach ($perPageOptions as $n): ?>
+                <option value="<?php echo $n; ?>" <?php echo (int) $perPage === $n ? 'selected' : ''; ?>><?php echo $n; ?></option>
+                <?php endforeach; ?>
+            </select>
+        </label>
+
+        <button type="submit"
+                class="px-4 py-2 text-[13px] font-semibold bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition">
+            Search
+        </button>
+
+        <?php if ($currentSearch || $currentStatus): ?>
+        <a href="/manager/admission-requests"
+           class="w-9 h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-rose-200 hover:text-rose-500 transition"
+           title="Clear filters">
+            <i class="fas fa-times text-xs"></i>
+        </a>
+        <?php endif; ?>
+    </form>
 
     <!--
         Tabla compacta: el contenido se cortaba porque cada celda llevaba
@@ -208,42 +257,62 @@
             </table>
         </div>
 
-        <!-- Pagination -->
-        <?php if ($totalPages > 1): ?>
-            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                <div class="flex-1 flex justify-between sm:hidden">
-                    <?php if ($currentPage > 1): ?>
-                        <a href="?page=<?php echo $currentPage - 1; ?><?php echo $currentStatus ? '&status=' . $currentStatus : ''; ?><?php echo $currentSearch ? '&search=' . urlencode($currentSearch) : ''; ?>" 
-                           class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                            Previous
-                        </a>
-                    <?php endif; ?>
-                    <?php if ($currentPage < $totalPages): ?>
-                        <a href="?page=<?php echo $currentPage + 1; ?><?php echo $currentStatus ? '&status=' . $currentStatus : ''; ?><?php echo $currentSearch ? '&search=' . urlencode($currentSearch) : ''; ?>" 
-                           class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-                            Next
-                        </a>
-                    <?php endif; ?>
-                </div>
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm text-gray-700">
-                            Showing page <span class="font-medium"><?php echo $currentPage; ?></span> of <span class="font-medium"><?php echo $totalPages; ?></span>
-                        </p>
-                    </div>
-                    <div>
-                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                            <?php for ($i = 1; $i <= min($totalPages, 5); $i++): ?>
-                                <a href="?page=<?php echo $i; ?><?php echo $currentStatus ? '&status=' . $currentStatus : ''; ?><?php echo $currentSearch ? '&search=' . urlencode($currentSearch) : ''; ?>" 
-                                   class="<?php echo $i === $currentPage ? 'bg-cyan-50 border-cyan-500 text-cyan-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'; ?> relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                                    <?php echo $i; ?>
-                                </a>
-                            <?php endfor; ?>
-                        </nav>
-                    </div>
-                </div>
-            </div>
-        <?php endif; ?>
+        <!--
+            Paginación. Antes armaba la URL a mano tres veces y sólo pintaba
+            las páginas 1 a 5: con pocas filas por pantalla no había forma de
+            llegar a la sexta. Ahora la ventana sigue a la página actual.
+        -->
+        <?php
+        /** URL de una página conservando filtros y filas por pantalla. */
+        $enlace = static function (int $p) use ($currentStatus, $currentSearch, $perPage): string {
+            return '?' . http_build_query(array_filter([
+                'page'     => $p,
+                'status'   => $currentStatus,
+                'search'   => $currentSearch,
+                'per_page' => $perPage,
+            ], static fn($v) => $v !== '' && $v !== null));
+        };
+
+        $desde = max(1, min($currentPage - 2, $totalPages - 4));
+        $hasta = min($totalPages, max($currentPage + 2, 5));
+
+        $primero = $totalCount === 0 ? 0 : (($currentPage - 1) * $perPage) + 1;
+        $ultimo  = min($currentPage * $perPage, $totalCount);
+        ?>
+        <div class="px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 text-[12px]">
+            <p class="text-gray-400">
+                Showing <strong class="text-gray-600"><?php echo $primero; ?>–<?php echo $ultimo; ?></strong>
+                of <strong class="text-gray-600"><?php echo $totalCount; ?></strong>
+            </p>
+
+            <?php if ($totalPages > 1): ?>
+            <nav class="inline-flex items-center gap-1">
+                <a href="<?php echo $enlace(max(1, $currentPage - 1)); ?>"
+                   class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 <?php
+                       echo $currentPage <= 1 ? 'text-gray-200 pointer-events-none' : 'text-gray-400 hover:bg-gray-50'; ?>"
+                   title="Previous">
+                    <i class="fas fa-chevron-left text-[10px]"></i>
+                </a>
+
+                <?php for ($i = $desde; $i <= $hasta; $i++): ?>
+                <a href="<?php echo $enlace($i); ?>"
+                   class="min-w-[1.75rem] h-7 px-2 inline-flex items-center justify-center rounded-lg border font-semibold <?php
+                       echo $i === $currentPage
+                           ? 'bg-cyan-500 border-cyan-500 text-white'
+                           : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'; ?>">
+                    <?php echo $i; ?>
+                </a>
+                <?php endfor; ?>
+
+                <a href="<?php echo $enlace(min($totalPages, $currentPage + 1)); ?>"
+                   class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 <?php
+                       echo $currentPage >= $totalPages ? 'text-gray-200 pointer-events-none' : 'text-gray-400 hover:bg-gray-50'; ?>"
+                   title="Next">
+                    <i class="fas fa-chevron-right text-[10px]"></i>
+                </a>
+            </nav>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
