@@ -102,6 +102,16 @@ foreach($categories as $c) {
                     ? array_values(array_filter(array_map('strval', $_objetivos), fn($o) => trim($o) !== ''))
                     : [];
                 ?>
+                <?php
+                // Texto introductorio del temario (la justificación, en los
+                // cursos de evaluación de competencia). Va dentro del
+                // contenido y encima de las funciones.
+                $_intro = trim((string) ($course['content_intro'] ?? ''));
+                ?>
+                <?php if ($_intro !== ''): ?>
+                <p class="text-sm text-slate-500 leading-relaxed mb-6 pb-6 border-b border-gray-50 whitespace-pre-line"><?= htmlspecialchars($_intro) ?></p>
+                <?php endif; ?>
+
                 <?php if ($_objetivos): ?>
                 <div class="<?= !empty($lessons) ? 'mb-6 pb-6 border-b border-gray-50' : '' ?>">
                     <?php $_n = 0; foreach ($_objetivos as $_o): ?>
