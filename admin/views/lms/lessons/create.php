@@ -8,7 +8,7 @@
     </div>
 </div>
 
-<form action="/manager/lms/courses/<?= $course['id'] ?>/lessons/store" method="POST" class="max-w-4xl">
+<form action="/manager/lms/courses/<?= $course['id'] ?>/lessons/store" method="POST" enctype="multipart/form-data" class="max-w-4xl">
     <?php echo \Core\Security::getCsrfField(); ?>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -47,9 +47,26 @@
             <input type="text" name="video_url" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition" placeholder="https://www.youtube.com/watch?v=...">
         </div>
 
-        <div id="file_field" class="hidden">
-            <label class="block text-sm font-bold text-gray-700 mb-1">Ruta del Archivo</label>
-            <input type="text" name="file_path" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition" placeholder="URL o ruta del archivo...">
+        <div id="file_field" class="hidden space-y-3">
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">Archivo para descargar</label>
+                <input type="file" name="lesson_file"
+                       accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip"
+                       class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition">
+                <p class="text-xs text-gray-400 mt-1">
+                    PDF, Word, PowerPoint, Excel o ZIP · máximo 25 MB.
+                    El estudiante lo verá como botón de descarga en la lección.
+                </p>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1">
+                    …o enlazar uno ya subido
+                </label>
+                <input type="text" name="file_path"
+                       class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition text-sm"
+                       placeholder="/uploads/… o https://…">
+                <p class="text-xs text-gray-400 mt-1">Se ignora si eliges un archivo arriba.</p>
+            </div>
         </div>
 
         <div>

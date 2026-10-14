@@ -8,7 +8,7 @@
     </div>
 </div>
 
-<form action="/manager/lms/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/update" method="POST" class="max-w-4xl">
+<form action="/manager/lms/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/update" method="POST" enctype="multipart/form-data" class="max-w-4xl">
     <?php echo \Core\Security::getCsrfField(); ?>
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -47,9 +47,37 @@
             <input type="text" name="video_url" value="<?= htmlspecialchars($lesson['video_url'] ?? '') ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition" placeholder="https://www.youtube.com/watch?v=...">
         </div>
 
-        <div id="file_field" class="<?= $lesson['type'] !== 'file' ? 'hidden' : '' ?>">
-            <label class="block text-sm font-bold text-gray-700 mb-1">Ruta del Archivo</label>
-            <input type="text" name="file_path" value="<?= htmlspecialchars($lesson['file_path'] ?? '') ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition" placeholder="URL o ruta del archivo...">
+        <div id="file_field" class="<?= $lesson['type'] !== 'file' ? 'hidden' : '' ?> space-y-3">
+            <?php if (!empty($lesson['file_path'])): ?>
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                <i class="fas fa-paperclip text-emerald-600"></i>
+                <a href="<?= htmlspecialchars($lesson['file_path']) ?>" target="_blank"
+                   class="text-sm font-bold text-emerald-700 hover:underline truncate flex-1">
+                    <?= htmlspecialchars(basename($lesson['file_path'])) ?>
+                </a>
+                <span class="text-xs text-emerald-600 whitespace-nowrap">archivo actual</span>
+            </div>
+            <?php endif; ?>
+
+            <div>
+                <label class="block text-sm font-bold text-gray-700 mb-1">
+                    <?= !empty($lesson['file_path']) ? 'Reemplazar el archivo' : 'Archivo para descargar' ?>
+                </label>
+                <input type="file" name="lesson_file"
+                       accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip"
+                       class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition">
+                <p class="text-xs text-gray-400 mt-1">
+                    PDF, Word, PowerPoint, Excel o ZIP · máximo 25 MB.
+                    Si no eliges ninguno, se conserva el actual.
+                </p>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1">…o enlazar uno ya subido</label>
+                <input type="text" name="file_path" value="<?= htmlspecialchars($lesson['file_path'] ?? '') ?>"
+                       class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition text-sm"
+                       placeholder="/uploads/… o https://…">
+            </div>
         </div>
 
         <div>

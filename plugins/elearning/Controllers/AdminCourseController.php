@@ -499,7 +499,7 @@ class AdminCourseController extends BaseController
             'type'      => $_POST['type'] ?? 'text',
             'content'   => $_POST['content'] ?? '',
             'video_url' => $_POST['video_url'] ?? '',
-            'file_path' => $_POST['file_path'] ?? '',
+            'file_path' => $this->guardarArchivoDeLeccion((int)$courseId, $_POST['file_path'] ?? ''),
             'duration'  => (int)($_POST['duration'] ?? 0),
             'order_num' => (int)($_POST['order_num'] ?? 0),
             'is_active' => isset($_POST['is_active']) ? 1 : 0,
@@ -554,7 +554,7 @@ class AdminCourseController extends BaseController
             'type'      => $_POST['type'] ?? 'text',
             'content'   => $_POST['content'] ?? '',
             'video_url' => $_POST['video_url'] ?? '',
-            'file_path' => $_POST['file_path'] ?? '',
+            'file_path' => $this->guardarArchivoDeLeccion((int)$courseId, $_POST['file_path'] ?? ''),
             'duration'  => (int)($_POST['duration'] ?? 0),
             'order_num' => (int)($_POST['order_num'] ?? 0),
             'is_active' => isset($_POST['is_active']) ? 1 : 0,
@@ -568,6 +568,82 @@ class AdminCourseController extends BaseController
 
         $this->flash('success', 'Lección actualizada correctamente.');
         $this->redirect("/manager/lms/courses/{$courseId}/lessons");
+    }
+
+    /**
+     * Guarda el archivo adjunto de una lección y devuelve su ruta web.
+     *
+     * Hasta ahora la ruta había que escribirla a mano y el archivo subirlo
+     * aparte por FTP, así que en la práctica sólo se usaba en migraciones.
+     * Si no se envía ningún archivo, se conserva lo que haya en el campo de
+     * texto: sigue valiendo para enlazar un documento ya subido o externo.
+     *
+     * @param string $rutaManual Lo escrito en el campo de texto.
+     * @return string Ruta web del archivo, o la manual si no se subió nada.
+     */
+    private function guardarArchivoDeLeccion(int $courseId, string $rutaManual): string
+    {
+        $f = $_FILES['lesson_file'] ?? null;
+
+        if (!$f || ($f['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+            return trim($rutaManual);
+        }
+
+        if ($f['error'] !== UPLOAD_ERR_OK) {
+            $this->flash('error', 'El archivo no se pudo subir (código ' . $f['error'] . ').');
+            return trim($rutaManual);
+        }
+
+        // Tipos admitidos: material de curso, no ejecutables
+        $permitidos = [
+            'pdf'  => 'application/pdf',
+            'doc'  => 'application/msword',
+            'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'ppt'  => 'application/vnd.ms-powerpoint',
+            'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+            'xls'  => 'application/vnd.ms-excel',
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'zip'  => 'application/zip',
+        ];
+
+        $ext = strtolower(pathinfo($f['name'], PATHINFO_EXTENSION));
+        if (!isset($permitidos[$ext])) {
+            $this->flash('error', 'Formato no admitido. Usa PDF, Word, PowerPoint, Excel o ZIP.');
+            return trim($rutaManual);
+        }
+
+        // La extensión se puede falsear; el contenido real, no tanto
+        $mime = @mime_content_type($f['tmp_name']) ?: '';
+        if ($mime !== $permitidos[$ext] && !($ext === 'zip' && str_contains($mime, 'zip'))) {
+            $this->flash('error', 'El contenido del archivo no coincide con su extensión.');
+            return trim($rutaManual);
+        }
+
+        $maximo = 25 * 1024 * 1024; // 25 MB
+        if ((int) $f['size'] > $maximo) {
+            $this->flash('error', 'El archivo pesa ' . round($f['size'] / 1048576, 1)
+                . ' MB y el máximo son 25 MB.');
+            return trim($rutaManual);
+        }
+
+        $carpeta = dirname(__DIR__, 3) . '/public/uploads/lessons/' . $courseId . '/';
+        if (!is_dir($carpeta) && !mkdir($carpeta, 0755, true) && !is_dir($carpeta)) {
+            $this->flash('error', 'No se pudo crear la carpeta de destino.');
+            return trim($rutaManual);
+        }
+
+        // Nombre legible pero sin colisiones ni caracteres problemáticos
+        $base   = pathinfo($f['name'], PATHINFO_FILENAME);
+        $base   = preg_replace('/[^A-Za-z0-9._-]+/', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $base) ?: 'archivo');
+        $base   = trim(mb_substr($base, 0, 60), '-') ?: 'archivo';
+        $nombre = $base . '-' . substr(bin2hex(random_bytes(4)), 0, 8) . '.' . $ext;
+
+        if (!move_uploaded_file($f['tmp_name'], $carpeta . $nombre)) {
+            $this->flash('error', 'No se pudo guardar el archivo en el servidor.');
+            return trim($rutaManual);
+        }
+
+        return '/uploads/lessons/' . $courseId . '/' . $nombre;
     }
 
     /**
