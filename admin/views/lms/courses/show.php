@@ -92,6 +92,38 @@ foreach($categories as $c) {
 <?php endif; ?>
                 </div>
 
+                <?php
+                // Competencias del curso. Se guardan como JSON en
+                // learning_objectives; el portal del alumno ya las muestra
+                // y aquí no se veían, así que el panel y el portal decían
+                // cosas distintas del mismo curso.
+                $_objetivos = json_decode((string) ($course['learning_objectives'] ?? ''), true);
+                $_objetivos = is_array($_objetivos)
+                    ? array_values(array_filter(array_map('strval', $_objetivos), fn($o) => trim($o) !== ''))
+                    : [];
+                ?>
+                <?php if ($_objetivos): ?>
+                <div class="<?= !empty($lessons) ? 'mb-6 pb-6 border-b border-gray-50' : '' ?>">
+                    <?php $_n = 0; foreach ($_objetivos as $_o): ?>
+                        <?php if (preg_match('/^F\d+\./', $_o)): $_n = 0; ?>
+                        <h3 class="font-black text-slate-700 text-sm mt-5 first:mt-0 mb-2 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black flex items-center justify-center flex-shrink-0">
+                                <?= htmlspecialchars(strtok($_o, '.')) ?>
+                            </span>
+                            <?= htmlspecialchars(trim(substr($_o, strpos($_o, '.') + 1))) ?>
+                        </h3>
+                        <?php else: $_n++; ?>
+                        <div class="flex items-start gap-4 p-3 rounded-xl border border-gray-50 mb-2">
+                            <span class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 text-xs font-black flex items-center justify-center flex-shrink-0">
+                                <?= $_n ?>
+                            </span>
+                            <p class="flex-1 text-sm text-slate-600 leading-snug pt-1.5"><?= htmlspecialchars($_o) ?></p>
+                        </div>
+                        <?php endif; ?>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
+
                 <div class="space-y-2">
                     <?php foreach ($lessons as $i => $lesson): ?>
                     <div class="flex items-center gap-4 p-4 rounded-xl border border-gray-50 hover:border-blue-100 hover:bg-blue-50/30 transition-all group">
@@ -108,8 +140,10 @@ foreach($categories as $c) {
                     </div>
                     <?php endforeach; ?>
                     
-                    <?php if (empty($lessons)): ?>
+                    <?php if (empty($lessons) && !$_objetivos): ?>
                     <div class="py-12 text-center text-slate-300 italic text-sm">Este curso aún no tiene lecciones.</div>
+                    <?php elseif (empty($lessons)): ?>
+                    <p class="text-xs text-slate-300 italic pt-2">Sin lecciones: este curso es sólo de evaluación.</p>
                     <?php endif; ?>
                 </div>
                 
