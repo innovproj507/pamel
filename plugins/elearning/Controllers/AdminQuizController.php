@@ -178,6 +178,8 @@ class AdminQuizController extends BaseController
             'description'     => $_POST['description'] ?? '',
             'pass_percentage' => (float)($_POST['pass_percentage'] ?? 70),
             'time_limit'      => (int)($_POST['time_limit'] ?? 0),
+            // Vacío o 0 = se preguntan todas las del banco
+            'questions_per_attempt' => ((int)($_POST['questions_per_attempt'] ?? 0)) ?: null,
             'is_active'       => isset($_POST['is_active']) ? 1 : 0,
             'created_at'      => date('Y-m-d H:i:s')
         ];
@@ -241,6 +243,8 @@ class AdminQuizController extends BaseController
             'description'     => $_POST['description'] ?? '',
             'pass_percentage' => (float)($_POST['pass_percentage'] ?? 70),
             'time_limit'      => (int)($_POST['time_limit'] ?? 0),
+            // Vacío o 0 = se preguntan todas las del banco
+            'questions_per_attempt' => ((int)($_POST['questions_per_attempt'] ?? 0)) ?: null,
             'is_active'       => isset($_POST['is_active']) ? 1 : 0,
             'updated_at'      => date('Y-m-d H:i:s')
         ];

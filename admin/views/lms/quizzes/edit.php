@@ -44,6 +44,35 @@
                     <label class="block text-sm font-bold text-gray-700 mb-1">Límite de Tiempo (minutos)</label>
                     <input type="number" name="time_limit" value="<?= $quiz['time_limit'] ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition">
                 </div>
+
+                <?php
+                // Banco de preguntas: cuántas se sortean en cada intento
+                $totalPreguntas = (int) ($quiz['question_count'] ?? 0);
+                $porIntento     = (int) ($quiz['questions_per_attempt'] ?? 0);
+                ?>
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">
+                        Preguntas por intento
+                    </label>
+                    <div class="flex items-center gap-3">
+                        <input type="number" name="questions_per_attempt" min="0"
+                               max="<?= $totalPreguntas ?: 999 ?>"
+                               value="<?= $porIntento ?: '' ?>"
+                               placeholder="Todas"
+                               class="w-40 px-4 py-2 rounded-lg border border-gray-200 focus:border-blue-500 outline-none transition">
+                        <p class="text-xs text-gray-500">
+                            Deja vacío para preguntar <strong>las <?= $totalPreguntas ?></strong>.
+                            Con un número menor, cada estudiante recibe esa cantidad
+                            sorteada al azar del banco, y la nota se calcula sobre ellas.
+                        </p>
+                    </div>
+                    <?php if ($porIntento > 0 && $porIntento < $totalPreguntas): ?>
+                    <p class="text-xs text-emerald-600 font-bold mt-2">
+                        <i class="fas fa-shuffle"></i>
+                        Ahora mismo: se sortean <?= $porIntento ?> de las <?= $totalPreguntas ?>.
+                    </p>
+                    <?php endif; ?>
+                </div>
             </div>
 
             <div class="flex items-center gap-2">

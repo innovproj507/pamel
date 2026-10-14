@@ -226,14 +226,42 @@ class Quiz extends Model
     /**
      * Grade an attempt based on student answers.
      */
-    public function gradeAttempt($attemptId, $quizId, array $answers)
+    /**
+     * Califica un intento.
+     *
+     * @param array      $answers  [question_id => option_id]
+     * @param int[]|null $asked    Preguntas que se le presentaron al
+     *   estudiante. Se usa cuando el quiz sortea un subconjunto del banco:
+     *   sin esto se puntuaría sobre las 20 del banco habiendo preguntado
+     *   10, y nadie podría pasar del 50%. Null = se preguntaron todas.
+     */
+    public function gradeAttempt($attemptId, $quizId, array $answers, ?array $asked = null)
     {
-        $questions = $this->db->fetchAll(
-            "SELECT q.id, q.points,
-                    (SELECT id FROM lms_question_options WHERE question_id = q.id AND is_correct = 1 LIMIT 1) AS correct_option_id
-             FROM lms_questions q WHERE q.quiz_id = ?",
-            [$quizId]
-        );
+        $sql    = "SELECT q.id, q.points,
+                          (SELECT id FROM lms_question_options WHERE question_id = q.id AND is_correct = 1 LIMIT 1) AS correct_option_id
+                   FROM lms_questions q WHERE q.quiz_id = ?";
+        $params = [$quizId];
+
+        // Los ids llegan del navegador: se filtran contra el quiz, de modo
+        // que nadie pueda recortar su examen enviando una lista más corta.
+        $asked = array_values(array_unique(array_filter(array_map('intval', $asked ?? []))));
+        if ($asked) {
+            $sql     .= ' AND q.id IN (' . implode(',', array_fill(0, count($asked), '?')) . ')';
+            $params   = array_merge($params, $asked);
+        }
+
+        $questions = $this->db->fetchAll($sql, $params);
+
+        // Si el filtro no dejó ninguna pregunta válida, se califica sobre
+        // todo el quiz antes que dar por bueno un examen vacío.
+        if (!$questions) {
+            $questions = $this->db->fetchAll(
+                "SELECT q.id, q.points,
+                        (SELECT id FROM lms_question_options WHERE question_id = q.id AND is_correct = 1 LIMIT 1) AS correct_option_id
+                 FROM lms_questions q WHERE q.quiz_id = ?",
+                [$quizId]
+            );
+        }
 
         $totalPoints  = 0;
         $earnedPoints = 0;

@@ -190,7 +190,13 @@ class QuizzesApiController extends Controller
         $data    = json_decode(file_get_contents('php://input'), true) ?? [];
         $answers = array_map('intval', $data['answers'] ?? []);
 
-        $result = $this->quizModel->gradeAttempt((int) $attemptId, (int) $id, $answers);
+        // Preguntas realmente presentadas, cuando el quiz sortea un
+        // subconjunto del banco. El modelo las valida contra el quiz.
+        $asked = isset($data['asked']) && is_array($data['asked'])
+            ? array_map('intval', $data['asked'])
+            : null;
+
+        $result = $this->quizModel->gradeAttempt((int) $attemptId, (int) $id, $answers, $asked);
         $this->apiResponse(['status' => 'success', 'data' => $result]);
     }
 
