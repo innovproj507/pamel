@@ -459,4 +459,90 @@ class WordGenerator
 
         return $filepath;
     }
+
+    /**
+     * Acta de un examen realizado: datos del alumno, calificación y el
+     * detalle de cada pregunta con lo que respondió y lo correcto.
+     *
+     * @param array $datos Intento, con 'answers', 'student', 'quiz' y 'course'.
+     * @return string Ruta del .docx generado, en el directorio temporal.
+     */
+    public static function generateQuizAttemptDocument(array $datos): string
+    {
+        $phpWord = new \PhpOffice\PhpWord\PhpWord();
+        $section = $phpWord->addSection([
+            'marginTop' => 720, 'marginBottom' => 720,
+            'marginLeft' => 1080, 'marginRight' => 1080,
+        ]);
+
+        $centro   = ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER];
+        $aprobado = !empty($datos['passed']);
+
+        // ── Encabezado ──────────────────────────────────────────────────
+        $section->addText('PANAMA MARITIME E-LEARNING (PAMEL), S.A.', ['bold' => true, 'size' => 14], $centro);
+        $section->addText('QUALITY MANAGEMENT SYSTEM / SISTEMA DE GESTIÓN DE CALIDAD', ['size' => 9], $centro);
+        $section->addText('ACTA DE EVALUACIÓN / EVALUATION RECORD',
+            ['bold' => true, 'size' => 12, 'color' => '006699'], $centro);
+        $section->addTextBreak(1);
+
+        // ── Datos ───────────────────────────────────────────────────────
+        self::addField($section, 'Estudiante',  $datos['student_name']  ?? '');
+        self::addField($section, 'Correo',      $datos['student_email'] ?? '');
+        self::addField($section, 'Curso',       $datos['course_title']  ?? '');
+        self::addField($section, 'Evaluación',  $datos['quiz_title']    ?? '');
+        self::addField($section, 'Fecha',       !empty($datos['completed_at'])
+            ? date('d/m/Y H:i', strtotime((string) $datos['completed_at'])) : '');
+        $section->addTextBreak(1);
+
+        // ── Calificación ────────────────────────────────────────────────
+        $total     = count($datos['answers'] ?? []);
+        $correctas = count(array_filter($datos['answers'] ?? [], fn($a) => !empty($a['is_correct'])));
+
+        $section->addText('CALIFICACIÓN', ['bold' => true, 'size' => 11, 'color' => '006699']);
+        self::addField($section, 'Puntuación',  number_format((float) ($datos['score'] ?? 0), 2) . ' %');
+        self::addField($section, 'Mínimo para aprobar', number_format((float) ($datos['pass_percentage'] ?? 70), 2) . ' %');
+        self::addField($section, 'Respuestas correctas', $correctas . ' de ' . $total);
+        $section->addText(
+            'RESULTADO: ' . ($aprobado ? 'APROBADO' : 'NO APROBADO'),
+            ['bold' => true, 'size' => 12, 'color' => $aprobado ? '137333' : 'C5221F']
+        );
+        $section->addTextBreak(1);
+
+        // ── Detalle ─────────────────────────────────────────────────────
+        $section->addText('DETALLE DE RESPUESTAS', ['bold' => true, 'size' => 11, 'color' => '006699']);
+        $section->addTextBreak(1);
+
+        $n = 0;
+        foreach ($datos['answers'] ?? [] as $a) {
+            $bien = !empty($a['is_correct']);
+            $section->addText(
+                (++$n) . '. ' . strip_tags((string) ($a['question'] ?? '')),
+                ['bold' => true, 'size' => 10]
+            );
+            $section->addText(
+                '    Respondió: ' . (trim((string) ($a['selected_text'] ?? '')) !== ''
+                    ? strip_tags((string) $a['selected_text']) : '(sin responder)'),
+                ['size' => 10, 'color' => $bien ? '137333' : 'C5221F']
+            );
+            if (!$bien) {
+                $section->addText(
+                    '    Correcta:  ' . strip_tags((string) ($a['correct_text'] ?? '')),
+                    ['size' => 10, 'color' => '137333']
+                );
+            }
+            $section->addTextBreak(1);
+        }
+
+        // ── Firmas ──────────────────────────────────────────────────────
+        $section->addTextBreak(2);
+        $section->addText('_______________________________        _______________________________', ['size' => 10], $centro);
+        $section->addText('Instructor                                             Director', ['size' => 9], $centro);
+
+        $nombre = sprintf('acta_examen_%d_%s.docx', (int) ($datos['id'] ?? 0), date('Ymd_His'));
+        $ruta   = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $nombre;
+
+        \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007')->save($ruta);
+
+        return $ruta;
+    }
 }

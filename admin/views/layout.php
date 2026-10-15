@@ -159,6 +159,7 @@ if (\Core\Permissions::roleCan($currentRole, 'lms.quizzes.manage')) {
             <?php endif; ?>
             <?php if (can('lms.students.view')): ?>
             <a href="/manager/lms/students"  class="nav-link"><i class="fas fa-user-graduate w-4 text-center"></i>Estudiantes</a>
+            <a href="/manager/lms/seguimiento" class="nav-link"><i class="fas fa-chart-line w-4 text-center"></i>Seguimiento</a>
             <?php endif; ?>
             <?php if (can('lms.teachers.view')): ?>
             <a href="/manager/lms/teachers"  class="nav-link"><i class="fas fa-chalkboard-teacher w-4 text-center"></i>Instructores</a>

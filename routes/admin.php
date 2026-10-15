@@ -141,6 +141,11 @@ return function($router) {
     $router->post('/manager/lms/forums/posts/:id/delete', 'Plugins\Elearning\Controllers\AdminForumController@deletePost', 'admin.lms.forums.posts.delete');
 
     // LMS Students / Enrollments
+    // Seguimiento académico: avance, exámenes y actas
+    $router->get('/manager/lms/seguimiento', 'Admin\Controllers\AdminTrackingController@index', 'admin.lms.seguimiento');
+    $router->get('/manager/lms/seguimiento/estudiante/:id', 'Admin\Controllers\AdminTrackingController@student', 'admin.lms.seguimiento.estudiante');
+    $router->get('/manager/lms/actas/:id', 'Admin\Controllers\AdminTrackingController@downloadAttempt', 'admin.lms.actas');
+
     $router->get('/manager/lms/students', 'Plugins\Elearning\Controllers\AdminEnrollmentController@index', 'admin.lms.students');
     $router->get('/manager/lms/students/create', 'Plugins\Elearning\Controllers\AdminEnrollmentController@create', 'admin.lms.students.create');
     $router->post('/manager/lms/students/store', 'Plugins\Elearning\Controllers\AdminEnrollmentController@store', 'admin.lms.students.store');

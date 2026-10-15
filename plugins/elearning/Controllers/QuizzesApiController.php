@@ -216,6 +216,13 @@ class QuizzesApiController extends Controller
             $this->apiResponse(['status' => 'error', 'message' => 'Intento no encontrado'], 404);
         }
 
+        // Enlace firmado para descargar el acta. El portal vive en otro
+        // dominio y no tiene sesión de panel, así que la autorización va en
+        // la propia URL en lugar de en una cookie.
+        $attempt['acta_url'] = rtrim((string) \Core\Config::get('site.url', ''), '/')
+            . '/manager/lms/actas/' . (int) $attemptId
+            . '?f=' . \Admin\Controllers\AdminTrackingController::firmaActa((int) $attemptId);
+
         $this->apiResponse(['status' => 'success', 'data' => $attempt]);
     }
 
