@@ -35,6 +35,19 @@
                     </td>
                     <td class="px-6 py-4">
                         <p class="font-semibold text-gray-800"><?= htmlspecialchars($q['question']) ?></p>
+                        <?php if ((int) ($q['correct_count'] ?? 0) === 1): ?>
+                        <p class="mt-1 text-xs text-emerald-600 flex items-start gap-1.5">
+                            <i class="fas fa-check-circle mt-0.5"></i>
+                            <span><?= htmlspecialchars((string) $q['correct_text']) ?></span>
+                        </p>
+                        <?php else: ?>
+                        <p class="mt-1 text-xs text-red-500 flex items-center gap-1.5 font-bold">
+                            <i class="fas fa-triangle-exclamation"></i>
+                            <?= (int) ($q['correct_count'] ?? 0) === 0
+                                ? 'Sin respuesta correcta marcada'
+                                : 'Tiene ' . (int) $q['correct_count'] . ' respuestas marcadas como correctas' ?>
+                        </p>
+                        <?php endif; ?>
                     </td>
                     <td class="px-6 py-4 text-center">
                         <span class="text-sm text-gray-600"><?= $q['option_count'] ?></span>
@@ -45,6 +58,9 @@
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
 <?php if (can('lms.quizzes.manage')): ?>
+                            <a href="/manager/lms/quizzes/<?= $quiz['id'] ?>/questions/<?= $q['id'] ?>/edit" class="p-2 text-gray-400 hover:text-blue-600 transition" title="Editar">
+                                <i class="fas fa-pen"></i>
+                            </a>
                             <?php
                             // Si la pregunta tiene historial, la confirmación lo advierte.
                             $_answers = (int) ($q['answer_count'] ?? 0);

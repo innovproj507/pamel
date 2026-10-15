@@ -303,10 +303,15 @@ class AdminQuizController extends BaseController
         $questions = $this->db->fetchAll(
             "SELECT q.*,
                     (SELECT COUNT(*) FROM lms_question_options WHERE question_id = q.id) as option_count,
-                    (SELECT COUNT(*) FROM lms_quiz_answers      WHERE question_id = q.id) as answer_count
+                    (SELECT COUNT(*) FROM lms_quiz_answers      WHERE question_id = q.id) as answer_count,
+                    (SELECT COUNT(*) FROM lms_question_options
+                      WHERE question_id = q.id AND is_correct = 1)                       as correct_count,
+                    (SELECT option_text FROM lms_question_options
+                      WHERE question_id = q.id AND is_correct = 1
+                      ORDER BY order_num ASC, id ASC LIMIT 1)                            as correct_text
              FROM lms_questions q
              WHERE q.quiz_id = ?
-             ORDER BY q.order_num ASC",
+             ORDER BY q.order_num ASC, q.id ASC",
             [$quizId]
         );
 
@@ -381,6 +386,102 @@ class AdminQuizController extends BaseController
         }
 
         $this->flash('success', 'Pregunta añadida correctamente.');
+        $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
+    }
+
+    /**
+     * Formulario para editar una pregunta y sus opciones.
+     */
+    public function editQuestion($quizId, $id)
+    {
+        $this->requireCan('lms.quizzes.manage');
+
+        $quiz = $this->authorizeQuiz($quizId);
+
+        $pregunta = $this->db->fetchOne(
+            'SELECT * FROM lms_questions WHERE id = ? AND quiz_id = ?',
+            [(int) $id, (int) $quizId]
+        );
+
+        if (!$pregunta) {
+            $this->flash('error', 'La pregunta no existe.');
+            $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
+        }
+
+        $opciones = $this->db->fetchAll(
+            'SELECT id, option_text, is_correct FROM lms_question_options
+              WHERE question_id = ? ORDER BY order_num ASC, id ASC',
+            [(int) $id]
+        );
+
+        // Si ya hay respuestas de alumnos conviene avisarlo en el formulario:
+        // cambiar la correcta no recalcula las notas ya puestas.
+        $respondida = (int) ($this->db->fetchOne(
+            'SELECT COUNT(*) AS c FROM lms_quiz_answers WHERE question_id = ?',
+            [(int) $id]
+        )['c'] ?? 0);
+
+        $view = new View();
+        $view->render('admin/views/lms/quizzes/edit_question', [
+            'title'      => 'Editar Pregunta',
+            'quiz'       => $quiz,
+            'pregunta'   => $pregunta,
+            'opciones'   => $opciones,
+            'respondida' => $respondida,
+        ], 'admin/views/layout');
+    }
+
+    /**
+     * Guarda los cambios de una pregunta.
+     */
+    public function updateQuestion($quizId, $id)
+    {
+        $this->requireCan('lms.quizzes.manage');
+        $this->validateCsrf("/manager/lms/quizzes/{$quizId}/questions/{$id}/edit");
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
+        }
+
+        $this->authorizeQuiz($quizId);
+
+        $textos  = (array) ($_POST['options'] ?? []);
+        $correcta = (string) ($_POST['correct_option'] ?? '');
+
+        // Se conserva la clave original de cada opción: así la marcada
+        // sigue siendo la misma aunque alguna quede vacía y se descarte.
+        $opciones = [];
+        foreach ($textos as $clave => $texto) {
+            if (trim((string) $texto) === '') {
+                continue;
+            }
+            $opciones[] = [
+                'text'       => trim((string) $texto),
+                'is_correct' => ((string) $clave === $correcta) ? 1 : 0,
+            ];
+        }
+
+        if (count($opciones) < 2) {
+            $this->flash('error', 'La pregunta necesita al menos dos opciones.');
+            $this->redirect("/manager/lms/quizzes/{$quizId}/questions/{$id}/edit");
+        }
+        if (!array_filter($opciones, fn($o) => $o['is_correct'] === 1)) {
+            $this->flash('error', 'Marca cuál es la respuesta correcta.');
+            $this->redirect("/manager/lms/quizzes/{$quizId}/questions/{$id}/edit");
+        }
+
+        $ok = $this->quizModel->updateQuestionWithOptions((int) $id, [
+            'question'  => $_POST['question'] ?? '',
+            'points'    => (int) ($_POST['points'] ?? 1),
+            'order_num' => (int) ($_POST['order_num'] ?? 0),
+        ], $opciones);
+
+        if (!$ok) {
+            $this->flash('error', 'No se pudo guardar la pregunta. Revisa el log de errores de PHP.');
+            $this->redirect("/manager/lms/quizzes/{$quizId}/questions/{$id}/edit");
+        }
+
+        $this->flash('success', 'Pregunta actualizada.');
         $this->redirect("/manager/lms/quizzes/{$quizId}/questions");
     }
 

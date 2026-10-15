@@ -125,6 +125,8 @@ return function($router) {
     $router->get('/manager/lms/quizzes/:quizId/questions', 'Plugins\Elearning\Controllers\AdminQuizController@questions', 'admin.lms.questions');
     $router->get('/manager/lms/quizzes/:quizId/questions/add', 'Plugins\Elearning\Controllers\AdminQuizController@addQuestion', 'admin.lms.questions.add');
     $router->post('/manager/lms/quizzes/:quizId/questions/store', 'Plugins\Elearning\Controllers\AdminQuizController@storeQuestion', 'admin.lms.questions.store');
+    $router->get('/manager/lms/quizzes/:quizId/questions/:id/edit', 'Plugins\Elearning\Controllers\AdminQuizController@editQuestion', 'admin.lms.questions.edit');
+    $router->post('/manager/lms/quizzes/:quizId/questions/:id/update', 'Plugins\Elearning\Controllers\AdminQuizController@updateQuestion', 'admin.lms.questions.update');
     $router->post('/manager/lms/quizzes/:quizId/questions/:id/delete', 'Plugins\Elearning\Controllers\AdminQuizController@deleteQuestion', 'admin.lms.questions.delete');
 
     // LMS Categories

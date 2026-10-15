@@ -61,6 +61,76 @@ class Quiz extends Model
      * @param array $options  [['text' => ..., 'is_correct' => 0|1], ...]
      * @return int|false  ID de la pregunta creada, o false si algo falló.
      */
+    /**
+     * Reescribe una pregunta y sus opciones.
+     *
+     * Las opciones se reemplazan por completo, pero las respuestas ya dadas
+     * por los estudiantes apuntan a la opción elegida: al borrarlas se
+     * quedarían huérfanas. Por eso se reutilizan los ids existentes cuando
+     * hay los mismos o más, y sólo se borran los que sobren.
+     *
+     * @param array $opciones [['text' => string, 'is_correct' => 0|1], …]
+     */
+    public function updateQuestionWithOptions(int $questionId, array $datos, array $opciones): bool
+    {
+        if (!$opciones) {
+            return false;
+        }
+
+        $pdo = $this->db->getConnection();
+        $pdo->beginTransaction();
+
+        try {
+            $pdo->prepare(
+                'UPDATE lms_questions SET question = ?, points = ?, order_num = ? WHERE id = ?'
+            )->execute([
+                $datos['question'],
+                (int) ($datos['points'] ?? 1),
+                (int) ($datos['order_num'] ?? 0),
+                $questionId,
+            ]);
+
+            $existentes = $this->db->fetchAll(
+                'SELECT id FROM lms_question_options WHERE question_id = ? ORDER BY order_num, id',
+                [$questionId]
+            );
+            $ids = array_column($existentes, 'id');
+
+            $actualizar = $pdo->prepare(
+                'UPDATE lms_question_options SET option_text = ?, is_correct = ?, order_num = ? WHERE id = ?'
+            );
+            $insertar = $pdo->prepare(
+                'INSERT INTO lms_question_options (question_id, option_text, is_correct, order_num) VALUES (?, ?, ?, ?)'
+            );
+
+            foreach (array_values($opciones) as $i => $o) {
+                if (isset($ids[$i])) {
+                    $actualizar->execute([$o['text'], (int) $o['is_correct'], $i + 1, $ids[$i]]);
+                } else {
+                    $insertar->execute([$questionId, $o['text'], (int) $o['is_correct'], $i + 1]);
+                }
+            }
+
+            // Las que sobran: se borran junto a las respuestas que las citen
+            $sobran = array_slice($ids, count($opciones));
+            if ($sobran) {
+                $marcas = implode(',', array_fill(0, count($sobran), '?'));
+                $pdo->prepare("UPDATE lms_quiz_answers SET selected_option_id = NULL WHERE selected_option_id IN ({$marcas})")
+                    ->execute($sobran);
+                $pdo->prepare("DELETE FROM lms_question_options WHERE id IN ({$marcas})")->execute($sobran);
+            }
+
+            $pdo->commit();
+
+            return true;
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            error_log('Quiz::updateQuestionWithOptions: ' . $e->getMessage());
+
+            return false;
+        }
+    }
+
     public function createQuestionWithOptions(array $question, array $options)
     {
         $pdo = $this->db->getConnection();
