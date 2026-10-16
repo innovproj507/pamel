@@ -392,6 +392,26 @@ class AdminCourseController extends BaseController
             [(int)$id]
         );
 
+        // El progreso se calcula, no se lee de lms_enrollments.progress_percentage:
+        // esa columna existe pero nadie la escribe, así que esta pantalla
+        // enseñaba 0% a todo el mundo aunque el alumno tuviera el curso hecho.
+        // Se usa el mismo cálculo que Seguimiento para que no se contradigan.
+        $calculado = [];
+        foreach ((new \Plugins\Elearning\Models\Progress())
+                    ->matriculas(['course_id' => (int) $id], max(1, count($enrollments))) as $m) {
+            $calculado[(int) $m['matricula_id']] = $m;
+        }
+        foreach ($enrollments as &$e) {
+            $p = $calculado[(int) $e['id']] ?? null;
+            $e['progress_percentage'] = $p['progreso'] ?? 0;
+            $e['lecciones']           = $p['lecciones'] ?? 0;
+            $e['lecciones_hechas']    = $p['lecciones_hechas'] ?? 0;
+            $e['examenes']            = $p['examenes'] ?? 0;
+            $e['examenes_aprobados']  = $p['examenes_aprobados'] ?? 0;
+            $e['etapa']               = $p['etapa'] ?? '';
+        }
+        unset($e);
+
         $view = new View();
         $view->render('admin/views/lms/courses/students', [
             'title'       => 'Estudiantes: ' . $course['title'],

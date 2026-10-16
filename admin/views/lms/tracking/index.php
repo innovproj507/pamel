@@ -28,15 +28,24 @@ $estados = [
 <!-- Indicadores -->
 <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 mb-5">
     <?php
+    /*
+        La primera tarjeta cuenta MATRÍCULAS, no estudiantes: completados,
+        en curso y sin empezar son estados de una matrícula y tienen que
+        sumar con ella. Antes mostraba el número de estudiantes distintos
+        y la suma no cuadraba, porque hay alumnos matriculados en varios
+        cursos. El número de estudiantes va ahora debajo, como aclaración.
+    */
     $tarjetas = [
-        ['Estudiantes',       $resumen['estudiantes']  ?? 0, 'slate',   'fa-users',          null],
-        ['Completados',       $resumen['completados']  ?? 0, 'emerald', 'fa-circle-check',   'completado'],
-        ['En curso',          $resumen['en_curso']     ?? 0, 'blue',    'fa-spinner',        'en_curso'],
-        ['Sin empezar',       $resumen['sin_empezar']  ?? 0, 'amber',   'fa-hourglass-start','sin_empezar'],
-        ['Examen pendiente',  $resumen['con_pendiente_examen']  ?? 0, 'rose',   'fa-file-pen', null],
-        ['Progreso medio',    ($resumen['progreso_medio'] ?? 0) . '%', 'violet', 'fa-chart-line', null],
+        ['Matrículas',        $resumen['matriculas']   ?? 0, 'slate',   'fa-users',          null,
+            ($resumen['estudiantes'] ?? 0) . ' estudiantes'],
+        ['Completados',       $resumen['completados']  ?? 0, 'emerald', 'fa-circle-check',   'completado', null],
+        ['En curso',          $resumen['en_curso']     ?? 0, 'blue',    'fa-spinner',        'en_curso',   null],
+        ['Sin empezar',       $resumen['sin_empezar']  ?? 0, 'amber',   'fa-hourglass-start','sin_empezar',null],
+        ['Examen pendiente',  $resumen['con_pendiente_examen']  ?? 0, 'rose',   'fa-file-pen', null,
+            'matrículas con examen sin aprobar'],
+        ['Progreso medio',    ($resumen['progreso_medio'] ?? 0) . '%', 'violet', 'fa-chart-line', null, null],
     ];
-    foreach ($tarjetas as [$texto, $valor, $color, $icono, $filtroEstado]):
+    foreach ($tarjetas as [$texto, $valor, $color, $icono, $filtroEstado, $aclaracion]):
         $activo = $filtroEstado !== null && ($filtros['estado'] ?? '') === $filtroEstado;
         $url = '/manager/lms/seguimiento?' . http_build_query(array_filter([
             'curso'  => $filtros['course_id'] ?? null,
@@ -50,6 +59,9 @@ $estados = [
             <div class="min-w-0">
                 <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest truncate"><?= $texto ?></p>
                 <p class="text-xl font-black text-<?= $color ?>-600 mt-0.5"><?= $valor ?></p>
+                <?php if ($aclaracion): ?>
+                <p class="text-[10px] text-gray-400 truncate" title="<?= htmlspecialchars($aclaracion) ?>"><?= htmlspecialchars($aclaracion) ?></p>
+                <?php endif; ?>
             </div>
             <i class="fas <?= $icono ?> text-<?= $color ?>-300 text-sm mt-1"></i>
         </div>

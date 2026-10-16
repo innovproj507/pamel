@@ -25,6 +25,31 @@ class Progress extends Model
      */
     public function matriculas(array $filtros = [], int $limite = 500): array
     {
+        $filas = $this->filasCrudas($filtros, $limite);
+
+        foreach ($filas as &$f) {
+            $this->calcular($f);
+        }
+        unset($f);
+
+        // El estado se filtra después porque es calculado
+        if (!empty($filtros['estado'])) {
+            $filas = array_values(array_filter($filas, fn($f) => $f['estado'] === $filtros['estado']));
+        }
+
+        return $filas;
+    }
+
+    /**
+     * Las filas con sus recuentos, sin calcular estado ni etapa.
+     *
+     * Está aparte porque el resumen necesita recorrer TODAS las matrículas
+     * y no le hace falta la etapa, que cuesta una consulta por fila.
+     *
+     * @param int|null $limite null = sin tope.
+     */
+    private function filasCrudas(array $filtros, ?int $limite): array
+    {
         $where  = ['u.id IS NOT NULL'];
         $params = [];
 
@@ -77,22 +102,10 @@ class Progress extends Model
                 JOIN users u       ON u.id = e.student_id
                 JOIN lms_courses c ON c.id = e.course_id
                 WHERE " . implode(' AND ', $where) . "
-                ORDER BY u.name ASC, c.title ASC
-                LIMIT " . max(1, $limite);
+                ORDER BY u.name ASC, c.title ASC"
+                . ($limite !== null ? ' LIMIT ' . max(1, $limite) : '');
 
-        $filas = $this->db->fetchAll($sql, $params);
-
-        foreach ($filas as &$f) {
-            $this->calcular($f);
-        }
-        unset($f);
-
-        // El estado se filtra después porque es calculado
-        if (!empty($filtros['estado'])) {
-            $filas = array_values(array_filter($filas, fn($f) => $f['estado'] === $filtros['estado']));
-        }
-
-        return $filas;
+        return $this->db->fetchAll($sql, $params);
     }
 
     /**
@@ -104,10 +117,24 @@ class Progress extends Model
      */
     private function calcular(array &$f): void
     {
-        $lec   = (int) $f['lecciones'];
+        $this->evaluar($f);
+
+        // En qué va: la primera lección activa sin completar, o el examen
+        $f['etapa'] = $this->etapa((int) $f['student_id'], (int) $f['course_id'], $f);
+    }
+
+    /**
+     * Progreso, estado y pendientes de una fila.
+     *
+     * Aparte de calcular() para que el resumen aplique exactamente la
+     * misma regla que el listado sin pagar una consulta por fila.
+     */
+    private function evaluar(array &$f): void
+    {
+        $lec    = (int) $f['lecciones'];
         $hechas = (int) $f['lecciones_hechas'];
-        $ex    = (int) $f['examenes'];
-        $apro  = (int) $f['examenes_aprobados'];
+        $ex     = (int) $f['examenes'];
+        $apro   = (int) $f['examenes_aprobados'];
 
         $partes = $lec + $ex;
         $logro  = min($hechas, $lec) + min($apro, $ex);
@@ -116,18 +143,13 @@ class Progress extends Model
         $f['pendiente_lecciones'] = max(0, $lec - $hechas);
         $f['pendiente_examenes']  = max(0, $ex - $apro);
 
-        if ($partes === 0) {
-            $f['estado'] = 'sin_empezar';
-        } elseif ($logro === 0) {
+        if ($partes === 0 || $logro === 0) {
             $f['estado'] = 'sin_empezar';
         } elseif ($logro >= $partes) {
             $f['estado'] = 'completado';
         } else {
             $f['estado'] = 'en_curso';
         }
-
-        // En qué va: la primera lección activa sin completar, o el examen
-        $f['etapa'] = $this->etapa((int) $f['student_id'], (int) $f['course_id'], $f);
     }
 
     /** Descripción corta de en qué punto del curso está. */
@@ -152,10 +174,24 @@ class Progress extends Model
         return 'Sin empezar';
     }
 
-    /** Totales para los indicadores del panel. */
+    /**
+     * Totales para los indicadores del panel.
+     *
+     * Recorre todas las matrículas, sin el tope de filas del listado: con
+     * el tope, al pasar de 500 las tarjetas habrían empezado a quedarse
+     * cortas sin avisar de nada.
+     */
     public function resumen(array $filtros = []): array
     {
-        $filas = $this->matriculas($filtros);
+        $filas = $this->filasCrudas($filtros, null);
+        foreach ($filas as &$f) {
+            $this->evaluar($f);
+        }
+        unset($f);
+
+        if (!empty($filtros['estado'])) {
+            $filas = array_values(array_filter($filas, fn($f) => $f['estado'] === $filtros['estado']));
+        }
 
         $r = [
             'matriculas'   => count($filas),

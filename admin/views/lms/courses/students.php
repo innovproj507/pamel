@@ -66,6 +66,11 @@ $statusColor = ['active' => 'bg-blue-100 text-blue-700', 'completed' => 'bg-emer
                         </div>
                         <span class="text-xs font-bold text-gray-600 w-8 text-right"><?= (int)$pct ?>%</span>
                     </div>
+                    <!-- De qué sale ese porcentaje, para no tener que ir a Seguimiento -->
+                    <p class="mt-1 text-[11px] text-gray-400 truncate" title="<?= htmlspecialchars((string)($e['etapa'] ?? '')) ?>">
+                        <?= (int)($e['lecciones_hechas'] ?? 0) ?>/<?= (int)($e['lecciones'] ?? 0) ?> lecciones ·
+                        <?= (int)($e['examenes_aprobados'] ?? 0) ?>/<?= (int)($e['examenes'] ?? 0) ?> exámenes
+                    </p>
                 </td>
                 <td class="px-4 py-3 text-center">
                     <?php $st = $e['status']; ?>
