@@ -22,8 +22,15 @@ class AdminSatisfactionController
         // Require admin authentication
         \Core\Auth::getInstance()->requireCan('surveys.view', '/manager/login');
 
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $perPage = 20;
+        // Filas por pantalla elegidas por el usuario. Se valida contra la
+        // lista porque $perPage entra directo en el LIMIT.
+        $perPageOptions = [10, 20, 50, 100];
+        $perPage = (int) ($_GET['per_page'] ?? 20);
+        if (!in_array($perPage, $perPageOptions, true)) {
+            $perPage = 20;
+        }
+
+        $page = max(1, (int) ($_GET['page'] ?? 1));
         $offset = ($page - 1) * $perPage;
 
         // Filters
@@ -42,7 +49,11 @@ class AdminSatisfactionController
         }
 
         if ($ratingFilter) {
-            $where[] = "(staff_attention_rating = ? OR training_quality_rating = ? OR instructor_performance_rating = ?)";
+            // Las cuatro valoraciones, no tres: faltaba infraestructura y una
+            // encuesta marcada sólo ahí no aparecía al filtrar.
+            $where[] = "(staff_attention_rating = ? OR training_quality_rating = ?
+                         OR instructor_performance_rating = ? OR infrastructure_rating = ?)";
+            $params[] = $ratingFilter;
             $params[] = $ratingFilter;
             $params[] = $ratingFilter;
             $params[] = $ratingFilter;
@@ -84,6 +95,8 @@ class AdminSatisfactionController
             'total' => $total,
             'page' => $page,
             'totalPages' => $totalPages,
+            'perPage' => $perPage,
+            'perPageOptions' => $perPageOptions,
             'filters' => [
                 'course' => $courseFilter,
                 'rating' => $ratingFilter,
