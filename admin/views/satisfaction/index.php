@@ -37,7 +37,7 @@ function getRatingBadge($rating) {
     [$clase, $texto] = $estilos[$rating] ?? ['bg-gray-50 text-gray-500 border-gray-200', $rating ?: '—'];
 
     return sprintf(
-        '<span class="inline-block px-2 py-0.5 rounded-md border text-[11px] font-semibold %s" title="%s">%s</span>',
+        '<span class="inline-block px-1.5 py-0.5 rounded-md border text-[11px] font-semibold %s" title="%s">%s</span>',
         $clase,
         htmlspecialchars((string) $rating),
         htmlspecialchars((string) $texto)
@@ -153,18 +153,25 @@ $ultimo  = min($page * $perPage, $total);
                 columnas quedan fuera de la pantalla. El min-w en píxeles es
                 el suelo por debajo del cual aparece la barra horizontal.
             -->
-            <table class="w-full min-w-[920px] table-fixed divide-y divide-gray-200 text-[13px]">
+            <table class="w-full min-w-[700px] table-fixed divide-y divide-gray-200 text-[13px]">
                 <thead class="bg-gray-50">
-                    <!-- Anchos en porcentaje y sumando 100 exactos. -->
-                    <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <th class="px-3 py-2 w-[9%]">Fecha</th>
-                        <th class="px-3 py-2 w-[22%]">Estudiante</th>
-                        <th class="px-3 py-2 w-[27%]">Curso</th>
+                    <!--
+                        Anchos en porcentaje y sumando 100 exactos, para que la
+                        tabla siga al ancho de la ventana. Ojo con la columna de
+                        acciones: si el porcentaje da menos de lo que miden sus
+                        tres botones, table-fixed no los encoge, ensancha la
+                        tabla entera y el último icono se sale. Por eso los
+                        botones son de 24px y la celda apenas tiene relleno.
+                    -->
+                    <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-normal">
+                        <th class="px-2 py-2 w-[10%]">Fecha</th>
+                        <th class="px-3 py-2 w-[20%]">Estudiante</th>
+                        <th class="px-3 py-2 w-[23%]">Curso</th>
                         <th class="px-2 py-2 w-[9%] text-center">Personal</th>
                         <th class="px-2 py-2 w-[9%] text-center">Calidad</th>
-                        <th class="px-2 py-2 w-[9%] text-center">Instructor</th>
-                        <th class="px-2 py-2 w-[9%] text-center">Infraestr.</th>
-                        <th class="px-3 py-2 w-[6%] text-right">Acc.</th>
+                        <th class="px-2 py-2 w-[9%] text-center">Instruct.</th>
+                        <th class="px-2 py-2 w-[9%] text-center">Infraest.</th>
+                        <th class="px-1 py-2 w-[11%] text-center">Acc.</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
@@ -181,8 +188,10 @@ $ultimo  = min($page * $perPage, $total);
                             $curso  = (string) $survey['course_name'];
                         ?>
                             <tr class="hover:bg-gray-50 align-middle">
-                                <td class="px-3 py-2 whitespace-nowrap text-gray-500">
-                                    <?= date('d/m/Y', strtotime($survey['survey_date'])) ?>
+                                <?php $fecha = strtotime($survey['survey_date']); ?>
+                                <td class="px-2 py-2 whitespace-nowrap text-[12px] text-gray-500"
+                                    title="<?= date('d/m/Y', $fecha) ?>">
+                                    <?= date('d/m/y', $fecha) ?>
                                 </td>
                                 <td class="px-3 py-2">
                                     <div class="font-semibold text-gray-900 truncate" title="<?= htmlspecialchars($nombre) ?>">
@@ -211,20 +220,20 @@ $ultimo  = min($page * $perPage, $total);
                                 <td class="px-2 py-2 text-center">
                                     <?= getRatingBadge($survey['infrastructure_rating']) ?>
                                 </td>
-                                <td class="px-3 py-2 whitespace-nowrap text-right">
-                                    <div class="inline-flex items-center gap-0.5">
+                                <td class="px-0.5 py-2 whitespace-nowrap text-center">
+                                    <div class="inline-flex items-center">
                                         <a href="/manager/satisfaction-surveys/<?= $survey['id'] ?>"
-                                           class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition"
+                                           class="w-6 h-6 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition"
                                            title="Ver detalles">
                                             <i class="fas fa-eye text-xs"></i>
                                         </a>
                                         <a href="/manager/satisfaction-surveys/<?= $survey['id'] ?>/download-word"
-                                           class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                                           class="w-6 h-6 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition"
                                            title="Descargar Word">
                                             <i class="fas fa-file-word text-xs"></i>
                                         </a>
                                         <button onclick="deleteSurvey(<?= $survey['id'] ?>)"
-                                                class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                                                class="w-6 h-6 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition"
                                                 title="Eliminar">
                                             <i class="fas fa-trash text-xs"></i>
                                         </button>
