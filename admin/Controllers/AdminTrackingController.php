@@ -44,9 +44,17 @@ class AdminTrackingController extends Controller
         $paraResumen = $filtros;
         unset($paraResumen['estado']);
 
+        // Por defecto se entra por curso, que es como se mira esto: una
+        // lista de 216 matrículas ordenadas por nombre no dice nada. En
+        // cuanto hay curso, búsqueda o estado, se pasa al detalle de los
+        // estudiantes, que es lo que se ha pedido ver.
+        $porCurso = $filtros === [];
+
         (new View())->render('admin/views/lms/tracking/index', [
-            'title'   => 'Seguimiento de estudiantes',
-            'filas'   => $this->progreso->matriculas($filtros),
+            'title'    => 'Seguimiento de estudiantes',
+            'porCurso' => $porCurso,
+            'cursosResumen' => $porCurso ? $this->progreso->porCurso() : [],
+            'filas'   => $porCurso ? [] : $this->progreso->matriculas($filtros),
             'resumen' => $this->progreso->resumen($paraResumen),
             'cursos'  => $this->db->fetchAll(
                 "SELECT c.id, c.title FROM lms_courses c

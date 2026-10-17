@@ -217,6 +217,70 @@ class Progress extends Model
         return $r;
     }
 
+    /**
+     * Lo mismo que resumen(), pero una fila por curso.
+     *
+     * Se agrupa en PHP sobre las mismas filas que alimentan el listado,
+     * en vez de con un GROUP BY aparte, para que un curso y el detalle de
+     * sus estudiantes no puedan contar cosas distintas.
+     */
+    public function porCurso(array $filtros = []): array
+    {
+        $filas = $this->filasCrudas($filtros, null);
+        foreach ($filas as &$f) {
+            $this->evaluar($f);
+        }
+        unset($f);
+
+        $cursos = [];
+        foreach ($filas as $f) {
+            $id = (int) $f['course_id'];
+
+            if (!isset($cursos[$id])) {
+                $cursos[$id] = [
+                    'course_id'   => $id,
+                    'curso'       => $f['curso'],
+                    'lecciones'   => (int) $f['lecciones'],
+                    'examenes'    => (int) $f['examenes'],
+                    'matriculas'  => 0,
+                    'estudiantes' => [],
+                    'completados' => 0,
+                    'en_curso'    => 0,
+                    'sin_empezar' => 0,
+                    'con_pendiente_examen' => 0,
+                    'suma'        => 0,
+                ];
+            }
+
+            $c = &$cursos[$id];
+            $c['matriculas']++;
+            $c['estudiantes'][(int) $f['student_id']] = true;
+            $c[$f['estado'] === 'completado' ? 'completados'
+                : ($f['estado'] === 'en_curso' ? 'en_curso' : 'sin_empezar')]++;
+            if ((int) $f['pendiente_examenes'] > 0) {
+                $c['con_pendiente_examen']++;
+            }
+            $c['suma'] += (int) $f['progreso'];
+            unset($c);
+        }
+
+        foreach ($cursos as &$c) {
+            $c['estudiantes']     = count($c['estudiantes']);
+            $c['progreso_medio']  = $c['matriculas'] > 0 ? (int) round($c['suma'] / $c['matriculas']) : 0;
+            unset($c['suma']);
+        }
+        unset($c);
+
+        // Primero los que tienen gente sin terminar: es donde hay que mirar.
+        usort($cursos, function (array $a, array $b): int {
+            $pendientesA = $a['matriculas'] - $a['completados'];
+            $pendientesB = $b['matriculas'] - $b['completados'];
+            return $pendientesB <=> $pendientesA ?: strcasecmp($a['curso'], $b['curso']);
+        });
+
+        return $cursos;
+    }
+
     /** Exámenes realizados por un estudiante, con su calificación. */
     public function examenesDeEstudiante(int $studentId): array
     {

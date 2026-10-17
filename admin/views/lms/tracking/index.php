@@ -97,23 +97,124 @@ $estados = [
     <?php endif; ?>
 </form>
 
+<?php
+$porCurso      = $porCurso      ?? false;
+$cursosResumen = $cursosResumen ?? [];
+?>
+
+<?php if ($porCurso): ?>
+<!--
+    Entrada por curso. Una fila por curso con cuánta gente lleva dentro y
+    por dónde va; al pulsar se abre el detalle de sus estudiantes, que es
+    el mismo listado de siempre filtrado por ese curso.
+-->
+<div class="card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full min-w-[900px] table-fixed text-[13px]">
+            <thead class="bg-gray-50">
+                <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    <th class="px-3 py-2 w-[34%]">Curso</th>
+                    <th class="px-3 py-2 w-[18%]">Progreso medio</th>
+                    <th class="px-3 py-2 w-[10%] text-center">Matrículas</th>
+                    <th class="px-3 py-2 w-[10%] text-center">Completados</th>
+                    <th class="px-3 py-2 w-[10%] text-center">En curso</th>
+                    <th class="px-3 py-2 w-[10%] text-center">Sin empezar</th>
+                    <th class="px-3 py-2 w-[8%] text-center">Examen pend.</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <?php if (!$cursosResumen): ?>
+                <tr><td colspan="7" class="px-3 py-12 text-center text-gray-400">
+                    <i class="fas fa-book text-3xl mb-2 block text-gray-200"></i>
+                    Todavía no hay matrículas en ningún curso.
+                </td></tr>
+                <?php endif; ?>
+
+                <?php foreach ($cursosResumen as $c):
+                    $pct = (int) $c['progreso_medio'];
+                ?>
+                <tr class="hover:bg-gray-50 align-middle">
+                    <td class="px-3 py-2">
+                        <a href="/manager/lms/seguimiento?curso=<?= (int) $c['course_id'] ?>"
+                           class="font-semibold text-gray-900 hover:text-blue-600 block truncate"
+                           title="<?= htmlspecialchars($c['curso']) ?>">
+                            <?= htmlspecialchars($c['curso']) ?>
+                        </a>
+                        <span class="text-[11px] text-gray-400">
+                            <?= (int) $c['estudiantes'] ?> estudiante<?= (int) $c['estudiantes'] === 1 ? '' : 's' ?>
+                            · <?= (int) $c['lecciones'] ?> lección<?= (int) $c['lecciones'] === 1 ? '' : 'es' ?>
+                            · <?= (int) $c['examenes'] ?> examen<?= (int) $c['examenes'] === 1 ? '' : 'es' ?>
+                        </span>
+                    </td>
+                    <td class="px-3 py-2">
+                        <div class="flex items-center gap-2">
+                            <div class="flex-1 bg-gray-200 rounded-full h-1.5">
+                                <div class="h-1.5 rounded-full <?= $pct >= 100 ? 'bg-emerald-500' : 'bg-blue-500' ?>"
+                                     style="width:<?= max(0, min(100, $pct)) ?>%"></div>
+                            </div>
+                            <span class="text-xs font-bold text-gray-600 w-9 text-right"><?= $pct ?>%</span>
+                        </div>
+                    </td>
+                    <td class="px-3 py-2 text-center font-bold text-gray-700"><?= (int) $c['matriculas'] ?></td>
+                    <td class="px-3 py-2 text-center font-bold text-emerald-600"><?= (int) $c['completados'] ?></td>
+                    <td class="px-3 py-2 text-center font-bold text-blue-600"><?= (int) $c['en_curso'] ?></td>
+                    <td class="px-3 py-2 text-center font-bold text-amber-600"><?= (int) $c['sin_empezar'] ?></td>
+                    <td class="px-3 py-2 text-center font-bold <?= $c['con_pendiente_examen'] ? 'text-rose-600' : 'text-gray-300' ?>">
+                        <?= (int) $c['con_pendiente_examen'] ?>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+<?php else: ?>
+
+<?php
+/*
+    Detalle. La vuelta atrás, que si no el único camino es borrar la URL,
+    y el nombre del curso al lado: dentro de un curso la columna "Curso"
+    repite lo mismo en todas las filas, así que se retira y ese ancho se
+    reparte entre el estudiante y el "en qué va".
+*/
+$unCurso = (int) ($filtros['course_id'] ?? 0);
+$nombreCurso = '';
+if ($unCurso) {
+    foreach ($cursos as $c) {
+        if ((int) $c['id'] === $unCurso) { $nombreCurso = $c['title']; break; }
+    }
+}
+?>
+<div class="mb-3 flex flex-wrap items-center gap-2">
+    <a href="/manager/lms/seguimiento"
+       class="inline-flex items-center gap-2 text-[13px] font-semibold text-gray-500 hover:text-blue-600 transition">
+        <i class="fas fa-arrow-left text-xs"></i> Todos los cursos
+    </a>
+    <?php if ($nombreCurso): ?>
+    <span class="text-gray-300">/</span>
+    <span class="text-[13px] font-bold text-gray-800"><?= htmlspecialchars($nombreCurso) ?></span>
+    <?php endif; ?>
+</div>
+
 <!-- Listado -->
 <div class="card overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full min-w-[980px] table-fixed text-[13px]">
             <thead class="bg-gray-50">
                 <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                    <th class="px-3 py-2 w-[20%]">Estudiante</th>
+                    <th class="px-3 py-2 w-[<?= $unCurso ? 30 : 20 ?>%]">Estudiante</th>
+                    <?php if (!$unCurso): ?>
                     <th class="px-3 py-2 w-[24%]">Curso</th>
-                    <th class="px-3 py-2 w-[16%]">Progreso</th>
+                    <?php endif; ?>
+                    <th class="px-3 py-2 w-[<?= $unCurso ? 18 : 16 ?>%]">Progreso</th>
                     <th class="px-3 py-2 w-[10%] text-center">Lecciones</th>
                     <th class="px-3 py-2 w-[10%] text-center">Exámenes</th>
-                    <th class="px-3 py-2 w-[20%]">En qué va</th>
+                    <th class="px-3 py-2 w-[<?= $unCurso ? 32 : 20 ?>%]">En qué va</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
                 <?php if (!$filas): ?>
-                <tr><td colspan="6" class="px-3 py-12 text-center text-gray-400">
+                <tr><td colspan="<?= $unCurso ? 5 : 6 ?>" class="px-3 py-12 text-center text-gray-400">
                     <i class="fas fa-user-graduate text-3xl mb-2 block text-gray-200"></i>
                     No hay matrículas que coincidan.
                 </td></tr>
@@ -130,11 +231,16 @@ $estados = [
                             <?= htmlspecialchars($f['estudiante']) ?>
                         </a>
                         <span class="text-[11px] text-gray-400 block truncate"><?= htmlspecialchars($f['email']) ?></span>
+                        <?php if ($unCurso): /* sin columna de curso, el estado va aquí */ ?>
+                        <span class="text-[10px] font-black uppercase tracking-wider text-<?= $color ?>-600"><?= $etiqueta ?></span>
+                        <?php endif; ?>
                     </td>
+                    <?php if (!$unCurso): ?>
                     <td class="px-3 py-2">
                         <span class="block truncate text-gray-700" title="<?= htmlspecialchars($f['curso']) ?>"><?= htmlspecialchars($f['curso']) ?></span>
                         <span class="text-[10px] font-black uppercase tracking-wider text-<?= $color ?>-600"><?= $etiqueta ?></span>
                     </td>
+                    <?php endif; ?>
                     <td class="px-3 py-2">
                         <div class="flex items-center gap-2">
                             <div class="flex-1 bg-gray-100 rounded-full h-1.5 overflow-hidden">
@@ -163,3 +269,4 @@ $estados = [
         <?= count($filas) ?> matrícula<?= count($filas) === 1 ? '' : 's' ?>
     </div>
 </div>
+<?php endif; ?>
