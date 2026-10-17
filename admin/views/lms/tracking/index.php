@@ -16,12 +16,20 @@ $estados = [
     'en_curso'    => ['En curso',    'blue'],
     'sin_empezar' => ['Sin empezar', 'slate'],
 ];
+
+// El título dice qué se está mirando: la pantalla de entrada es por
+// curso y, al abrir uno, pasa a ser por estudiante.
+$esPorCurso = $porCurso ?? false;
 ?>
 
 <div class="mb-5">
-    <h1 class="text-2xl font-bold text-gray-800">Seguimiento de estudiantes</h1>
+    <h1 class="text-2xl font-bold text-gray-800">
+        <?= $esPorCurso ? 'Seguimiento por curso' : 'Seguimiento por estudiante' ?>
+    </h1>
     <p class="text-sm text-gray-500">
-        Avance real de cada matrícula, calculado desde las lecciones completadas y los exámenes aprobados.
+        <?= $esPorCurso
+            ? 'Cómo va cada curso. Pulsa uno para ver el avance de sus estudiantes.'
+            : 'Avance real de cada matrícula, calculado desde las lecciones completadas y los exámenes aprobados.' ?>
     </p>
 </div>
 

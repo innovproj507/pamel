@@ -51,7 +51,9 @@ class AdminTrackingController extends Controller
         $porCurso = $filtros === [];
 
         (new View())->render('admin/views/lms/tracking/index', [
-            'title'    => 'Seguimiento de estudiantes',
+            // La cabecera del panel y la pestaña del navegador también
+            // deben decir en cuál de las dos pantallas se está.
+            'title'    => $porCurso ? 'Seguimiento por curso' : 'Seguimiento por estudiante',
             'porCurso' => $porCurso,
             'cursosResumen' => $porCurso ? $this->progreso->porCurso() : [],
             'filas'   => $porCurso ? [] : $this->progreso->matriculas($filtros),
