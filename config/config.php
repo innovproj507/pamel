@@ -48,6 +48,12 @@ return [
         'elearning',
     ],
 
+    'lms' => [
+        // Intentos que se le permiten a un estudiante en cada quiz o examen.
+        // Al agotarlos deja de poder abrirlo. 0 = sin tope.
+        'max_quiz_attempts' => (int) ($_ENV['LMS_MAX_QUIZ_ATTEMPTS'] ?? 3),
+    ],
+
     'app' => [
         'secret'   => $_ENV['APP_SECRET']    ?? 'pamel-api-secret-change-me-in-production',
         'sync_key' => $_ENV['APP_SYNC_KEY']  ?? 'PAMEL_SECRET_SYNC_2025',

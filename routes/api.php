@@ -58,6 +58,7 @@ return function ($router) {
     $router->post('/api/v1/quizzes',                                    'Plugins\Elearning\Controllers\QuizzesApiController@store',            'api.v1.quizzes.store');
     $router->get('/api/v1/quizzes/:id/questions',                       'Plugins\Elearning\Controllers\QuizzesApiController@showWithQuestions', 'api.v1.quizzes.questions');
     $router->get('/api/v1/quizzes/:id/attempts/best',                   'Plugins\Elearning\Controllers\QuizzesApiController@bestAttempt',       'api.v1.quizzes.attempts.best');
+    $router->get('/api/v1/quizzes/:id/attempts/state',                  'Plugins\Elearning\Controllers\QuizzesApiController@attemptsState',     'api.v1.quizzes.attempts.state');
     $router->get('/api/v1/quizzes/:id',                                 'Plugins\Elearning\Controllers\QuizzesApiController@show',              'api.v1.quizzes.show');
     $router->post('/api/v1/quizzes/:id/update',                         'Plugins\Elearning\Controllers\QuizzesApiController@update',            'api.v1.quizzes.update');
     $router->post('/api/v1/quizzes/:id/delete',                         'Plugins\Elearning\Controllers\QuizzesApiController@destroy',           'api.v1.quizzes.delete');

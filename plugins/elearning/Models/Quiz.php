@@ -294,6 +294,57 @@ class Quiz extends Model
     }
 
     /**
+     * Si un estudiante puede presentarse a un quiz, y por qué no.
+     *
+     * Sólo cuentan los intentos terminados: startAttempt() crea la fila
+     * antes de calificar, así que una calificación que se quede a medias
+     * dejaría una fila sin completar que no debe gastarle el intento.
+     *
+     * El tope sale de la configuración ('lms.max_quiz_attempts'); 0 lo
+     * desactiva. Aprobar cierra el examen aunque queden intentos.
+     *
+     * @return array{realizados:int,limite:int,restantes:?int,aprobado:bool,
+     *               bloqueado:bool,motivo:?string,mensaje:?string}
+     */
+    public function estadoIntentos(int $studentId, int $quizId): array
+    {
+        $limite = (int) \Core\Config::get('lms.max_quiz_attempts', 3);
+
+        $fila = $this->db->fetchOne(
+            'SELECT COUNT(*) AS realizados, COALESCE(MAX(passed), 0) AS aprobado
+               FROM lms_quiz_attempts
+              WHERE student_id = ? AND quiz_id = ? AND completed_at IS NOT NULL',
+            [$studentId, $quizId]
+        );
+
+        $realizados = (int) ($fila['realizados'] ?? 0);
+        $aprobado   = (int) ($fila['aprobado'] ?? 0) === 1;
+
+        $motivo = null;
+        $mensaje = null;
+        if ($aprobado) {
+            $motivo  = 'aprobado';
+            $mensaje = 'Ya aprobaste esta evaluación; no admite nuevos intentos.';
+        } elseif ($limite > 0 && $realizados >= $limite) {
+            $motivo  = 'sin_intentos';
+            $mensaje = sprintf(
+                'Has agotado los %d intentos permitidos para esta evaluación.',
+                $limite
+            );
+        }
+
+        return [
+            'realizados' => $realizados,
+            'limite'     => $limite,
+            'restantes'  => $limite > 0 ? max(0, $limite - $realizados) : null,
+            'aprobado'   => $aprobado,
+            'bloqueado'  => $motivo !== null,
+            'motivo'     => $motivo,
+            'mensaje'    => $mensaje,
+        ];
+    }
+
+    /**
      * Grade an attempt based on student answers.
      */
     /**

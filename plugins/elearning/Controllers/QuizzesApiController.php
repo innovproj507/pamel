@@ -153,6 +153,17 @@ class QuizzesApiController extends Controller
             $this->apiResponse(['status' => 'error', 'message' => 'Quiz no encontrado'], 404);
         }
 
+        // El tope de intentos se decide aquí, no en el portal: el portal es
+        // un cliente más de esta API y cualquiera podría llamarla directamente.
+        $estado = $this->quizModel->estadoIntentos($userId, (int) $id);
+        if ($estado['bloqueado']) {
+            $this->apiResponse([
+                'status'  => 'error',
+                'message' => $estado['mensaje'],
+                'data'    => $estado,
+            ], 403);
+        }
+
         $attemptId = $this->quizModel->startAttempt($userId, (int) $id);
         if (!$attemptId) {
             $this->apiResponse(['status' => 'error', 'message' => 'Error al iniciar intento'], 500);
@@ -174,6 +185,23 @@ class QuizzesApiController extends Controller
 
         $attempt = $this->quizModel->getBestAttempt($userId, (int) $id);
         $this->apiResponse(['status' => 'success', 'data' => $attempt ?: null]);
+    }
+
+    /**
+     * GET /api/v1/quizzes/{id}/attempts/state
+     * Intentos gastados, los que quedan y si el examen está cerrado.
+     */
+    public function attemptsState($id)
+    {
+        $userId = ApiToken::fromRequest();
+        if ($userId === false) {
+            $this->apiResponse(['status' => 'error', 'message' => 'Autenticación requerida'], 401);
+        }
+
+        $this->apiResponse([
+            'status' => 'success',
+            'data'   => $this->quizModel->estadoIntentos($userId, (int) $id),
+        ]);
     }
 
     /**

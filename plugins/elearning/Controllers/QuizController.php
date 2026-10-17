@@ -66,6 +66,18 @@ class QuizController extends BaseController
 
         $bestAttempt = $this->quizModel->getBestAttempt($this->user['id'], $quiz['id']);
 
+        // Examen cerrado: aprobado, o sin intentos. Se manda al resultado
+        // en vez de pintar el formulario, que aquí no sabe bloquearse.
+        if (!$isManager) {
+            $estado = $this->quizModel->estadoIntentos((int) $this->user['id'], (int) $quiz['id']);
+            if ($estado['bloqueado']) {
+                $this->flash('error', $estado['mensaje']);
+                $this->redirect($bestAttempt
+                    ? "/courses/{$courseId}/quizzes/{$quiz['id']}/results?attempt=" . (int) $bestAttempt['id']
+                    : '/courses/' . $course['slug']);
+            }
+        }
+
         $view->render('plugins/elearning/Views/quizzes/show', [
             'title'       => $quiz['title'],
             'course'      => $course,
@@ -87,7 +99,21 @@ class QuizController extends BaseController
         }
 
         $course = $this->courseModel->find($courseId);
-        
+
+        // Se vuelve a comprobar al enviar, no sólo al pintar la pantalla:
+        // sin esto bastaría con mandar el formulario a mano para colarse
+        // un cuarto intento.
+        if (!in_array($this->user['role'], ['teacher', 'admin'], true)) {
+            $estado = $this->quizModel->estadoIntentos((int) $this->user['id'], (int) $id);
+            if ($estado['bloqueado']) {
+                $mejor = $this->quizModel->getBestAttempt($this->user['id'], $id);
+                $this->flash('error', $estado['mensaje']);
+                $this->redirect($mejor
+                    ? "/courses/{$courseId}/quizzes/{$id}/results?attempt=" . (int) $mejor['id']
+                    : "/courses/{$courseId}");
+            }
+        }
+
         // Start attempt
         $attemptId = $this->quizModel->startAttempt($this->user['id'], $id);
 
