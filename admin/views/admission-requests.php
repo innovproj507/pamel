@@ -249,7 +249,8 @@ $perPageOptions = $perPageOptions ?? [5, 10, 15, 25, 50];
                                            title="Download Word">
                                             <i class="fas fa-file-word text-xs"></i>
                                         </a>
-                                        <button onclick="toggleDropdown(event, 'dd-<?php echo $request['id']; ?>')"
+                                        <?php /* El id va como número: se manda tal cual al servidor */ ?>
+                                        <button onclick="toggleDropdown(event, <?php echo (int) $request['id']; ?>)"
                                                 class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition"
                                                 title="Change status">
                                             <i class="fas fa-pen-to-square text-xs"></i>
@@ -444,10 +445,34 @@ function toggleDropdown(e, id) {
     if (same) { _ddId = null; return; }
 
     _ddId = id;
-    // Position below the button
-    _dd.style.top  = (rect.bottom + window.scrollY + 4) + 'px';
-    _dd.style.left = (rect.left   + window.scrollX - 60) + 'px';
+
+    /*
+        El menú es position:fixed, así que sus coordenadas son las del
+        viewport y getBoundingClientRect() ya las da en ese sistema.
+        Sumarle el scroll lo mandaba justo esa distancia más abajo: con la
+        página arriba del todo parecía correcto, y en cuanto se bajaba
+        aparecía lejos de su fila.
+
+        Se muestra antes de medir porque un elemento oculto no tiene alto,
+        y se ajusta para que no se salga por abajo ni por los lados.
+    */
     _dd.classList.remove('hidden');
+
+    const margen = 8;
+    const ancho  = _dd.offsetWidth;
+    const alto   = _dd.offsetHeight;
+
+    let top = rect.bottom + 4;
+    if (top + alto > window.innerHeight - margen) {
+        top = rect.top - alto - 4;               // no cabe debajo: se abre hacia arriba
+    }
+    top = Math.max(margen, Math.min(top, window.innerHeight - alto - margen));
+
+    let left = rect.right - ancho;               // alineado con el botón por la derecha
+    left = Math.max(margen, Math.min(left, window.innerWidth - ancho - margen));
+
+    _dd.style.top  = top + 'px';
+    _dd.style.left = left + 'px';
 
     // Wire click handlers
     _dd.querySelectorAll('button[data-s]').forEach(b => {
