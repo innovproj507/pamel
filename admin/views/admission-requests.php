@@ -171,13 +171,19 @@ $perPageOptions = $perPageOptions ?? [5, 10, 15, 25, 50];
                         columnas fuera de la pantalla.
                     -->
                     <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                        <!--
+                            Acciones pasó de tres botones a cuatro al añadir
+                            el de eliminar: con el 10% anterior no caben y,
+                            como table-fixed no encoge lo que no cabe, se
+                            ensancharía la tabla entera.
+                        -->
                         <th class="px-3 py-2 w-[5%]">ID</th>
-                        <th class="px-3 py-2 w-[16%]">Name</th>
-                        <th class="px-3 py-2 w-[19%]">Email</th>
-                        <th class="px-3 py-2 w-[34%]">Course</th>
+                        <th class="px-3 py-2 w-[15%]">Name</th>
+                        <th class="px-3 py-2 w-[18%]">Email</th>
+                        <th class="px-3 py-2 w-[32%]">Course</th>
                         <th class="px-2 py-2 w-[5%] text-center">St.</th>
                         <th class="px-3 py-2 w-[11%]">Date</th>
-                        <th class="px-3 py-2 w-[10%] text-right">Actions</th>
+                        <th class="px-2 py-2 w-[14%] text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-100">
@@ -248,6 +254,25 @@ $perPageOptions = $perPageOptions ?? [5, 10, 15, 25, 50];
                                                 title="Change status">
                                             <i class="fas fa-pen-to-square text-xs"></i>
                                         </button>
+                                        <?php
+                                        // Eliminar no tiene vuelta atrás y se lleva los adjuntos por
+                                        // delante, así que la confirmación lo dice con todas las letras.
+                                        $_nombre = trim($request['given_name'] . ' ' . $request['surname']);
+                                        $_aviso  = "¿Eliminar la solicitud #{$request['id']} de {$_nombre}?\n\n"
+                                                 . "Se borrarán también los archivos que haya subido.\n"
+                                                 . "Esta acción no se puede deshacer.";
+                                        ?>
+                                        <form method="POST" action="/manager/admission-requests/delete" class="inline"
+                                              onsubmit="return confirm(<?php echo htmlspecialchars(json_encode($_aviso), ENT_QUOTES, 'UTF-8'); ?>);">
+                                            <?php echo \Core\Security::getCsrfField(); ?>
+                                            <input type="hidden" name="id" value="<?php echo (int) $request['id']; ?>">
+                                            <input type="hidden" name="volver_a" value="<?php echo htmlspecialchars('/manager/admission-requests?' . ($_SERVER['QUERY_STRING'] ?? '')); ?>">
+                                            <button type="submit"
+                                                    class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition"
+                                                    title="Delete request">
+                                                <i class="fas fa-trash text-xs"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

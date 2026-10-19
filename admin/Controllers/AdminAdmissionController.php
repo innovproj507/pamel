@@ -183,4 +183,73 @@ class AdminAdmissionController extends Controller
             ]);
         }
     }
+
+    /**
+     * Elimina una solicitud de admisión junto con sus adjuntos.
+     *
+     * No tiene vuelta atrás, así que exige POST con CSRF y el permiso de
+     * gestión; la confirmación la pide el listado antes de enviar.
+     */
+    public function delete()
+    {
+        \Core\Auth::getInstance()->requireCan('admissions.manage', '/manager/login');
+
+        $volver = '/manager/admission-requests';
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            $this->redirigir($volver, 'error', 'Método no permitido.');
+        }
+
+        if (!isset($_POST['csrf_token']) || !\Core\Security::validateCsrfToken($_POST['csrf_token'])) {
+            $this->redirigir($volver, 'error', 'Token de seguridad inválido.');
+        }
+
+        // Se conservan los filtros de la pantalla desde la que se borró.
+        if (!empty($_POST['volver_a']) && str_starts_with((string) $_POST['volver_a'], '/manager/admission-requests')) {
+            $volver = (string) $_POST['volver_a'];
+        }
+
+        $id = (int) ($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            $this->redirigir($volver, 'error', 'Solicitud no válida.');
+        }
+
+        $solicitud = $this->admissionRequest->getById($id);
+        if (!$solicitud) {
+            $this->redirigir($volver, 'error', 'La solicitud no existe o ya fue eliminada.');
+        }
+
+        $nombre = trim(($solicitud['given_name'] ?? '') . ' ' . ($solicitud['surname'] ?? ''));
+        $r = $this->admissionRequest->deleteWithFiles($id);
+
+        if (!$r['borrada']) {
+            $this->redirigir($volver, 'error', 'No se pudo eliminar la solicitud. Revisa el log de errores de PHP.');
+        }
+
+        $mensaje = sprintf('Solicitud #%d de %s eliminada', $id, $nombre ?: 'sin nombre');
+        $mensaje .= $r['archivos'] > 0
+            ? sprintf(', junto con %d archivo(s) adjunto(s).', $r['archivos'])
+            : '.';
+        if ($r['no_borrados']) {
+            $mensaje .= sprintf(' No se pudieron borrar del disco %d archivo(s).', count($r['no_borrados']));
+        }
+
+        $this->redirigir($volver, 'success', $mensaje);
+    }
+
+    /**
+     * Guarda el aviso en sesión y sale.
+     *
+     * La clave es $_SESSION['flash'][tipo], que es la que lee el layout
+     * del panel; con $_SESSION['success'] el mensaje no se vería.
+     */
+    private function redirigir(string $url, string $tipo, string $mensaje): void
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+        $_SESSION['flash'][$tipo] = $mensaje;
+        header('Location: ' . $url);
+        exit;
+    }
 }
