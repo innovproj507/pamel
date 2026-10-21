@@ -13,6 +13,23 @@ class Product extends Model
         return $this->db->fetchAll("SELECT * FROM {$this->table} WHERE status = 'active' ORDER BY created_at DESC");
     }
 
+    /**
+     * Cursos activos de una sucursal, por su slug ('panama', 'india').
+     *
+     * Se filtra por el slug y no por branch_id a secas para que el número
+     * de la sucursal no acabe repartido por el código.
+     */
+    public function getActiveByBranchSlug(string $slug): array
+    {
+        return $this->db->fetchAll(
+            "SELECT p.* FROM {$this->table} p
+               JOIN branches b ON b.id = p.branch_id
+              WHERE p.status = 'active' AND b.slug = ?
+              ORDER BY p.created_at DESC",
+            [$slug]
+        );
+    }
+
     public function findBySlug($slug)
     {
         return $this->db->fetchOne("SELECT * FROM {$this->table} WHERE slug = ?", [$slug]);

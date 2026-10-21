@@ -100,9 +100,10 @@ return function($router) {
     }, 'admission');
 
     $router->get('/formulario-de-admision', function() {
-        // Fetch active courses (products)
+        // Sólo los cursos de Panamá: este formulario es el de admisión de
+        // PAMEL y los de la sucursal de India no se piden por aquí.
         $productModel = new \Plugins\Ecommerce\Models\Product();
-        $courses = $productModel->getActive();
+        $courses = $productModel->getActiveByBranchSlug('panama');
         
         // Requisitos por curso y modo, para mostrarlos al elegir el curso
         $requirementModel = new \Core\Models\CourseRequirement();
