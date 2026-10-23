@@ -544,7 +544,7 @@ return [
         'privacy' => 'Política de Privacidad',
         'cookies' => 'Política de Cookies',
         'terms' => 'Términos y Condiciones',
-        'approval' => 'Centro de formación marítima aprobado por la Autoridad Marítima de Panamá mediante la Resolución No. DGGM-CFM-016-2026 del 25 de mayo de 2026.'
+        'approval' => 'Centro de formación marítima aprobado por la Autoridad Marítima de Panamá mediante la Resolución No. DGGM-CFM-029-2026 del 12 de octubre de 2026.'
     ],
     'shop' => [
         'title' => 'Cursos',
