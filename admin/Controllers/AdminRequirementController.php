@@ -300,7 +300,8 @@ class AdminRequirementController extends Controller
         }
     }
 
-    private function flash(string $tipo, string $mensaje): void
+    /** Protegido, no privado: ahora lo declara también Core\Controller. */
+    protected function flash(string $tipo, string $mensaje): void
     {
         $_SESSION['flash'][$tipo] = $mensaje;
     }
