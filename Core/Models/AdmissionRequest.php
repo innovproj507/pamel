@@ -240,6 +240,39 @@ class AdmissionRequest extends Model
         return $result['count'] ?? 0;
     }
 
+    /**
+     * Actualiza los datos del solicitante y la fecha de la solicitud.
+     *
+     * No toca el estado ni las notas: eso va por updateStatus, que es lo que
+     * usa la pastilla del listado. Sólo se escriben las columnas recibidas,
+     * para que añadir un campo al formulario no obligue a tocar esto.
+     *
+     * Devuelve si la consulta salió adelante. Ojo: Database::update() no
+     * devuelve un bool sino el PDOStatement (o false si falló), aunque la
+     * documentación del proyecto diga otra cosa; por eso se normaliza aquí
+     * en vez de declarar `: bool` y provocar un TypeError con el UPDATE ya
+     * ejecutado.
+     *
+     * @param array<string,mixed> $data
+     */
+    public function updateDetails(int $id, array $data): bool
+    {
+        $permitidas = [
+            'given_name', 'surname', 'passport_id', 'nationality',
+            'date_of_birth', 'country_of_birth', 'education_level',
+            'email', 'phone', 'address', 'capacity', 'created_at',
+        ];
+
+        $campos = array_intersect_key($data, array_flip($permitidas));
+        if (!$campos) {
+            return false;
+        }
+
+        $campos['updated_at'] = date('Y-m-d H:i:s');
+
+        return (bool) $this->db->update($this->table, $campos, 'id = :id', ['id' => $id]);
+    }
+
     public function updateStatus($id, $status, $notes = null)
     {
         return $this->db->update(

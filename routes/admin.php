@@ -57,6 +57,8 @@ return function($router) {
     // Admission Requests
     $router->get('/manager/admission-requests', 'Admin\Controllers\AdminAdmissionController@index', 'admin.admission.requests');
     $router->get('/manager/admission-requests/:id', 'Admin\Controllers\AdminAdmissionController@show', 'admin.admission.show');
+    $router->get('/manager/admission-requests/:id/edit', 'Admin\Controllers\AdminAdmissionController@edit', 'admin.admission.edit');
+    $router->post('/manager/admission-requests/:id/update', 'Admin\Controllers\AdminAdmissionController@update', 'admin.admission.update');
     $router->get('/manager/admission-requests/:id/download-word', 'Admin\Controllers\AdminAdmissionController@downloadWord', 'admin.admission.download.word');
     $router->post('/manager/admission-requests/update-status', 'Admin\Controllers\AdminAdmissionController@updateStatus', 'admin.admission.update.status');
     $router->post('/manager/admission-requests/delete', 'Admin\Controllers\AdminAdmissionController@delete', 'admin.admission.delete');

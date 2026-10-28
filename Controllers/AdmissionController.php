@@ -28,8 +28,11 @@ class AdmissionController
      * Niveles educativos admitidos. Se guarda la etiqueta en español porque
      * es la que se imprime en el formulario oficial F-41, con independencia
      * del idioma en que el solicitante rellene la página.
+     *
+     * Pública porque el panel edita el mismo campo y tiene que ofrecer y
+     * aceptar exactamente esta lista.
      */
-    private const NIVELES_EDUCATIVOS = [
+    public const NIVELES_EDUCATIVOS = [
         'Primaria',
         'Secundaria',
         'Técnico / Vocacional',

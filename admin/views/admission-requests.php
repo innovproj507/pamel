@@ -197,10 +197,17 @@ $ultimo  = min($currentPage * $perPage, $totalCount);
                         </div>
                     </td>
 
+                    <!--
+                        La pastilla es el propio selector de estado: es donde
+                        la mira quien revisa, así que es donde se cambia.
+                    -->
                     <td>
-                        <span class="pastilla <?= $clasePastilla ?>">
+                        <button type="button" class="pastilla <?= $clasePastilla ?> pastilla-boton"
+                                onclick="toggleDropdown(event, <?= (int) $request['id'] ?>)"
+                                title="Cambiar el estado">
                             <i data-lucide="<?= $icono ?>" class="ic" style="width:11px;height:11px"></i><?= $etiqueta ?>
-                        </span>
+                            <i data-lucide="chevron-down" class="ic" style="width:10px;height:10px;opacity:.55"></i>
+                        </button>
                     </td>
 
                     <td class="text-slate-400 text-[11.5px] whitespace-nowrap">
@@ -217,11 +224,10 @@ $ultimo  = min($currentPage * $perPage, $totalCount);
                                class="ib ib-verde" title="Descargar Word">
                                 <i data-lucide="file-text" class="ic ic-14"></i>
                             </a>
-                            <?php /* El id va como número: se manda tal cual al servidor */ ?>
-                            <button onclick="toggleDropdown(event, <?= (int) $request['id'] ?>)" class="ib ib-ambar"
-                                    title="Cambiar el estado">
+                            <a href="/manager/admission-requests/<?= (int) $request['id'] ?>/edit"
+                               class="ib ib-ambar" title="Editar los datos del solicitante y la fecha">
                                 <i data-lucide="square-pen" class="ic ic-14"></i>
-                            </button>
+                            </a>
                             <form method="POST" action="/manager/admission-requests/delete"
                                   onsubmit="return confirm(<?= htmlspecialchars(json_encode($_aviso), ENT_QUOTES, 'UTF-8') ?>);">
                                 <?= \Core\Security::getCsrfField() ?>

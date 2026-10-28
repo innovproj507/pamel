@@ -100,6 +100,101 @@ class AdminAdmissionController extends Controller
         ], 'admin/views/layout');
     }
 
+    /** Formulario para corregir los datos del solicitante y la fecha. */
+    public function edit($id)
+    {
+        \Core\Auth::getInstance()->requireCan('admissions.manage', '/manager/login');
+
+        $request = $this->admissionRequest->getById($id);
+        if (!$request) {
+            header('Location: /manager/admission-requests');
+            exit;
+        }
+
+        $this->view->render('admin/views/admission/edit', [
+            'title'          => 'Editar solicitud #' . $id,
+            'request'        => $request,
+            'requestCourses' => $this->admissionRequest->getCourses((int) $id),
+            'nivelesEducativos' => \Controllers\AdmissionController::NIVELES_EDUCATIVOS,
+        ], 'admin/views/layout');
+    }
+
+    /** Guarda el formulario de edición. */
+    public function update($id)
+    {
+        \Core\Auth::getInstance()->requireCan('admissions.manage', '/manager/login');
+
+        $id = (int) $id;
+        $request = $this->admissionRequest->getById($id);
+        if (!$request) {
+            header('Location: /manager/admission-requests');
+            exit;
+        }
+
+        if (!\Core\Security::validateCsrfToken($_POST['csrf_token'] ?? '')) {
+            $this->volverAEditar($id, 'Token de seguridad inválido. Vuelve a intentarlo.');
+        }
+
+        $limpiar = static fn($v) => htmlspecialchars(trim((string) $v), ENT_QUOTES, 'UTF-8');
+
+        $nombre   = trim((string) ($_POST['given_name'] ?? ''));
+        $apellido = trim((string) ($_POST['surname'] ?? ''));
+        $correo   = trim((string) ($_POST['email'] ?? ''));
+
+        if ($nombre === '') {
+            $this->volverAEditar($id, 'El nombre no puede quedar vacío.');
+        }
+        if ($correo === '' || !filter_var($correo, FILTER_VALIDATE_EMAIL)) {
+            $this->volverAEditar($id, 'El correo electrónico no es válido.');
+        }
+
+        // La fecha llega de un datetime-local ("2026-10-13T10:52"). Se
+        // convierte al formato de la base y, si viniera cualquier otra cosa,
+        // se deja la que ya estaba en vez de escribir una fecha inventada.
+        $creada = $request['created_at'];
+        $fecha  = trim((string) ($_POST['created_at'] ?? ''));
+        if ($fecha !== '') {
+            $dt = \DateTime::createFromFormat('Y-m-d\TH:i', $fecha)
+               ?: \DateTime::createFromFormat('Y-m-d\TH:i:s', $fecha);
+            if (!$dt) {
+                $this->volverAEditar($id, 'La fecha de la solicitud no es válida.');
+            }
+            $creada = $dt->format('Y-m-d H:i:s');
+        }
+
+        $nivel = (string) ($_POST['education_level'] ?? '');
+        if ($nivel !== '' && !in_array($nivel, \Controllers\AdmissionController::NIVELES_EDUCATIVOS, true)) {
+            $nivel = '';
+        }
+
+        $this->admissionRequest->updateDetails($id, [
+            'given_name'       => $limpiar($nombre),
+            'surname'          => $limpiar($apellido),
+            'passport_id'      => $limpiar($_POST['passport_id'] ?? ''),
+            'nationality'      => $limpiar($_POST['nationality'] ?? ''),
+            'date_of_birth'    => $limpiar($_POST['date_of_birth'] ?? ''),
+            'country_of_birth' => $limpiar($_POST['country_of_birth'] ?? ''),
+            'education_level'  => $nivel,
+            'email'            => filter_var($correo, FILTER_SANITIZE_EMAIL),
+            'phone'            => $limpiar($_POST['phone'] ?? ''),
+            'address'          => $limpiar($_POST['address'] ?? ''),
+            'capacity'         => $limpiar($_POST['capacity'] ?? ''),
+            'created_at'       => $creada,
+        ]);
+
+        $this->redirigir(
+            '/manager/admission-requests/' . $id,
+            'success',
+            'Solicitud #' . $id . ' actualizada.'
+        );
+    }
+
+    /** Vuelve al formulario con el motivo del rechazo y corta la petición. */
+    private function volverAEditar(int $id, string $error): void
+    {
+        $this->redirigir('/manager/admission-requests/' . $id . '/edit', 'error', $error);
+    }
+
     public function downloadWord($id)
     {
         $auth = Auth::getInstance();

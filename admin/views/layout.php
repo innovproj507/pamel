@@ -334,6 +334,11 @@ foreach ([
             padding: 3px 9px; border-radius: 7px;
             font-size: 10.5px; font-weight: 700; white-space: nowrap;
         }
+        /* Pastilla que además es un botón: se nota que se puede pulsar. */
+        .pastilla-boton { cursor: pointer; border: 1px solid transparent;
+                          transition: filter .12s, border-color .12s; }
+        .pastilla-boton:hover { filter: brightness(.95); border-color: currentColor; }
+
         /* Puntito del mismo color que el texto, como en las pastillas de estado. */
         .pastilla .punto { width: 5px; height: 5px; border-radius: 50%;
                            background: currentColor; opacity: .75; flex-shrink: 0; }
