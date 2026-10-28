@@ -302,6 +302,9 @@ class CourseRequirement extends Model
                 'id'      => (int) $f['id'],
                 'label'   => $f['label'],
                 'adjunto' => (int) $f['requires_file'] === 1,
+                // Con varios cursos elegidos, el formulario agrupa por esto
+                // para no pedir dos veces el mismo documento.
+                'grupo'   => self::grupoRequisito((string) $f['label']),
             ];
         }
 
@@ -331,6 +334,105 @@ class CourseRequirement extends Model
             }
         }
         return $out;
+    }
+
+    /**
+     * Clave con la que se decide que dos requisitos son el mismo.
+     *
+     * Se compara el texto, no el id: cada curso tiene su propia fila aunque
+     * la etiqueta sea idéntica. «ID / PASSPORT» está repetido en 64 cursos,
+     * así que sin esto un alumno con cuatro cursos subiría su pasaporte
+     * cuatro veces.
+     *
+     * Se normaliza a minúsculas, con los espacios colapsados y sin signos
+     * de puntuación al final, que es donde están casi todas las diferencias
+     * de tecleo entre un curso y otro.
+     */
+    public static function claveRequisito(string $label): string
+    {
+        $k = preg_replace('/\s+/u', ' ', trim($label));
+
+        return rtrim(mb_strtolower($k, 'UTF-8'), " .;:·-");
+    }
+
+    /**
+     * Identificador corto del grupo, para usarlo como nombre de campo.
+     *
+     * La clave es el texto del requisito y no vale como name de un input.
+     * El formulario recibe este identificador ya calculado desde PHP y
+     * agrupa por él; el servidor lo vuelve a calcular igual. Así la regla
+     * de qué cuenta como «el mismo requisito» vive en un solo sitio.
+     */
+    public static function grupoRequisito(string $label): string
+    {
+        return substr(sha1(self::claveRequisito($label)), 0, 12);
+    }
+
+    /**
+     * Requisitos de varios cursos a la vez, unificados por etiqueta.
+     *
+     * Cada par recibido es ['product_id' => int, 'mode' => 'new'|'refresher'].
+     * El resultado trae un renglón por etiqueta distinta, con todos los ids
+     * de requisito que cubre y los cursos que lo piden, para poder decirle
+     * al solicitante por qué se lo estamos pidiendo.
+     *
+     * Es la misma función que alimenta el formulario y la que valida el
+     * envío: si divergieran, el servidor pediría archivos que la página
+     * nunca llegó a mostrar.
+     *
+     * @param array<array{product_id:int,mode:string,course_name?:string}> $pares
+     * @return array<array{clave:string,grupo:string,label:string,adjunto:bool,
+     *                     requirement_ids:int[],cursos:string[]}>
+     */
+    public function unificadosParaCursos(array $pares): array
+    {
+        $out = [];
+
+        foreach ($pares as $par) {
+            $pid  = (int) ($par['product_id'] ?? 0);
+            $modo = in_array($par['mode'] ?? 'new', self::MODOS, true) ? $par['mode'] : 'new';
+            if ($pid <= 0) {
+                continue;
+            }
+
+            $nombre = $par['course_name'] ?? '';
+
+            foreach ($this->forProduct($pid, $modo) as $r) {
+                $clave = self::claveRequisito((string) $r['label']);
+                if ($clave === '') {
+                    continue;
+                }
+
+                if (!isset($out[$clave])) {
+                    $out[$clave] = [
+                        'clave'           => $clave,
+                        'grupo'           => self::grupoRequisito((string) $r['label']),
+                        'label'           => $r['label'],
+                        'adjunto'         => (int) $r['requires_file'] === 1,
+                        'requirement_ids' => [],
+                        'cursos'          => [],
+                    ];
+                }
+
+                // Si un curso lo pide con documento y otro no, se pide el
+                // documento: es el criterio más exigente de los dos.
+                if ((int) $r['requires_file'] === 1) {
+                    $out[$clave]['adjunto'] = true;
+                }
+
+                $out[$clave]['requirement_ids'][] = (int) $r['id'];
+                if ($nombre !== '' && !in_array($nombre, $out[$clave]['cursos'], true)) {
+                    $out[$clave]['cursos'][] = $nombre;
+                }
+            }
+        }
+
+        // Primero lo que hay que adjuntar: es lo que da trabajo.
+        $lista = array_values($out);
+        usort($lista, static fn($a, $b) => ($b['adjunto'] <=> $a['adjunto'])
+                                        ?: strcmp($a['label'], $b['label']));
+
+        return $lista;
     }
 
     /**

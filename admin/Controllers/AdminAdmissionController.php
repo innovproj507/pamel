@@ -92,6 +92,9 @@ class AdminAdmissionController extends Controller
 
         $this->view->render('admin/views/admission/show', [
             'requirementFiles' => $requisitos,
+            // Una solicitud puede llevar varios cursos, cada uno con su
+            // modalidad; la columna `course` sólo guarda el resumen.
+            'requestCourses'   => $this->admissionRequest->getCourses((int) $id),
             'title'   => 'Admission Request #' . $id,
             'request' => $request,
         ], 'admin/views/layout');
@@ -109,8 +112,23 @@ class AdminAdmissionController extends Controller
             exit;
         }
 
+        // Los cursos van aparte desde que una solicitud puede llevar varios;
+        // sin esto el formulario saldría con una sola casilla marcada.
+        $request['courses'] = $this->admissionRequest->getCourses((int) $id);
+
         try {
-            $filepath = WordGenerator::generateAdmissionDocument($request);
+            $rutas = WordGenerator::generateAdmissionDocuments($request);
+            if (!$rutas) {
+                throw new \Exception('No se pudo generar el documento.');
+            }
+
+            // Mezclar cursos de logística con el resto da dos formularios, el
+            // F-41 y el F-46: no caben en el mismo papel, así que van en zip.
+            if (count($rutas) > 1) {
+                $this->descargarZip($rutas, 'solicitud_admision_' . $id . '.zip');
+            }
+
+            $filepath = $rutas[0];
 
             header('Content-Description: File Transfer');
             header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
@@ -132,6 +150,50 @@ class AdminAdmissionController extends Controller
             header('Location: /manager/admission-requests/' . $id);
             exit;
         }
+    }
+
+    /**
+     * Envía varios .docx en un zip y termina la petición.
+     *
+     * Los temporales se borran siempre, haya salido bien o mal: son datos
+     * personales del solicitante y no deben quedarse en el servidor.
+     *
+     * @param string[] $rutas
+     */
+    private function descargarZip(array $rutas, string $nombre): void
+    {
+        $zipPath = tempnam(sys_get_temp_dir(), 'adm') . '.zip';
+        $zip     = new \ZipArchive();
+
+        try {
+            if ($zip->open($zipPath, \ZipArchive::CREATE | \ZipArchive::OVERWRITE) !== true) {
+                throw new \Exception('No se pudo crear el zip de la solicitud.');
+            }
+            foreach ($rutas as $ruta) {
+                $zip->addFile($ruta, basename($ruta));
+            }
+            $zip->close();
+
+            header('Content-Description: File Transfer');
+            header('Content-Type: application/zip');
+            header('Content-Disposition: attachment; filename="' . $nombre . '"');
+            header('Content-Transfer-Encoding: binary');
+            header('Expires: 0');
+            header('Cache-Control: must-revalidate');
+            header('Pragma: public');
+            header('Content-Length: ' . filesize($zipPath));
+
+            ob_clean();
+            flush();
+            readfile($zipPath);
+        } finally {
+            foreach ($rutas as $ruta) {
+                if (is_file($ruta)) { @unlink($ruta); }
+            }
+            if (is_file($zipPath)) { @unlink($zipPath); }
+        }
+
+        exit;
     }
 
     public function updateStatus()

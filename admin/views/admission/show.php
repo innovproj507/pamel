@@ -111,22 +111,40 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                 </div>
             </div>
 
-            <!-- Course -->
+            <!-- Cursos solicitados -->
+            <?php
+            // Una solicitud puede llevar varios cursos, cada uno con su
+            // modalidad. Las anteriores a esa tabla traen uno solo, copiado
+            // por la migración, así que se pintan igual.
+            $_cursos = $requestCourses ?? [];
+            if (!$_cursos) {
+                $_cursos = [['course_name' => $request['course'], 'mode' => $request['course_mode'] ?? 'new']];
+            }
+            ?>
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-graduation-cap text-cyan-600 mr-2"></i>Requested Course
-                </h2>
-                <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-5 mb-4">
-                    <p class="text-gray-900 font-semibold text-lg"><?= htmlspecialchars($request['course']) ?></p>
-                    <?php
-                    $_modo = $request['course_mode'] ?? 'new';
-                    ?>
-                    <span class="inline-flex items-center gap-1.5 mt-1 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full <?=
-                        $_modo === 'refresher'
-                            ? 'bg-violet-50 text-violet-600 border border-violet-200'
-                            : 'bg-blue-50 text-blue-600 border border-blue-200' ?>">
-                        <?= $_modo === 'refresher' ? 'Renovación' : 'Primera vez' ?>
+                    <i class="fas fa-graduation-cap text-cyan-600 mr-2"></i>
+                    <?= count($_cursos) === 1 ? 'Requested Course' : 'Requested Courses' ?>
+                    <?php if (count($_cursos) > 1): ?>
+                    <span class="ml-2 text-xs font-black text-cyan-600 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-full">
+                        <?= count($_cursos) ?>
                     </span>
+                    <?php endif; ?>
+                </h2>
+                <div class="space-y-2 mb-4">
+                    <?php foreach ($_cursos as $_c):
+                        $_modo = $_c['mode'] ?? 'new';
+                    ?>
+                    <div class="bg-cyan-50 border border-cyan-200 rounded-xl p-5">
+                        <p class="text-gray-900 font-semibold text-lg"><?= htmlspecialchars($_c['course_name']) ?></p>
+                        <span class="inline-flex items-center gap-1.5 mt-1 text-[11px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full <?=
+                            $_modo === 'refresher'
+                                ? 'bg-violet-50 text-violet-600 border border-violet-200'
+                                : 'bg-blue-50 text-blue-600 border border-blue-200' ?>">
+                            <?= $_modo === 'refresher' ? 'Renovación' : 'Primera vez' ?>
+                        </span>
+                    </div>
+                    <?php endforeach; ?>
                 </div>
                 <div class="bg-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-50 border border-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-200 rounded-xl p-5">
                     <p class="text-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-700 font-semibold text-sm">

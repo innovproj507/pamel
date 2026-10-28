@@ -37,6 +37,47 @@ class AdmissionRequest extends Model
     }
 
     /**
+     * Guarda los cursos elegidos en una solicitud, cada uno con su modalidad.
+     *
+     * Una solicitud puede llevar varios cursos y cada uno va por su cuenta:
+     * se puede estar renovando uno y estrenando otro.
+     *
+     * @param array<array{product_id:?int,course_name:string,mode:string}> $cursos
+     */
+    public function saveCourses(int $requestId, array $cursos): void
+    {
+        foreach (array_values($cursos) as $i => $c) {
+            $this->db->insert('admission_request_courses', [
+                'admission_request_id' => $requestId,
+                'product_id'           => $c['product_id'] ?? null,
+                'course_name'          => $c['course_name'],
+                'mode'                 => in_array($c['mode'] ?? 'new', ['new', 'refresher'], true)
+                                          ? $c['mode'] : 'new',
+                'position'             => $i,
+            ]);
+        }
+    }
+
+    /**
+     * Cursos de una solicitud, en el orden en que se eligieron.
+     *
+     * Las solicitudes anteriores a la tabla de cursos también salen por
+     * aquí: la migración copió su curso único como primer renglón.
+     *
+     * @return array<array{product_id:?int,course_name:string,mode:string}>
+     */
+    public function getCourses(int $requestId): array
+    {
+        return $this->db->fetchAll(
+            'SELECT product_id, course_name, mode
+               FROM admission_request_courses
+              WHERE admission_request_id = ?
+              ORDER BY position ASC, id ASC',
+            [$requestId]
+        );
+    }
+
+    /**
      * Borra una solicitud con sus adjuntos, de la base y del disco.
      *
      * Sin esto quedarían dos rastros: las filas de admission_request_files,

@@ -253,6 +253,73 @@ class WordGenerator
     }
 
     /**
+     * Nombres de los cursos de una solicitud.
+     *
+     * Las solicitudes nuevas traen la lista en `courses`; las anteriores a
+     * esa tabla sólo tienen el nombre suelto en `course`.
+     *
+     * @return string[]
+     */
+    private static function nombresDeCursos(array $data): array
+    {
+        if (!empty($data['courses']) && is_array($data['courses'])) {
+            $nombres = array_map(
+                static fn($c) => is_array($c) ? ($c['course_name'] ?? '') : (string) $c,
+                $data['courses']
+            );
+            $nombres = array_values(array_filter(array_map('trim', $nombres)));
+            if ($nombres) {
+                return $nombres;
+            }
+        }
+
+        $suelto = trim((string) ($data['course'] ?? ''));
+
+        return $suelto === '' ? [] : [$suelto];
+    }
+
+    /**
+     * Documentos de una solicitud, uno por cada formulario que haga falta.
+     *
+     * Casi siempre es uno solo: el F-46 tiene una casilla por curso, así que
+     * varios cursos se marcan en el mismo papel. Si la solicitud mezcla
+     * cursos de logística (F-41) con el resto, salen los dos formularios,
+     * cada uno con los cursos que le corresponden.
+     *
+     * @return string[] rutas de los .docx generados
+     */
+    public static function generateAdmissionDocuments(array $data): array
+    {
+        $cursos = self::nombresDeCursos($data);
+        if (!$cursos) {
+            return array_filter([self::generateAdmissionDocument($data)]);
+        }
+
+        // Se agrupan por plantilla, conservando el orden de elección.
+        $porPlantilla = [];
+        foreach ($cursos as $nombre) {
+            $porPlantilla[self::plantillaParaCurso($nombre)][] = $nombre;
+        }
+
+        $rutas = [];
+        foreach ($porPlantilla as $plantilla => $suyos) {
+            $parcial = $data;
+            $parcial['course']  = $suyos[0];
+            $parcial['courses'] = array_map(
+                static fn($n) => ['course_name' => $n],
+                $suyos
+            );
+
+            $ruta = self::generateAdmissionDocument($parcial);
+            if ($ruta) {
+                $rutas[] = $ruta;
+            }
+        }
+
+        return $rutas;
+    }
+
+    /**
      * Generate Word document for admission request.
      *
      * Usa el F-41 para los cursos de logística y puertos y el F-46 para los
@@ -281,7 +348,9 @@ class WordGenerator
 
             // El F-41 lleva el nombre del curso escrito; el F-46 lo marca
             // con casillas. setValue ignora los campos que no existan.
-            $tp->setValue('course_name', $data['course'] ?? '');
+            // El F-41 escribe el nombre en un hueco: con varios cursos van
+            // todos, separados por comas.
+            $tp->setValue('course_name', implode(', ', self::nombresDeCursos($data)));
 
             // Nivel educativo: el F-41 lo pide, pero el formulario de
             // admisión todavía no lo recoge. Se deja en blanco para que el
@@ -319,15 +388,42 @@ class WordGenerator
             }
 
             // ── Fill checkboxes ────────────────────────────────────────────
-            $selected = trim($data['course'] ?? '');
-            for ($i = 0; $i < $total; $i++) {
-                $courseName = $courseNames[$i] ?? '';
-                $check      = (strtolower($courseName) === strtolower($selected)) ? '☑' : '☐';
-                $tp->setValue($checkVars[$i], $check);
+            $elegidos = self::nombresDeCursos($data);
+
+            if ($total > 0 && $total >= count($courseNames)) {
+                // La plantilla lista los cursos uno a uno: se marca el suyo.
+                $enMinusculas = array_map(
+                    static fn($n) => mb_strtolower(trim($n), 'UTF-8'),
+                    $elegidos
+                );
+                for ($i = 0; $i < $total; $i++) {
+                    $courseName = $courseNames[$i] ?? '';
+                    $check      = in_array(mb_strtolower(trim($courseName), 'UTF-8'), $enMinusculas, true) ? '☑' : '☐';
+                    $tp->setValue($checkVars[$i], $check);
+                }
+            } elseif ($total > 0) {
+                /*
+                    El F-46 tiene un único hueco, no una casilla por curso.
+                    El bucle de arriba sólo habría marcado algo si el curso
+                    pedido fuese justo el primero por orden alfabético de los
+                    66 productos, así que el formulario salía sin decir qué
+                    curso se pedía. Se escriben los elegidos en ese hueco.
+                */
+                $tp->setValue($checkVars[0], implode('   ', array_map(
+                    static fn($n) => '☑ ' . $n,
+                    $elegidos
+                )));
+                for ($i = 1; $i < $total; $i++) {
+                    $tp->setValue($checkVars[$i], '');
+                }
             }
 
             if (!empty($allVars)) {
-                $filename = 'solicitud_admision_' . ($data['id'] ?? 'temp') . '_' . time() . '.docx';
+                // uniqid y no time(): una solicitud que mezcla familias genera
+                // el F-41 y el F-46 en el mismo segundo, y con time() el
+                // segundo documento pisaba al primero.
+                $filename = 'solicitud_admision_' . ($data['id'] ?? 'temp')
+                          . '_' . uniqid('', true) . '.docx';
                 $filepath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $filename;
                 $tp->saveAs($filepath);
                 return $filepath;
@@ -398,7 +494,11 @@ class WordGenerator
         $section->addTextBreak(1);
 
         // Get course list from DB; fall back to static list
-        $selectedCourse = $data['course'] ?? '';
+        // Una solicitud puede llevar varios cursos: se marcan todos.
+        $elegidos = array_map(
+            static fn($n) => mb_strtolower(trim($n), 'UTF-8'),
+            self::nombresDeCursos($data)
+        );
         $courses = [];
 
         try {
@@ -419,10 +519,10 @@ class WordGenerator
         }
 
         foreach ($courses as $courseName) {
-            $check = (trim($courseName) === trim($selectedCourse)) ? '☑' : '☐';
+            $marcado = in_array(mb_strtolower(trim($courseName), 'UTF-8'), $elegidos, true);
             $section->addText(
-                $check . '  ' . $courseName,
-                ['size' => 10, 'bold' => (trim($courseName) === trim($selectedCourse))]
+                ($marcado ? '☑' : '☐') . '  ' . $courseName,
+                ['size' => 10, 'bold' => $marcado]
             );
         }
 
@@ -451,7 +551,10 @@ class WordGenerator
             ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]
         );
 
-        $filename = 'solicitud_admision_' . ($data['id'] ?? 'temp') . '_' . time() . '.docx';
+        // uniqid y no time(): dos documentos de la misma solicitud se generan
+        // en el mismo segundo y el segundo pisaría al primero.
+        $filename = 'solicitud_admision_' . ($data['id'] ?? 'temp')
+                  . '_' . uniqid('', true) . '.docx';
         $filepath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $filename;
 
         $writer = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');

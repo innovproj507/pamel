@@ -41,20 +41,32 @@ class Email
 
     /**
      * Send email. Uses PHPMailer+SMTP when smtp_enabled, falls back to mail().
-     * $attachment is an absolute file path (optional).
+     *
+     * $attachment is an absolute file path, or a list of them: una solicitud
+     * de admisión que mezcla cursos de logística con el resto necesita los
+     * dos formularios, el F-41 y el F-46.
+     *
+     * @param string|string[]|null $attachment
      */
-    public static function send(string $to, string $subject, string $body, bool $isHtml = true, ?string $attachment = null): bool
+    public static function send(string $to, string $subject, string $body, bool $isHtml = true, $attachment = null): bool
     {
         $config = self::getConfig();
 
+        // Normaliza a lista y descarta lo que no exista en disco, para que
+        // los dos transportes reciban siempre lo mismo.
+        $adjuntos = array_values(array_filter(
+            is_array($attachment) ? $attachment : ($attachment === null ? [] : [$attachment]),
+            static fn($p) => is_string($p) && $p !== '' && file_exists($p)
+        ));
+
         if (!empty($config['smtp_enabled'])) {
-            return self::sendViaSMTP($to, $subject, $body, $isHtml, $attachment, $config);
+            return self::sendViaSMTP($to, $subject, $body, $isHtml, $adjuntos, $config);
         }
 
-        return self::sendViaMail($to, $subject, $body, $isHtml, $attachment, $config);
+        return self::sendViaMail($to, $subject, $body, $isHtml, $adjuntos, $config);
     }
 
-    private static function sendViaSMTP(string $to, string $subject, string $body, bool $isHtml, ?string $attachment, array $config): bool
+    private static function sendViaSMTP(string $to, string $subject, string $body, bool $isHtml, array $adjuntos, array $config): bool
     {
         $mail = new PHPMailer(true);
         try {
@@ -100,8 +112,8 @@ class Email
                 $mail->AltBody = $body;
             }
 
-            if ($attachment && file_exists($attachment)) {
-                $mail->addAttachment($attachment);
+            foreach ($adjuntos as $ruta) {
+                $mail->addAttachment($ruta);
             }
 
             $mail->send();
@@ -113,7 +125,7 @@ class Email
         }
     }
 
-    private static function sendViaMail(string $to, string $subject, string $body, bool $isHtml, ?string $attachment, array $config): bool
+    private static function sendViaMail(string $to, string $subject, string $body, bool $isHtml, array $adjuntos, array $config): bool
     {
         $boundary = md5(time());
 
@@ -123,7 +135,7 @@ class Email
         $headers[] = 'X-Mailer: PHP/' . phpversion();
         $headers[] = 'MIME-Version: 1.0';
 
-        if ($attachment && file_exists($attachment)) {
+        if ($adjuntos) {
             $headers[] = 'Content-Type: multipart/mixed; boundary="' . $boundary . '"';
 
             $message  = "--{$boundary}\r\n";
@@ -131,13 +143,15 @@ class Email
             $message .= "Content-Transfer-Encoding: 7bit\r\n\r\n";
             $message .= $body . "\r\n\r\n";
 
-            $filename       = basename($attachment);
-            $encodedContent = chunk_split(base64_encode(file_get_contents($attachment)));
-            $message .= "--{$boundary}\r\n";
-            $message .= "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; name=\"{$filename}\"\r\n";
-            $message .= "Content-Transfer-Encoding: base64\r\n";
-            $message .= "Content-Disposition: attachment; filename=\"{$filename}\"\r\n\r\n";
-            $message .= $encodedContent . "\r\n";
+            foreach ($adjuntos as $ruta) {
+                $filename       = basename($ruta);
+                $encodedContent = chunk_split(base64_encode(file_get_contents($ruta)));
+                $message .= "--{$boundary}\r\n";
+                $message .= "Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document; name=\"{$filename}\"\r\n";
+                $message .= "Content-Transfer-Encoding: base64\r\n";
+                $message .= "Content-Disposition: attachment; filename=\"{$filename}\"\r\n\r\n";
+                $message .= $encodedContent . "\r\n";
+            }
             $message .= "--{$boundary}--";
 
             $body = $message;
@@ -172,17 +186,22 @@ class Email
         $subject = 'Nueva Solicitud de Admisión - ' . $name;
         $body    = self::getAdmissionEmailTemplate($data);
 
-        $wordPath = null;
+        // Casi siempre es un documento. Son dos cuando la solicitud mezcla
+        // cursos de logística, que van en el F-41, con el resto, que van en
+        // el F-46: no caben en el mismo formulario.
+        $wordPaths = [];
         try {
-            $wordPath = \Core\WordGenerator::generateAdmissionDocument($data);
+            $wordPaths = \Core\WordGenerator::generateAdmissionDocuments($data);
         } catch (\Exception $e) {
             error_log("Failed to generate admission Word document: " . $e->getMessage());
         }
 
-        $result = self::send($config['admin_email'] ?? '', $subject, $body, true, $wordPath);
+        $result = self::send($config['admin_email'] ?? '', $subject, $body, true, $wordPaths);
 
-        if ($wordPath && file_exists($wordPath)) {
-            unlink($wordPath);
+        foreach ($wordPaths as $ruta) {
+            if ($ruta && file_exists($ruta)) {
+                unlink($ruta);
+            }
         }
 
         return $result;
@@ -236,7 +255,7 @@ class Email
         $body    = self::wrapTemplate(
             'Solicitud Recibida',
             '<p style="font-size:15px">Estimado/a <strong>' . htmlspecialchars($name) . '</strong>,</p>
-             <p>Hemos recibido su solicitud de admisión para el curso <strong>' . htmlspecialchars($data['course']) . '</strong>.</p>
+             <p>Hemos recibido su solicitud de admisión para ' . self::listaDeCursos($data) . '.</p>
              <p>Nuestro equipo la revisará y se pondrá en contacto con usted a la brevedad.</p>
              <p style="margin-top:20px">Gracias por su interés en <strong>PAMEL</strong>.</p>',
             'Este es un correo automático, por favor no responda a este mensaje.'
@@ -328,6 +347,62 @@ class Email
     // Email templates
     // -------------------------------------------------------------------------
 
+    /**
+     * Cursos de una solicitud, con su modalidad, en una línea por curso.
+     *
+     * Las solicitudes nuevas traen la lista en `courses`; las anteriores a
+     * esa tabla sólo tienen el nombre suelto en `course`.
+     */
+    private static function cursosConModalidad(array $data): string
+    {
+        if (empty($data['courses']) || !is_array($data['courses'])) {
+            return (string) ($data['course'] ?? '');
+        }
+
+        $modos = ['new' => 'primera vez', 'refresher' => 'renovación'];
+        $lineas = [];
+        foreach ($data['courses'] as $c) {
+            $nombre = trim((string) ($c['course_name'] ?? ''));
+            if ($nombre === '') {
+                continue;
+            }
+            $modo = $modos[$c['mode'] ?? 'new'] ?? 'primera vez';
+            $lineas[] = "{$nombre} ({$modo})";
+        }
+
+        return $lineas ? implode(" \u{00B7} ", $lineas) : (string) ($data['course'] ?? '');
+    }
+
+    /** Los cursos en negrita para el correo de confirmación al solicitante. */
+    private static function listaDeCursos(array $data): string
+    {
+        $nombres = [];
+        if (!empty($data['courses']) && is_array($data['courses'])) {
+            foreach ($data['courses'] as $c) {
+                $n = trim((string) ($c['course_name'] ?? ''));
+                if ($n !== '') {
+                    $nombres[] = $n;
+                }
+            }
+        }
+        if (!$nombres) {
+            $nombres = [(string) ($data['course'] ?? '')];
+        }
+
+        $etiquetas = array_map(
+            static fn($n) => '<strong>' . htmlspecialchars($n) . '</strong>',
+            $nombres
+        );
+
+        if (count($etiquetas) === 1) {
+            return 'el curso ' . $etiquetas[0];
+        }
+
+        $ultimo = array_pop($etiquetas);
+
+        return 'los cursos ' . implode(', ', $etiquetas) . ' y ' . $ultimo;
+    }
+
     private static function getAdmissionEmailTemplate(array $data): string
     {
         $fields = [
@@ -340,7 +415,8 @@ class Email
             'Email'               => $data['email'],
             'Teléfono'            => $data['phone'],
             'Dirección'           => $data['address'],
-            'Curso solicitado'    => $data['course'],
+            // Con varios cursos se listan todos, cada uno con su modalidad.
+            'Cursos solicitados'  => self::cursosConModalidad($data),
         ];
         if (!empty($data['capacity'])) {
             $fields['Capacidad / Cargo'] = $data['capacity'];

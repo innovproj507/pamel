@@ -162,66 +162,58 @@ $maxUploadLabel = number_format($maxUploadBytes / (1024 * 1024), 0) . ' MB';
                             <?php echo __('admission.form.course_info'); ?>
                         </h3>
 
-                        <!-- Select Course -->
+                        <!-- Elegir cursos: se pueden añadir varios -->
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2" for="courseSelect">
                                 <?php echo __('admission.form.select_course'); ?>
                             </label>
-                            <select name="course" required 
-                                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition bg-white">
-                                <option value=""><?php echo __('admission.form.select_placeholder'); ?></option>
-                                
-                                <?php if (isset($courses) && !empty($courses)): ?>
-                                    <?php foreach ($courses as $course): ?>
-                                        <option value="<?= htmlspecialchars($course['name']) ?>"
-                                                data-pid="<?= (int) $course['id'] ?>">
-                                            <?= htmlspecialchars($course['name']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <!-- Fallback static options -->
-                                    <option value="formacion-basica-petroleros">Formación Básica para Operaciones de Carga en Petroleros y Quimiqueros</option>
-                                    <option value="personal-safety">Personal Safety and Social Responsibilities</option>
-                                    <option value="safety-training">Safety Training For Personnel</option>
-                                    <option value="crowd-management">Passenger Ship Crowd Management</option>
-                                    <option value="leadership">Use of Leadership and Managerial Skills</option>
-                                <?php endif; ?>
-                            </select>
-                        </div>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <!--
+                                    Sin name: este desplegable sólo sirve para elegir.
+                                    Lo que se envía son los campos ocultos de cada
+                                    curso ya añadido, más abajo.
+                                -->
+                                <select id="courseSelect"
+                                    class="flex-1 min-w-0 px-4 py-3 border-2 border-gray-300 rounded-lg focus:border-cyan-500 focus:outline-none transition bg-white">
+                                    <option value=""><?php echo __('admission.form.select_placeholder'); ?></option>
 
-                        <!-- Modalidad: primera vez o renovación -->
-                        <div id="modeWrap" class="hidden">
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                <?php echo __('admission.form.mode_label'); ?>
-                            </label>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <label class="flex items-start gap-3 p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-cyan-400 transition has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-50">
-                                    <input type="radio" name="course_mode" value="new" checked
-                                           class="mt-1 w-4 h-4 text-cyan-600 focus:ring-cyan-500">
-                                    <span>
-                                        <span class="block text-sm font-bold text-gray-800"><?php echo __('admission.form.mode_new'); ?></span>
-                                        <span class="block text-xs text-gray-500 mt-0.5"><?php echo __('admission.form.mode_new_hint'); ?></span>
-                                    </span>
-                                </label>
-                                <label id="modeRefresherWrap" class="flex items-start gap-3 p-4 border-2 border-gray-300 rounded-lg cursor-pointer hover:border-cyan-400 transition has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-50">
-                                    <input type="radio" name="course_mode" value="refresher"
-                                           class="mt-1 w-4 h-4 text-cyan-600 focus:ring-cyan-500">
-                                    <span>
-                                        <span class="block text-sm font-bold text-gray-800"><?php echo __('admission.form.mode_refresher'); ?></span>
-                                        <span class="block text-xs text-gray-500 mt-0.5"><?php echo __('admission.form.mode_refresher_hint'); ?></span>
-                                    </span>
-                                </label>
+                                    <?php if (isset($courses) && !empty($courses)): ?>
+                                        <?php foreach ($courses as $course): ?>
+                                            <option value="<?= htmlspecialchars($course['name'], ENT_QUOTES) ?>"
+                                                    data-pid="<?= (int) $course['id'] ?>">
+                                                <?= htmlspecialchars($course['name']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
+                                </select>
+                                <button type="button" id="addCourse"
+                                    class="flex-shrink-0 px-5 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-bold rounded-lg transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                    <i class="fas fa-plus mr-1"></i><?php echo __('admission.form.add_course'); ?>
+                                </button>
                             </div>
+                            <p class="text-xs text-gray-500 mt-2"><?php echo __('admission.form.add_course_hint'); ?></p>
                         </div>
 
-                        <!-- Requisitos del curso elegido -->
+                        <!-- Cursos ya añadidos, cada uno con su modalidad -->
+                        <div id="cursosWrap" class="hidden">
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <?php echo __('admission.form.selected_courses'); ?>
+                                <span id="cursosCount" class="text-cyan-600"></span>
+                            </label>
+                            <div id="cursosLista" class="space-y-3"></div>
+                        </div>
+
+                        <!--
+                            Requisitos de TODOS los cursos elegidos, unificados.
+                            Si cuatro cursos piden el pasaporte, aparece una vez.
+                        -->
                         <div id="reqPanel" class="hidden rounded-xl border-2 border-cyan-100 bg-cyan-50/40 p-5">
                             <h4 class="text-sm font-bold text-gray-800 mb-1 flex items-center gap-2">
                                 <i class="fas fa-clipboard-check text-cyan-600"></i>
                                 <?php echo __('admission.form.requirements_title'); ?>
                             </h4>
                             <p class="text-xs text-gray-500 mb-4"><?php echo __('admission.form.requirements_hint'); ?></p>
-                            <ul id="reqList" class="space-y-2"></ul>
+                            <ul id="reqList" class="space-y-3"></ul>
                         </div>
                         <!--
                             Aquí había dos campos fijos, identificación y certificado
@@ -300,19 +292,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
+            // Sin cursos no hay solicitud. El desplegable ya no se envía, así
+            // que el "required" del navegador no cubre este caso.
+            if (!this.querySelector('input[name="courses[]"]')) {
+                alert(<?= json_encode(__('admission.form.no_courses'), JSON_UNESCAPED_UNICODE) ?>);
+                document.getElementById('courseSelect').focus();
+                return;
+            }
+
             // Se revisa el tamaño aquí para no hacer esperar una subida
             // completa que el servidor va a rechazar igualmente.
             const MAX_BYTES = <?= (int) $maxUploadBytes ?>;
-            const ETIQUETAS = {
-                cedula: 'Cédula / Pasaporte',
-                certificado_salud: 'Certificado de salud'
-            };
             for (const input of this.querySelectorAll('input[type="file"]')) {
                 const archivo = input.files && input.files[0];
                 if (archivo && archivo.size > MAX_BYTES) {
                     const pesa  = (archivo.size / (1024 * 1024)).toFixed(1);
                     const tope  = Math.round(MAX_BYTES / (1024 * 1024));
-                    const campo = ETIQUETAS[input.name] || input.name;
+                    // El nombre del campo es un hash; la etiqueta legible va
+                    // en data-etiqueta, puesta al pintar el requisito.
+                    const campo = input.dataset.etiqueta || input.name;
                     alert('❌ «' + campo + '»: el archivo pesa ' + pesa + ' MB y el máximo es ' + tope + ' MB.\n\n'
                         + 'Comprime el PDF o reduce la resolución del escaneo e inténtalo de nuevo.');
                     input.focus();
@@ -391,48 +389,174 @@ document.addEventListener('DOMContentLoaded', function() {
     // Requisitos por curso y modo, servidos desde la base.
     const REQUISITOS = <?= json_encode($requirements ?? [], JSON_UNESCAPED_UNICODE) ?>;
     const TEXTOS = {
-        adjunto: <?= json_encode(__('admission.form.req_attach'), JSON_UNESCAPED_UNICODE) ?>
+        adjunto:         <?= json_encode(__('admission.form.req_attach'), JSON_UNESCAPED_UNICODE) ?>,
+        paraCursos:      <?= json_encode(__('admission.form.req_for_courses'), JSON_UNESCAPED_UNICODE) ?>,
+        paraTodos:       <?= json_encode(__('admission.form.req_for_all'), JSON_UNESCAPED_UNICODE) ?>,
+        yaAnadido:       <?= json_encode(__('admission.form.course_already_added'), JSON_UNESCAPED_UNICODE) ?>,
+        quitar:          <?= json_encode(__('admission.form.remove_course'), JSON_UNESCAPED_UNICODE) ?>,
+        modoNuevo:       <?= json_encode(__('admission.form.mode_new'), JSON_UNESCAPED_UNICODE) ?>,
+        modoNuevoPista:  <?= json_encode(__('admission.form.mode_new_hint'), JSON_UNESCAPED_UNICODE) ?>,
+        modoRenovar:     <?= json_encode(__('admission.form.mode_refresher'), JSON_UNESCAPED_UNICODE) ?>,
+        modoRenovarPista:<?= json_encode(__('admission.form.mode_refresher_hint'), JSON_UNESCAPED_UNICODE) ?>
     };
 
     (function () {
-        const select     = document.querySelector('select[name="course"]');
-        const modeWrap   = document.getElementById('modeWrap');
-        const refWrap    = document.getElementById('modeRefresherWrap');
-        const panel      = document.getElementById('reqPanel');
-        const lista      = document.getElementById('reqList');
-        if (!select || !panel) { return; }
+        const select  = document.getElementById('courseSelect');
+        const boton   = document.getElementById('addCourse');
+        const wrap    = document.getElementById('cursosWrap');
+        const lista   = document.getElementById('cursosLista');
+        const cuenta  = document.getElementById('cursosCount');
+        const panel   = document.getElementById('reqPanel');
+        const reqList = document.getElementById('reqList');
+        if (!select || !boton || !panel) { return; }
 
-        function modoElegido() {
-            const r = document.querySelector('input[name="course_mode"]:checked');
-            return r ? r.value : 'new';
+        // Cursos elegidos: { pid, nombre, modo }. El orden es el de elección.
+        const elegidos = [];
+
+        /** ¿Ese curso tiene lista propia de renovación? */
+        function tieneRefresco(pid) {
+            const def = REQUISITOS[pid];
+            return !!(def && (def.refresher || []).length);
         }
 
-        function pintar() {
+        function anadir() {
             const opt = select.options[select.selectedIndex];
             const pid = opt ? opt.getAttribute('data-pid') : null;
-            const def = pid ? REQUISITOS[pid] : null;
+            if (!pid) { return; }
 
-            lista.innerHTML = '';
-
-            if (!def) {                       // curso sin requisitos cargados
-                panel.classList.add('hidden');
-                modeWrap.classList.add('hidden');
+            if (elegidos.some(c => c.pid === pid)) {
+                alert(TEXTOS.yaAnadido);
                 return;
             }
 
-            modeWrap.classList.remove('hidden');
+            elegidos.push({ pid: pid, nombre: opt.textContent.trim(), modo: 'new' });
+            select.selectedIndex = 0;
+            pintarCursos();
+            pintarRequisitos();
+        }
 
-            // El refresco solo se ofrece si ese curso tiene su propia lista
-            const hayRefresco = (def.refresher || []).length > 0;
-            refWrap.style.display = hayRefresco ? '' : 'none';
-            if (!hayRefresco) {
-                const n = document.querySelector('input[name="course_mode"][value="new"]');
-                if (n) { n.checked = true; }
-            }
+        function quitar(pid) {
+            const i = elegidos.findIndex(c => c.pid === pid);
+            if (i >= 0) { elegidos.splice(i, 1); }
+            pintarCursos();
+            pintarRequisitos();
+        }
 
-            const items = def[modoElegido()] || [];
-            if (!items.length) { panel.classList.add('hidden'); return; }
+        // ── Lista de cursos, cada uno con su modalidad ──────────────────
+        function pintarCursos() {
+            lista.innerHTML = '';
+            wrap.classList.toggle('hidden', elegidos.length === 0);
+            cuenta.textContent = elegidos.length ? '(' + elegidos.length + ')' : '';
+
+            elegidos.forEach(function (c) {
+                const caja = document.createElement('div');
+                caja.className = 'rounded-lg border-2 border-cyan-200 bg-white p-4';
+
+                // Cabecera: nombre y botón de quitar
+                const cab = document.createElement('div');
+                cab.className = 'flex items-start justify-between gap-3 mb-3';
+
+                const titulo = document.createElement('p');
+                titulo.className = 'text-sm font-bold text-gray-800 flex-1 min-w-0';
+                titulo.textContent = c.nombre;
+                cab.appendChild(titulo);
+
+                const quita = document.createElement('button');
+                quita.type = 'button';
+                quita.className = 'flex-shrink-0 w-7 h-7 rounded-lg text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition';
+                quita.title = TEXTOS.quitar;
+                quita.innerHTML = '<i class="fas fa-times text-sm"></i>';
+                quita.addEventListener('click', function () { quitar(c.pid); });
+                cab.appendChild(quita);
+
+                caja.appendChild(cab);
+
+                // Los campos que se envían de verdad.
+                const hid = document.createElement('input');
+                hid.type = 'hidden';
+                hid.name = 'courses[]';
+                hid.value = c.pid;
+                caja.appendChild(hid);
+
+                // Modalidad propia: se puede renovar uno y estrenar otro.
+                const modos = document.createElement('div');
+                modos.className = 'grid grid-cols-1 sm:grid-cols-2 gap-2';
+
+                [['new', TEXTOS.modoNuevo, TEXTOS.modoNuevoPista],
+                 ['refresher', TEXTOS.modoRenovar, TEXTOS.modoRenovarPista]].forEach(function (m) {
+                    // El refresco sólo se ofrece si ese curso tiene su lista.
+                    if (m[0] === 'refresher' && !tieneRefresco(c.pid)) { return; }
+
+                    const et = document.createElement('label');
+                    et.className = 'flex items-start gap-2.5 p-3 border-2 border-gray-200 rounded-lg cursor-pointer hover:border-cyan-400 transition has-[:checked]:border-cyan-500 has-[:checked]:bg-cyan-50';
+
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = 'course_mode[' + c.pid + ']';
+                    radio.value = m[0];
+                    radio.checked = (c.modo === m[0]);
+                    radio.className = 'mt-0.5 w-4 h-4 text-cyan-600 focus:ring-cyan-500';
+                    radio.addEventListener('change', function () {
+                        c.modo = m[0];
+                        pintarRequisitos();
+                    });
+                    et.appendChild(radio);
+
+                    const txt = document.createElement('span');
+                    txt.innerHTML = '<span class="block text-xs font-bold text-gray-800"></span>'
+                                  + '<span class="block text-[11px] text-gray-500 mt-0.5"></span>';
+                    txt.children[0].textContent = m[1];
+                    txt.children[1].textContent = m[2];
+                    et.appendChild(txt);
+
+                    modos.appendChild(et);
+                });
+
+                caja.appendChild(modos);
+                lista.appendChild(caja);
+            });
+        }
+
+        // ── Requisitos de todos los cursos, unificados ──────────────────
+        function pintarRequisitos() {
+            // Lo que ya haya adjuntado no se pierde al añadir o quitar un
+            // curso: se guarda por grupo y se vuelve a poner si sigue
+            // haciendo falta.
+            const yaSubidos = {};
+            reqList.querySelectorAll('input[type="file"]').forEach(function (i) {
+                if (i.files && i.files.length) { yaSubidos[i.dataset.grupo] = i.files; }
+            });
+
+            // Agrupar por `grupo`, que PHP calcula a partir del texto del
+            // requisito. Dos cursos que piden "ID / PASSPORT" traen el mismo
+            // grupo aunque sus ids de requisito sean distintos.
+            const grupos = new Map();
+
+            elegidos.forEach(function (c) {
+                const def = REQUISITOS[c.pid];
+                if (!def) { return; }
+
+                (def[c.modo] || []).forEach(function (r) {
+                    let g = grupos.get(r.grupo);
+                    if (!g) {
+                        g = { grupo: r.grupo, label: r.label, adjunto: r.adjunto, cursos: [] };
+                        grupos.set(r.grupo, g);
+                    }
+                    // Si un curso lo pide con documento y otro no, se pide.
+                    if (r.adjunto) { g.adjunto = true; }
+                    if (g.cursos.indexOf(c.nombre) === -1) { g.cursos.push(c.nombre); }
+                });
+            });
+
+            reqList.innerHTML = '';
+
+            if (!grupos.size) { panel.classList.add('hidden'); return; }
             panel.classList.remove('hidden');
+
+            // Primero lo que hay que adjuntar: es lo que da trabajo.
+            const items = Array.from(grupos.values()).sort(function (a, b) {
+                return (b.adjunto - a.adjunto) || a.label.localeCompare(b.label);
+            });
 
             items.forEach(function (r) {
                 const li = document.createElement('li');
@@ -452,12 +576,26 @@ document.addEventListener('DOMContentLoaded', function() {
                 texto.textContent = r.label;
                 cuerpo.appendChild(texto);
 
+                // Con varios cursos, se dice cuáles lo piden: así se entiende
+                // que un solo documento vale para todos ellos.
+                if (elegidos.length > 1) {
+                    const quien = document.createElement('p');
+                    quien.className = 'text-[11px] text-cyan-700 mt-0.5';
+                    quien.textContent = r.cursos.length === elegidos.length
+                        ? TEXTOS.paraTodos
+                        : TEXTOS.paraCursos.replace(':cursos', r.cursos.join(', '));
+                    cuerpo.appendChild(quien);
+                }
+
                 if (r.adjunto) {
                     const campo = document.createElement('input');
                     campo.type = 'file';
-                    campo.name = 'req_file[' + r.id + ']';
+                    campo.name = 'req_file[' + r.grupo + ']';
+                    campo.dataset.grupo = r.grupo;
+                    campo.dataset.etiqueta = r.label;
                     campo.accept = '.jpg,.jpeg,.png,.pdf';
                     campo.className = 'mt-2 w-full text-xs px-3 py-2 border-2 border-gray-300 rounded-lg bg-white focus:border-cyan-500 focus:outline-none';
+                    if (yaSubidos[r.grupo]) { campo.files = yaSubidos[r.grupo]; }
                     cuerpo.appendChild(campo);
 
                     const pista = document.createElement('p');
@@ -467,14 +605,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 li.appendChild(cuerpo);
-                lista.appendChild(li);
+                reqList.appendChild(li);
             });
         }
 
-        select.addEventListener('change', pintar);
-        document.querySelectorAll('input[name="course_mode"]').forEach(function (r) {
-            r.addEventListener('change', pintar);
+        boton.addEventListener('click', anadir);
+        // Añadir con Enter sin que se envíe el formulario entero.
+        select.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); anadir(); }
         });
-        pintar();
+
+        pintarCursos();
+        pintarRequisitos();
     })();
 </script>

@@ -18,6 +18,13 @@ class AdmissionController
     private const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
 
     /**
+     * Tope de cursos por solicitud. No es una regla de negocio, es un freno:
+     * cada curso añade requisitos y adjuntos al mismo envío, y sin límite un
+     * robot podría mandar los 66 cursos de golpe.
+     */
+    private const MAX_CURSOS = 10;
+
+    /**
      * Niveles educativos admitidos. Se guarda la etiqueta en español porque
      * es la que se imprime en el formulario oficial F-41, con independencia
      * del idioma en que el solicitante rellene la página.
@@ -105,7 +112,7 @@ class AdmissionController
             // Validate required fields using the actual HTML form field names
             $required = [
                 'full_name', 'id_passport', 'dob', 'nationality', 'country_of_birth',
-                'education_level', 'email', 'address', 'phone', 'course',
+                'education_level', 'email', 'address', 'phone',
             ];
 
             foreach ($required as $field) {
@@ -118,11 +125,13 @@ class AdmissionController
                         'email'       => 'Email',
                         'address'     => 'Dirección',
                         'phone'       => 'Teléfono',
-                        'course'      => 'Curso',
                     ];
                     throw new \Exception("El campo \"{$labels[$field]}\" es requerido.");
                 }
             }
+
+            // Los cursos llegan como lista de ids, cada uno con su modalidad.
+            $cursos = $this->cursosElegidos();
 
             // Validate consent
             if (empty($_POST['consent'])) {
@@ -154,9 +163,11 @@ class AdmissionController
                 'email'           => filter_var($_POST['email'], FILTER_SANITIZE_EMAIL),
                 'address'         => $sanitize($_POST['address']),
                 'phone'           => $sanitize($_POST['phone']),
-                'course'          => $sanitize($_POST['course']),
-                'course_mode'     => in_array($_POST['course_mode'] ?? 'new', ['new', 'refresher'], true)
-                                     ? $_POST['course_mode'] : 'new',
+                // Resumen de los cursos, para el listado del panel y para las
+                // 101 solicitudes antiguas que sólo tienen esta columna. El
+                // detalle de cada curso va en admission_request_courses.
+                'course'          => self::resumenCursos($cursos),
+                'course_mode'     => $cursos[0]['mode'],
                 'consent_accepted'=> isset($_POST['consent']) ? 1 : 0,
                 'capacity'        => '',
             ];
@@ -175,12 +186,11 @@ class AdmissionController
             $data['id_file']                 = null;
             $data['health_certificate_file'] = null;
 
-            // ── Adjuntos exigidos por los requisitos del curso ──────────
+            // ── Adjuntos exigidos por los requisitos de los cursos ──────
             // Se validan ANTES de crear la solicitud: si algo falla, no se
             // guarda una solicitud a medias.
             $adjuntos = $this->validarAdjuntosDeRequisitos(
-                $data['course'],
-                $data['course_mode'],
+                $cursos,
                 $uploadDir,
                 $allowedExtensions,
                 $maxFileSize,
@@ -190,17 +200,34 @@ class AdmissionController
             // Save to database
             $requestId = $this->admissionRequest->create($data);
 
+            if ($requestId) {
+                $this->admissionRequest->saveCourses((int) $requestId, $cursos);
+            }
+
             if ($requestId && $adjuntos) {
                 $db = \Core\Database::getInstance();
                 foreach ($adjuntos as $a) {
-                    $db->insert('admission_request_files', [
+                    $fileId = $db->insert('admission_request_files', [
                         'admission_request_id' => (int) $requestId,
-                        'requirement_id'       => $a['requirement_id'],
+                        // Se guarda el primero para no romper lo que ya lee
+                        // esta columna; la lista completa va en la tabla de
+                        // enlace, porque un mismo documento puede cubrir el
+                        // requisito de varios cursos a la vez.
+                        'requirement_id'       => $a['requirement_ids'][0],
                         'label'                => $a['label'],
                         'file_path'            => $a['file_path'],
                         'original_name'        => $a['original_name'],
                         'size_bytes'           => $a['size_bytes'],
                     ]);
+
+                    if ($fileId) {
+                        foreach ($a['requirement_ids'] as $reqId) {
+                            $db->insert('admission_request_file_requirements', [
+                                'file_id'        => (int) $fileId,
+                                'requirement_id' => (int) $reqId,
+                            ]);
+                        }
+                    }
                 }
             }
 
@@ -223,6 +250,10 @@ class AdmissionController
 
             $emailData = $data;
             $emailData['full_name'] = $fullName;
+            // La lista completa, para el correo y para marcar las casillas
+            // del Word: en `course` sólo va el resumen.
+            $emailData['courses'] = $cursos;
+            $emailData['id']      = $requestId;
 
             try {
                 Email::sendAdmissionNotification($emailData);
@@ -241,43 +272,122 @@ class AdmissionController
     }
 
     /**
-     * Valida y mueve los documentos que piden los requisitos del curso.
+     * Cursos elegidos en el formulario, cada uno con su modalidad.
+     *
+     * Llegan como courses[] (ids de producto) y course_mode[<id>]. Se
+     * resuelven contra la base: así el nombre guardado es el oficial y no
+     * el que viniera en el POST, y de paso se descarta cualquier id que no
+     * corresponda a un curso activo.
+     *
+     * @return array<array{product_id:int,course_name:string,mode:string}>
+     */
+    private function cursosElegidos(): array
+    {
+        $ids = $_POST['courses'] ?? [];
+        if (!is_array($ids)) {
+            $ids = [$ids];
+        }
+
+        // Enteros, sin repetidos y sin ceros, conservando el orden de elección.
+        $ids = array_values(array_unique(array_filter(array_map('intval', $ids))));
+
+        if (!$ids) {
+            throw new \Exception('Debe seleccionar al menos un curso.');
+        }
+        if (count($ids) > self::MAX_CURSOS) {
+            throw new \Exception(sprintf(
+                'Puede solicitar como máximo %d cursos en una misma solicitud.',
+                self::MAX_CURSOS
+            ));
+        }
+
+        $db     = \Core\Database::getInstance();
+        $modos  = is_array($_POST['course_mode'] ?? null) ? $_POST['course_mode'] : [];
+        $cursos = [];
+
+        foreach ($ids as $id) {
+            $producto = $db->fetchOne(
+                "SELECT id, name FROM products WHERE id = ? AND status = 'active' LIMIT 1",
+                [$id]
+            );
+            if (!$producto) {
+                throw new \Exception('Uno de los cursos seleccionados ya no está disponible. Vuelva a elegirlo.');
+            }
+
+            $modo = $modos[$id] ?? 'new';
+
+            $cursos[] = [
+                'product_id'  => (int) $producto['id'],
+                'course_name' => $producto['name'],
+                'mode'        => in_array($modo, ['new', 'refresher'], true) ? $modo : 'new',
+            ];
+        }
+
+        return $cursos;
+    }
+
+    /**
+     * Texto corto de los cursos para la columna `course`, que es VARCHAR(200).
+     *
+     * Con varios cursos no caben todos los nombres, así que se guarda el
+     * primero y cuántos más hay. El detalle completo está en
+     * admission_request_courses.
+     */
+    private static function resumenCursos(array $cursos): string
+    {
+        $primero = $cursos[0]['course_name'];
+        $resto   = count($cursos) - 1;
+
+        if ($resto < 1) {
+            return mb_substr($primero, 0, 200);
+        }
+
+        $sufijo = " (+{$resto})";
+
+        return mb_substr($primero, 0, 200 - mb_strlen($sufijo)) . $sufijo;
+    }
+
+    /**
+     * Valida y mueve los documentos que piden los requisitos de los cursos.
+     *
+     * Los requisitos de todos los cursos elegidos se unifican por texto: si
+     * cuatro cursos piden «ID / PASSPORT», se pide un solo archivo y ese
+     * archivo queda apuntado contra los cuatro requisitos. Sin esto, el
+     * solicitante subiría su pasaporte cuatro veces.
      *
      * Devuelve los datos listos para insertar en admission_request_files.
      * Lanza excepción ante cualquier problema, de modo que la solicitud no
      * llegue a crearse si los adjuntos no están completos.
      *
-     * @return array<array{requirement_id:int,label:string,file_path:string,original_name:string,size_bytes:int}>
+     * @param array<array{product_id:int,course_name:string,mode:string}> $cursos
+     * @return array<array{requirement_ids:int[],label:string,file_path:string,original_name:string,size_bytes:int}>
      */
     private function validarAdjuntosDeRequisitos(
-        string $courseName,
-        string $mode,
+        array $cursos,
         string $uploadDir,
         array $allowedExtensions,
         int $maxFileSize,
         string $maxLabel
     ): array {
-        $db = \Core\Database::getInstance();
+        $modelo = new \Core\Models\CourseRequirement();
 
-        $producto = $db->fetchOne(
-            "SELECT id FROM products WHERE name = ? AND status = 'active' LIMIT 1",
-            [$courseName]
+        // La misma función que alimenta el formulario: si divergieran, aquí
+        // se pedirían archivos que la página nunca llegó a mostrar.
+        $grupos = array_filter(
+            $modelo->unificadosParaCursos($cursos),
+            static fn($g) => $g['adjunto']
         );
-        if (!$producto) {
-            return [];   // curso sin ficha de producto: no hay requisitos que exigir
-        }
-
-        $modelo    = new \Core\Models\CourseRequirement();
-        $exigidos  = $modelo->adjuntosRequeridos((int) $producto['id'], $mode);
-        if (!$exigidos) {
+        if (!$grupos) {
             return [];
         }
 
         $entrantes = $_FILES['req_file'] ?? null;
         $resultado = [];
 
-        foreach ($exigidos as $reqId => $label) {
-            $error = $entrantes['error'][$reqId] ?? UPLOAD_ERR_NO_FILE;
+        foreach ($grupos as $g) {
+            $clave = $g['grupo'];
+            $label = $g['label'];
+            $error = $entrantes['error'][$clave] ?? UPLOAD_ERR_NO_FILE;
 
             if ($error === UPLOAD_ERR_NO_FILE) {
                 throw new \Exception("Falta adjuntar el documento: «{$label}».");
@@ -286,13 +396,13 @@ class AdmissionController
                 throw new \Exception("«{$label}»: el archivo supera el máximo permitido ({$maxLabel}).");
             }
             if ($error !== UPLOAD_ERR_OK) {
-                error_log("Admisión: error de carga {$error} en el requisito {$reqId}");
+                error_log("Admisión: error de carga {$error} en el requisito «{$label}»");
                 throw new \Exception("«{$label}»: no se pudo procesar el archivo. Inténtalo de nuevo.");
             }
 
-            $tmp       = $entrantes['tmp_name'][$reqId];
-            $nombre    = (string) $entrantes['name'][$reqId];
-            $tamano    = (int) $entrantes['size'][$reqId];
+            $tmp       = $entrantes['tmp_name'][$clave];
+            $nombre    = (string) $entrantes['name'][$clave];
+            $tamano    = (int) $entrantes['size'][$clave];
             $extension = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
 
             if (!\in_array($extension, $allowedExtensions, true)) {
@@ -312,13 +422,14 @@ class AdmissionController
                 throw new \Exception("«{$label}»: tipo de archivo no permitido.");
             }
 
-            $destino = uniqid('req_' . $reqId . '_', true) . '.' . $extension;
+            $destino = uniqid('req_' . $clave . '_', true) . '.' . $extension;
             if (!move_uploaded_file($tmp, $uploadDir . $destino)) {
                 throw new \Exception("«{$label}»: no se pudo guardar el archivo en el servidor.");
             }
 
             $resultado[] = [
-                'requirement_id' => (int) $reqId,
+                // Todos los requisitos que este único archivo satisface.
+                'requirement_ids' => $g['requirement_ids'],
                 'label'          => $label,
                 // El servidor sirve public/ como raíz, así que la URL NO
                 // lleva ese segmento: con /public delante daba 404 y los
