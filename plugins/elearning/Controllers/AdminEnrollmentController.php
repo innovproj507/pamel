@@ -24,29 +24,63 @@ class AdminEnrollmentController extends BaseController
     public function index()
     {
         $this->requireCan('lms.students.view');
-        
-        $view = new View();
-        
-        // Get Student Users with Enrollment count
+
+        // Filas por página: lista cerrada, porque el valor entra en el LIMIT.
+        $perPage = (int)($_GET['per_page'] ?? 20);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) { $perPage = 20; }
+        $page    = max(1, (int)($_GET['page'] ?? 1));
+        $q       = trim($_GET['q'] ?? '');
+        $status  = $_GET['status'] ?? '';
+
+        $where  = ["u.role = 'student'"];
+        $params = [];
+
+        if ($q !== '') {
+            $where[]  = '(u.name LIKE ? OR u.email LIKE ?)';
+            $params[] = "%{$q}%";
+            $params[] = "%{$q}%";
+        }
+        if (in_array($status, ['active', 'inactive'], true)) {
+            $where[]  = 'u.status = ?';
+            $params[] = $status;
+        }
+        $whereStr = implode(' AND ', $where);
+
+        // Un único recuento para el paginador y los recuadros de resumen.
+        $stats = $this->db->fetchOne(
+            "SELECT COUNT(*) total,
+                    SUM(u.status = 'active')   activos,
+                    SUM(u.status = 'inactive') bloqueados,
+                    COALESCE(SUM((SELECT COUNT(*) FROM lms_enrollments WHERE student_id = u.id)), 0) inscripciones
+               FROM users u
+              WHERE {$whereStr}",
+            $params
+        ) ?: [];
+
+        $total  = (int)($stats['total'] ?? 0);
+        $offset = ($page - 1) * $perPage;
+
         $students = $this->db->fetchAll(
-            "SELECT u.*, 
+            "SELECT u.*,
                     (SELECT COUNT(*) FROM lms_enrollments WHERE student_id = u.id) as course_count
              FROM users u
-             WHERE u.role = 'student'
-             ORDER BY u.created_at DESC"
+             WHERE {$whereStr}
+             ORDER BY u.created_at DESC
+             LIMIT {$perPage} OFFSET {$offset}",
+            $params
         );
 
-        // Stats
-        $stats = [
-            'total'  => count($students),
-            'active' => count(array_filter($students, fn($s) => $s['status'] === 'active')),
-            'blocked'=> count(array_filter($students, fn($s) => $s['status'] === 'inactive')),
-        ];
-
+        $view = new View();
         $view->render('admin/views/lms/students/index', [
-            'title'    => 'Gestión de Estudiantes',
-            'students' => $students,
-            'stats'    => $stats,
+            'title'        => 'Gestión de Estudiantes',
+            'students'     => $students,
+            'stats'        => $stats,
+            'total'        => $total,
+            'page'         => $page,
+            'perPage'      => $perPage,
+            'lastPage'     => (int)ceil($total / $perPage),
+            'q'            => $q,
+            'filterStatus' => $status,
         ], 'admin/views/layout');
     }
 

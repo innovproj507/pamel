@@ -1,122 +1,178 @@
-<div class="mb-8">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+<?php
+/**
+ * Listado de instructores del panel.
+ *
+ * Los recuadros de resumen reflejan los filtros activos, no el claustro
+ * entero: la cifra grande de «Instructores» es la misma que la del paginador.
+ */
+$q            = $q ?? '';
+$filterStatus = $filterStatus ?? '';
+$stats        = $stats   ?? [];
+$total        = (int)($total    ?? 0);
+$page         = (int)($page     ?? 1);
+$perPage      = (int)($perPage  ?? 20);
+$lastPage     = (int)($lastPage ?? 1);
+
+$hayFiltros = $q !== '' || $filterStatus !== '';
+
+$recuadros = [
+    ['Instructores', $total],
+    ['Activos',      (int)($stats['activos']    ?? 0)],
+    ['Bloqueados',   (int)($stats['bloqueados'] ?? 0)],
+    ['Cursos asignados', (int)($stats['cursos'] ?? 0)],
+];
+
+// Tinte del redondel: estable por persona, para reconocerla entre páginas.
+$tintes = ['', 'av-verde', 'av-ambar', 'av-rosa', 'av-violeta', 'av-cian'];
+?>
+
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Instructores</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($total) ?> instructor<?= $total === 1 ? '' : 'es' ?> encontrado<?= $total === 1 ? '' : 's' ?>
+        </p>
+    </div>
+
+    <div class="flex items-center gap-2.5 flex-wrap lg:ml-auto">
+        <a href="/manager/lms/students" class="btn-sec">
+            <i data-lucide="users" class="ic ic-14"></i> Ver Estudiantes
+        </a>
+        <a href="/manager/users/create?role=teacher" class="btn-primario">
+            <i data-lucide="plus" class="ic ic-16"></i> Nuevo Instructor
+        </a>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+
+    <!-- Barra de filtros -->
+    <form method="GET" action="/manager/lms/teachers"
+          class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
+
         <div>
-            <h1 class="text-3xl font-black text-slate-800">Instructores</h1>
-            <p class="text-slate-500 font-medium"><?= $stats['total'] ?> instructores registrados</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <a href="/manager/users/create?role=teacher" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold transition shadow-lg shadow-blue-600/20">
-                <i class="fas fa-user-plus"></i> Nuevo Instructor
-            </a>
-            <div class="flex bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-                <a href="/manager/lms/students" class="px-4 py-1.5 rounded-lg text-slate-500 font-bold text-sm hover:bg-slate-50">
-                    Estudiantes
-                </a>
-                <a href="/manager/lms/teachers" class="px-4 py-1.5 rounded-lg bg-blue-600 text-white font-bold text-sm shadow-sm">
-                    Instructores
-                </a>
+            <label class="filtro-rot" for="f-q">Buscar</label>
+            <div class="relative">
+                <i data-lucide="search" class="ic ic-14 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="text" id="f-q" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES) ?>"
+                       placeholder="Buscar por nombre o correo…"
+                       class="campo" style="padding-left:32px; width:250px; border-radius:999px">
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Stats Cards -->
-<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
         <div>
-            <p class="text-4xl font-black text-slate-800"><?= $stats['total'] ?></p>
-            <p class="text-sm font-bold text-slate-400 uppercase tracking-wider">Total Instructores</p>
+            <label class="filtro-rot" for="f-estado">Estado</label>
+            <select id="f-estado" name="status" class="campo" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                <option value="active"   <?= $filterStatus === 'active'   ? 'selected' : '' ?>>Activo</option>
+                <option value="inactive" <?= $filterStatus === 'inactive' ? 'selected' : '' ?>>Bloqueado</option>
+            </select>
         </div>
-        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl">
-            <i class="fas fa-chalkboard-teacher"></i>
-        </div>
-    </div>
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-        <div>
-            <p class="text-4xl font-black text-slate-800"><?= $stats['active'] ?></p>
-            <p class="text-sm font-bold text-slate-400 uppercase tracking-wider">Activos</p>
-        </div>
-        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-xl">
-            <i class="fas fa-check-circle"></i>
-        </div>
-    </div>
-    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
-        <div>
-            <p class="text-4xl font-black text-slate-800"><?= $stats['blocked'] ?></p>
-            <p class="text-sm font-bold text-slate-400 uppercase tracking-wider">Bloqueados</p>
-        </div>
-        <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center text-xl">
-            <i class="fas fa-user-slash"></i>
-        </div>
-    </div>
-</div>
 
-<!-- Table -->
-<div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden mb-6">
+        <button type="submit" class="btn-sec">
+            <i data-lucide="search" class="ic ic-14"></i> Buscar
+        </button>
+
+        <?php if ($hayFiltros): ?>
+        <a href="/manager/lms/teachers" class="btn-sec">
+            <i data-lucide="x" class="ic ic-14"></i> Limpiar
+        </a>
+        <?php endif; ?>
+
+        <input type="hidden" name="per_page" value="<?= $perPage ?>">
+    </form>
+
+    <!-- Resumen del conjunto filtrado -->
+    <div class="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <?php foreach ($recuadros as [$etiqueta, $valor]): ?>
+        <div class="kpi">
+            <div class="kpi-label"><?= $etiqueta ?></div>
+            <div class="kpi-value"><?= number_format($valor) ?></div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Tabla -->
     <div class="overflow-x-auto">
-        <table class="w-full text-left">
+        <table class="tabla">
             <thead>
-                <tr class="bg-slate-50/50">
-                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Instructor</th>
-                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</th>
-                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Cursos asignados</th>
-                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Estado</th>
-                    <th class="px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Acciones</th>
+                <tr>
+                    <th>Instructor</th>
+                    <th>Estado</th>
+                    <th class="centro">Cursos</th>
+                    <th>Alta</th>
+                    <th class="num">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-50">
+            <tbody>
                 <?php if (empty($teachers)): ?>
                 <tr>
-                    <td colspan="5" class="px-8 py-16 text-center text-slate-400">
-                        <i class="fas fa-chalkboard-teacher text-3xl mb-3 block opacity-30"></i>
-                        <p class="font-semibold text-sm">Todavía no hay instructores registrados.</p>
-                        <a href="/manager/users/create?role=teacher" class="text-blue-500 text-xs mt-1 inline-block hover:underline">Crear el primero</a>
+                    <td colspan="5" class="vacio">
+                        <i data-lucide="search-x" class="ic"></i>
+                        <p><?= $hayFiltros ? 'No se encontraron instructores con esos filtros.' : 'Todavía no hay instructores registrados.' ?></p>
+                        <a href="<?= $hayFiltros ? '/manager/lms/teachers' : '/manager/users/create?role=teacher' ?>"
+                           class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            <?= $hayFiltros ? 'Limpiar filtros' : 'Crear el primero' ?>
+                        </a>
                     </td>
                 </tr>
                 <?php else: ?>
                 <?php foreach ($teachers as $t):
-                    $initials = strtoupper(substr($t['name'], 0, 1) . substr(explode(' ', $t['name'])[1] ?? '', 0, 1));
-                    $colors = ['bg-blue-500', 'bg-emerald-500', 'bg-rose-500', 'bg-amber-500', 'bg-indigo-500', 'bg-cyan-500', 'bg-violet-500'];
-                    $bgColor = $colors[ord($t['name']) % count($colors)];
+                    $nombre  = trim($t['name']);
+                    $inicial = mb_strtoupper(mb_substr($nombre, 0, 1, 'UTF-8'), 'UTF-8');
+                    $tinte   = $tintes[(int)$t['id'] % count($tintes)];
+                    $cursos  = (int)($t['course_count'] ?? 0);
+                    $activo  = $t['status'] === 'active';
                 ?>
-                <tr class="hover:bg-slate-50/50 transition-colors">
-                    <td class="px-6 py-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-2xl <?= $bgColor ?> text-white flex items-center justify-center font-black text-xs shadow-lg shadow-<?= str_replace('bg-', '', $bgColor) ?>/20">
-                                <?= $initials ?>
+                <tr>
+
+                    <!-- Instructor: inicial, nombre y correo -->
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar-ini <?= $tinte ?>"><?= htmlspecialchars($inicial) ?></div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-[12.5px] text-slate-800 truncate" style="max-width:280px">
+                                    <?= htmlspecialchars($nombre) ?>
+                                </div>
+                                <div class="text-[11px] font-semibold text-slate-400 truncate" style="max-width:280px">
+                                    <?= htmlspecialchars($t['email']) ?>
+                                </div>
                             </div>
-                            <span class="font-bold text-slate-700"><?= htmlspecialchars($t['name']) ?></span>
                         </div>
                     </td>
-                    <td class="px-6 py-4">
-                        <span class="text-sm font-medium text-slate-400"><?= htmlspecialchars($t['email']) ?></span>
+
+                    <!-- Estado -->
+                    <td>
+                        <span class="pastilla <?= $activo ? 'p-verde' : 'p-rojo' ?>">
+                            <span class="punto"></span><?= $activo ? 'Activo' : 'Bloqueado' ?>
+                        </span>
                     </td>
-                    <td class="px-6 py-4 text-center">
-                        <a href="/manager/lms/courses?teacher_id=<?= $t['id'] ?>"
-                           class="inline-flex items-center justify-center min-w-8 h-8 px-2 rounded-xl bg-blue-50 text-blue-600 font-black text-xs hover:bg-blue-100 transition-colors">
-                            <?= (int) $t['course_count'] ?>
-                        </a>
+
+                    <!-- Cursos asignados -->
+                    <td class="centro">
+                        <a href="/manager/lms/courses?teacher_id=<?= $t['id'] ?>" class="pastilla p-azul"
+                           title="Ver sus cursos"><?= $cursos ?></a>
                     </td>
-                    <td class="px-6 py-4 text-center">
-                        <?php if ($t['status'] === 'active'): ?>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider">
-                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Activo
-                            </span>
-                        <?php else: ?>
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-rose-100 text-rose-700 text-[10px] font-black uppercase tracking-wider">
-                                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                                Bloqueado
-                            </span>
-                        <?php endif; ?>
+
+                    <!-- Alta -->
+                    <td class="text-slate-400 text-[11.5px] whitespace-nowrap">
+                        <?= !empty($t['created_at']) ? date('d/m/Y', strtotime($t['created_at'])) : '—' ?>
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2">
-                            <a href="/manager/lms/courses?teacher_id=<?= $t['id'] ?>" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors text-[10px] font-black uppercase">
-                                <i class="fas fa-graduation-cap"></i> Ver Cursos
+
+                    <!-- Acciones -->
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="/manager/lms/courses?teacher_id=<?= $t['id'] ?>" class="acc acc-azul" title="Ver sus cursos">
+                                <i data-lucide="graduation-cap" class="ic" style="width:12px;height:12px"></i> Ver Cursos
                             </a>
-                            <a href="/manager/users/<?= $t['id'] ?>/edit" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors text-[10px] font-black uppercase">
-                                <i class="fas fa-edit"></i> Editar
+                            <a href="/manager/users/<?= $t['id'] ?>/edit" class="acc acc-gris" title="Editar usuario">
+                                <i data-lucide="pencil" class="ic" style="width:12px;height:12px"></i> Editar
                             </a>
                         </div>
                     </td>
@@ -126,4 +182,10 @@
             </tbody>
         </table>
     </div>
+
+    <?php
+    $ruta    = '/manager/lms/teachers';
+    $filtros = ['q' => $q, 'status' => $filterStatus];
+    include \Core\Config::get('paths.root') . '/admin/views/partials/paginador.php';
+    ?>
 </div>

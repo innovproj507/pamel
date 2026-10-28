@@ -1,224 +1,208 @@
-<div class="space-y-6">
-    <!-- Header -->
-    <div class="sm:flex sm:items-center sm:justify-between">
+<?php
+/** Listado de usuarios del panel. */
+$users        = $users ?? [];
+$search       = $search       ?? '';
+$roleFilter   = $roleFilter   ?? '';
+$statusFilter = $statusFilter ?? '';
+$totalUsers   = (int)($totalUsers  ?? 0);
+$currentPage  = (int)($currentPage ?? 1);
+$totalPages   = (int)($totalPages  ?? 1);
+$perPage      = (int)($perPage     ?? 20);
+
+$hayFiltros = $search !== '' || $roleFilter !== '' || $statusFilter !== '';
+
+// Roles reales del sistema, con su nombre en español y su tinte.
+$roles = [
+    'admin'             => ['Administrador',     'p-violeta'],
+    'academic_director' => ['Director Académico','p-indigo'],
+    'teacher'           => ['Instructor',        'p-azul'],
+    'student'           => ['Estudiante',        'p-verde'],
+    'editor'            => ['Editor',            'p-ambar'],
+    'customer'          => ['Cliente',           'p-gris'],
+];
+
+// Tinte del redondel: estable por persona, para reconocerla entre páginas.
+$tintes = ['', 'av-verde', 'av-ambar', 'av-rosa', 'av-violeta', 'av-cian'];
+?>
+
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Usuarios</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($totalUsers) ?> usuario<?= $totalUsers === 1 ? '' : 's' ?> encontrado<?= $totalUsers === 1 ? '' : 's' ?>
+        </p>
+    </div>
+
+    <div class="flex items-center gap-2.5 flex-wrap lg:ml-auto">
+        <a href="/manager/users/create" class="btn-primario">
+            <i data-lucide="user-plus" class="ic ic-16"></i> Crear Usuario
+        </a>
+    </div>
+</div>
+
+<?php if (isset($_GET['success'])): ?>
+<div class="card card-pad mb-4 flex items-center gap-3" style="border-color:#bbf7d0; background:#f0fdf4">
+    <i data-lucide="circle-check" class="ic ic-17 text-emerald-600 flex-shrink-0"></i>
+    <p class="text-[12.5px] font-bold text-emerald-800"><?= htmlspecialchars($_GET['success']) ?></p>
+</div>
+<?php endif; ?>
+
+<?php if (isset($_GET['error'])): ?>
+<div class="card card-pad mb-4 flex items-center gap-3" style="border-color:#fecaca; background:#fef2f2">
+    <i data-lucide="circle-alert" class="ic ic-17 text-rose-600 flex-shrink-0"></i>
+    <p class="text-[12.5px] font-bold text-rose-800"><?= htmlspecialchars($_GET['error']) ?></p>
+</div>
+<?php endif; ?>
+
+<div class="card overflow-hidden">
+
+    <!-- Barra de filtros -->
+    <form method="GET" action="/manager/users"
+          class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
+
         <div>
-            <h1 class="text-3xl font-bold text-gray-900 tracking-tight">Users</h1>
-            <p class="mt-2 text-sm text-gray-600">Gestión de usuarios registrados en la plataforma.</p>
-        </div>
-        <div class="mt-4 sm:mt-0">
-            <a href="/manager/users/create" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-all">
-                <i class="fas fa-user-plus mr-2"></i> Crear Usuario
-            </a>
-        </div>
-    </div>
-
-    <?php if (isset($_GET['success'])): ?>
-    <div class="rounded-md bg-green-50 p-4 border-l-4 border-green-400">
-        <p class="text-sm font-medium text-green-800"><i class="fas fa-check-circle mr-2"></i><?php echo htmlspecialchars($_GET['success']); ?></p>
-    </div>
-    <?php endif; ?>
-
-    <?php if (isset($_GET['error'])): ?>
-    <div class="rounded-md bg-red-50 p-4 border-l-4 border-red-400">
-        <p class="text-sm font-medium text-red-800"><i class="fas fa-exclamation-circle mr-2"></i><?php echo htmlspecialchars($_GET['error']); ?></p>
-    </div>
-    <?php endif; ?>
-
-    <!-- Search & Filters -->
-    <form method="GET" action="/manager/users" class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-        <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
-            <!-- Search -->
-            <div class="sm:col-span-2 relative">
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <i class="fas fa-search text-gray-400 text-sm"></i>
-                </div>
-                <input type="text" name="search" value="<?php echo htmlspecialchars($search); ?>"
-                       placeholder="Buscar por nombre o email..."
-                       class="block w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+            <label class="filtro-rot" for="f-q">Buscar</label>
+            <div class="relative">
+                <i data-lucide="search" class="ic ic-14 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="text" id="f-q" name="search" value="<?= htmlspecialchars($search, ENT_QUOTES) ?>"
+                       placeholder="Buscar por nombre o correo…"
+                       class="campo" style="padding-left:32px; width:250px; border-radius:999px">
             </div>
+        </div>
 
-            <!-- Role filter -->
-            <select name="role" class="block w-full py-2 px-3 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+        <div>
+            <label class="filtro-rot" for="f-rol">Rol</label>
+            <select id="f-rol" name="role" class="campo" onchange="this.form.submit()">
                 <option value="">Todos los roles</option>
-                <option value="admin"    <?php echo $roleFilter   === 'admin'    ? 'selected' : ''; ?>>Admin</option>
-                <option value="student"  <?php echo $roleFilter   === 'student'  ? 'selected' : ''; ?>>Student</option>
-                <option value="customer" <?php echo $roleFilter   === 'customer' ? 'selected' : ''; ?>>Customer</option>
+                <?php foreach ($roles as $clave => [$nombre, $_]): ?>
+                <option value="<?= $clave ?>" <?= $roleFilter === $clave ? 'selected' : '' ?>><?= $nombre ?></option>
+                <?php endforeach; ?>
             </select>
+        </div>
 
-            <!-- Status filter -->
-            <select name="status" class="block w-full py-2 px-3 border border-gray-300 rounded-lg text-sm focus:ring-indigo-500 focus:border-indigo-500">
+        <div>
+            <label class="filtro-rot" for="f-estado">Estado</label>
+            <select id="f-estado" name="status" class="campo" onchange="this.form.submit()">
                 <option value="">Todos los estados</option>
-                <option value="active"   <?php echo $statusFilter === 'active'   ? 'selected' : ''; ?>>Active</option>
-                <option value="inactive" <?php echo $statusFilter === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                <option value="active"   <?= $statusFilter === 'active'   ? 'selected' : '' ?>>Activo</option>
+                <option value="inactive" <?= $statusFilter === 'inactive' ? 'selected' : '' ?>>Bloqueado</option>
             </select>
         </div>
 
-        <div class="mt-3 flex items-center gap-2">
-            <button type="submit" class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition-all">
-                <i class="fas fa-filter mr-2"></i> Filtrar
-            </button>
-            <?php if ($search || $roleFilter || $statusFilter): ?>
-            <a href="/manager/users" class="inline-flex items-center px-4 py-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-all">
-                <i class="fas fa-times mr-2"></i> Limpiar
-            </a>
-            <?php endif; ?>
-            <span class="text-sm text-gray-500 ml-2">
-                <?php echo $totalUsers; ?> usuario<?php echo $totalUsers !== 1 ? 's' : ''; ?> encontrado<?php echo $totalUsers !== 1 ? 's' : ''; ?>
-            </span>
-        </div>
+        <button type="submit" class="btn-sec">
+            <i data-lucide="search" class="ic ic-14"></i> Buscar
+        </button>
+
+        <?php if ($hayFiltros): ?>
+        <a href="/manager/users" class="btn-sec">
+            <i data-lucide="x" class="ic ic-14"></i> Limpiar
+        </a>
+        <?php endif; ?>
+
+        <input type="hidden" name="per_page" value="<?= $perPage ?>">
     </form>
 
-    <!-- Table -->
-    <div class="bg-white shadow-sm border border-gray-200 rounded-xl overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">User</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Role</th>
-                        <th class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <?php if (empty($users)): ?>
-                    <tr>
-                        <td colspan="4" class="px-6 py-12 text-center">
-                            <i class="fas fa-users text-gray-300 text-4xl mb-3"></i>
-                            <p class="text-gray-500 text-sm">No se encontraron usuarios</p>
-                            <?php if ($search || $roleFilter || $statusFilter): ?>
-                            <a href="/manager/users" class="text-indigo-600 text-sm hover:underline mt-1 inline-block">Limpiar filtros</a>
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                    <?php else: ?>
-                    <?php foreach ($users as $user): ?>
-                    <?php
-                        $role   = $user['role']   ?? 'customer';
-                        $status = $user['status'] ?? 'active';
-                        $roleColors = [
-                            'admin'    => 'bg-purple-100 text-purple-700 ring-1 ring-purple-200',
-                            'student'  => 'bg-blue-100 text-blue-700 ring-1 ring-blue-200',
-                            'editor'   => 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200',
-                            'customer' => 'bg-green-100 text-green-700 ring-1 ring-green-200',
-                        ];
-                        $roleColor = $roleColors[$role] ?? $roleColors['customer'];
-                        $statusColor = $status === 'active'
-                            ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200'
-                            : 'bg-rose-100 text-rose-700 ring-1 ring-rose-200';
-                    ?>
-                    <tr class="hover:bg-gray-50 transition-colors duration-150">
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="flex items-center">
-                                <div class="h-10 w-10 flex-shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                                    <?php echo strtoupper(substr($user['name'] ?? $user['email'], 0, 1)); ?>
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Usuario</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th class="num">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($users)): ?>
+                <tr>
+                    <td colspan="4" class="vacio">
+                        <i data-lucide="search-x" class="ic"></i>
+                        <p>No se encontraron usuarios.</p>
+                        <?php if ($hayFiltros): ?>
+                        <a href="/manager/users" class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            Limpiar filtros
+                        </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php else: ?>
+                <?php foreach ($users as $user):
+                    $rol    = $user['role']   ?? 'customer';
+                    $estado = $user['status'] ?? 'active';
+                    $activo = $estado === 'active';
+                    [$rolNombre, $rolClase] = $roles[$rol] ?? [ucfirst($rol), 'p-gris'];
+                    $nombre  = trim($user['name'] ?? '') ?: $user['email'];
+                    $inicial = mb_strtoupper(mb_substr($nombre, 0, 1, 'UTF-8'), 'UTF-8');
+                    $tinte   = $tintes[(int)$user['id'] % count($tintes)];
+                ?>
+                <tr>
+
+                    <!-- Usuario: inicial, nombre y correo -->
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar-ini <?= $tinte ?>"><?= htmlspecialchars($inicial) ?></div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-[12.5px] text-slate-800 truncate" style="max-width:280px">
+                                    <?= htmlspecialchars($user['name'] ?? 'Sin nombre') ?>
                                 </div>
-                                <div class="ml-4">
-                                    <div class="text-sm font-semibold text-gray-900"><?php echo htmlspecialchars($user['name'] ?? 'N/A'); ?></div>
-                                    <div class="text-sm text-gray-500"><?php echo htmlspecialchars($user['email']); ?></div>
+                                <div class="text-[11px] font-semibold text-slate-400 truncate" style="max-width:280px">
+                                    <?= htmlspecialchars($user['email']) ?>
                                 </div>
                             </div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $roleColor; ?>">
-                                <?php echo ucfirst($role); ?>
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium <?php echo $statusColor; ?>">
-                                <span class="h-1.5 w-1.5 rounded-full mr-1.5 <?php echo $status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'; ?>"></span>
-                                <?php echo ucfirst($status); ?>
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                            <a href="/manager/users/<?php echo $user['id']; ?>/toggle-status"
-                               class="inline-flex items-center p-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-all"
-                               title="<?php echo $status === 'active' ? 'Desactivar' : 'Activar'; ?>">
-                                <i class="fas <?php echo $status === 'active' ? 'fa-user-slash text-amber-500' : 'fa-user-check text-emerald-500'; ?>"></i>
+                        </div>
+                    </td>
+
+                    <!-- Rol -->
+                    <td><span class="pastilla <?= $rolClase ?>"><?= htmlspecialchars($rolNombre) ?></span></td>
+
+                    <!-- Estado -->
+                    <td>
+                        <span class="pastilla <?= $activo ? 'p-verde' : 'p-rojo' ?>">
+                            <span class="punto"></span><?= $activo ? 'Activo' : 'Bloqueado' ?>
+                        </span>
+                    </td>
+
+                    <!-- Acciones -->
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="/manager/users/<?= $user['id'] ?>/toggle-status"
+                               class="acc <?= $activo ? 'acc-ambar' : 'acc-verde' ?>"
+                               title="<?= $activo ? 'Bloquear la cuenta' : 'Reactivar la cuenta' ?>">
+                                <i data-lucide="<?= $activo ? 'user-x' : 'user-check' ?>" class="ic" style="width:12px;height:12px"></i>
+                                <?= $activo ? 'Bloquear' : 'Activar' ?>
                             </a>
-                            <a href="/manager/users/<?php echo $user['id']; ?>/edit"
-                               class="inline-flex items-center p-2 border border-blue-300 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all"
-                               title="Editar">
-                                <i class="fas fa-edit"></i>
+                            <a href="/manager/users/<?= $user['id'] ?>/edit" class="acc acc-gris" title="Editar usuario">
+                                <i data-lucide="pencil" class="ic" style="width:12px;height:12px"></i> Editar
                             </a>
-                            <form action="/manager/users/<?php echo $user['id']; ?>/delete" method="POST" class="inline-block"
-                                  onsubmit="return confirm('¿Eliminar este usuario? Esta acción no se puede deshacer.');">
-                                <?php echo \Core\Security::getCsrfField(); ?>
-                                <button type="submit"
-                                        class="inline-flex items-center p-2 border border-rose-300 rounded-md text-rose-700 bg-rose-50 hover:bg-rose-100 transition-all"
-                                        title="Eliminar">
-                                    <i class="fas fa-trash-alt"></i>
+                            <form action="/manager/users/<?= $user['id'] ?>/delete" method="POST"
+                                  onsubmit="return confirm('¿Eliminar al usuario «<?= htmlspecialchars(addslashes($nombre), ENT_QUOTES) ?>»? Esta acción no se puede deshacer.')">
+                                <?= \Core\Security::getCsrfField() ?>
+                                <button type="submit" class="acc acc-rojo" title="Eliminar usuario">
+                                    <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar
                                 </button>
                             </form>
-                        </td>
-                    </tr>
-                    <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <?php if ($totalPages > 1): ?>
-        <?php
-            // Build base query preserving filters
-            $qp = array_filter(['search' => $search, 'role' => $roleFilter, 'status' => $statusFilter]);
-            $baseQuery = $qp ? '&' . http_build_query($qp) : '';
-            $from = ($currentPage - 1) * 10 + 1;
-            $to   = min($currentPage * 10, $totalUsers);
-        ?>
-        <div class="bg-white px-6 py-4 flex items-center justify-between border-t border-gray-200">
-            <p class="text-sm text-gray-700">
-                Mostrando <span class="font-medium"><?php echo $from; ?></span>–<span class="font-medium"><?php echo $to; ?></span>
-                de <span class="font-medium"><?php echo $totalUsers; ?></span>
-            </p>
-            <nav class="inline-flex rounded-md shadow-sm -space-x-px">
-                <!-- Prev -->
-                <?php if ($currentPage > 1): ?>
-                <a href="?page=<?php echo $currentPage - 1; ?><?php echo $baseQuery; ?>"
-                   class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm text-gray-500 hover:bg-gray-50">
-                    <i class="fas fa-chevron-left"></i>
-                </a>
-                <?php else: ?>
-                <span class="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-200 bg-gray-50 text-sm text-gray-300 cursor-not-allowed">
-                    <i class="fas fa-chevron-left"></i>
-                </span>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
                 <?php endif; ?>
-
-                <!-- Page numbers -->
-                <?php
-                    $start = max(1, $currentPage - 2);
-                    $end   = min($totalPages, $currentPage + 2);
-                    if ($start > 1): ?>
-                        <a href="?page=1<?php echo $baseQuery; ?>" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm text-gray-500 hover:bg-gray-50">1</a>
-                        <?php if ($start > 2): ?><span class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm text-gray-400">…</span><?php endif; ?>
-                    <?php endif; ?>
-
-                <?php for ($i = $start; $i <= $end; $i++): ?>
-                    <a href="?page=<?php echo $i; ?><?php echo $baseQuery; ?>"
-                       class="relative inline-flex items-center px-4 py-2 border text-sm font-medium <?php echo $i === $currentPage ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'; ?>">
-                        <?php echo $i; ?>
-                    </a>
-                <?php endfor; ?>
-
-                <?php if ($end < $totalPages): ?>
-                    <?php if ($end < $totalPages - 1): ?><span class="relative inline-flex items-center px-3 py-2 border border-gray-300 bg-white text-sm text-gray-400">…</span><?php endif; ?>
-                    <a href="?page=<?php echo $totalPages; ?><?php echo $baseQuery; ?>" class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm text-gray-500 hover:bg-gray-50"><?php echo $totalPages; ?></a>
-                <?php endif; ?>
-
-                <!-- Next -->
-                <?php if ($currentPage < $totalPages): ?>
-                <a href="?page=<?php echo $currentPage + 1; ?><?php echo $baseQuery; ?>"
-                   class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm text-gray-500 hover:bg-gray-50">
-                    <i class="fas fa-chevron-right"></i>
-                </a>
-                <?php else: ?>
-                <span class="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-200 bg-gray-50 text-sm text-gray-300 cursor-not-allowed">
-                    <i class="fas fa-chevron-right"></i>
-                </span>
-                <?php endif; ?>
-            </nav>
-        </div>
-        <?php endif; ?>
+            </tbody>
+        </table>
     </div>
+
+    <?php
+    $ruta     = '/manager/users';
+    $total    = $totalUsers;
+    $page     = $currentPage;
+    $lastPage = $totalPages;
+    $filtros  = ['search' => $search, 'role' => $roleFilter, 'status' => $statusFilter];
+    include \Core\Config::get('paths.root') . '/admin/views/partials/paginador.php';
+    ?>
 </div>

@@ -2,11 +2,9 @@
 /**
  * Listado de encuestas de satisfacción.
  *
- * La tabla se salía de la pantalla por la derecha y la columna de acciones
- * quedaba fuera: ocho columnas con px-6 py-4 y el nombre del curso sin
- * límite de ancho. Ahora el relleno es menor, los anchos van en porcentaje
- * y lo que no cabe se corta con puntos suspensivos, con el texto completo
- * en el title.
+ * Cuatro columnas de valoración más el curso: el ancho manda. El relleno es
+ * corto, los textos largos se cortan con puntos suspensivos y el completo
+ * queda en el title.
  *
  * Valores por defecto arriba para que la vista se dibuje aunque el
  * controlador no mande las filas por pantalla.
@@ -15,10 +13,16 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 $success = $_SESSION['success'] ?? '';
-$error = $_SESSION['error'] ?? '';
+$error   = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
-$perPage        = $perPage        ?? 20;
+$surveys        = $surveys ?? [];
+$courses        = $courses ?? [];
+$filters        = $filters ?? ['course' => '', 'rating' => '', 'date_from' => '', 'date_to' => ''];
+$total          = (int) ($total ?? 0);
+$page           = (int) ($page ?? 1);
+$totalPages     = (int) ($totalPages ?? 1);
+$perPage        = (int) ($perPage ?? 20);
 $perPageOptions = $perPageOptions ?? [10, 20, 50, 100];
 
 /**
@@ -30,14 +34,14 @@ $perPageOptions = $perPageOptions ?? [10, 20, 50, 100];
  */
 function getRatingBadge($rating) {
     $estilos = [
-        'A-Buena'   => ['bg-emerald-50 text-emerald-700 border-emerald-200', 'Buena'],
-        'B-Regular' => ['bg-amber-50 text-amber-700 border-amber-200',       'Regular'],
-        'C-Mala'    => ['bg-rose-50 text-rose-700 border-rose-200',          'Mala'],
+        'A-Buena'   => ['p-verde', 'Buena'],
+        'B-Regular' => ['p-ambar', 'Regular'],
+        'C-Mala'    => ['p-rojo',  'Mala'],
     ];
-    [$clase, $texto] = $estilos[$rating] ?? ['bg-gray-50 text-gray-500 border-gray-200', $rating ?: '—'];
+    [$clase, $texto] = $estilos[$rating] ?? ['p-gris', $rating ?: '—'];
 
     return sprintf(
-        '<span class="inline-block px-1.5 py-0.5 rounded-md border text-[11px] font-semibold %s" title="%s">%s</span>',
+        '<span class="pastilla %s" title="%s">%s</span>',
         $clase,
         htmlspecialchars((string) $rating),
         htmlspecialchars((string) $texto)
@@ -46,7 +50,7 @@ function getRatingBadge($rating) {
 
 /** URL conservando filtros y filas por pantalla. */
 $enlace = static function (int $p) use ($filters, $perPage): string {
-    return '?' . http_build_query(array_filter([
+    return '/manager/satisfaction-surveys?' . http_build_query(array_filter([
         'page'      => $p,
         'course'    => $filters['course'],
         'rating'    => $filters['rating'],
@@ -59,247 +63,263 @@ $enlace = static function (int $p) use ($filters, $perPage): string {
 $hayFiltros = $filters['course'] || $filters['rating'] || $filters['date_from'] || $filters['date_to'];
 $primero = $total === 0 ? 0 : (($page - 1) * $perPage) + 1;
 $ultimo  = min($page * $perPage, $total);
+
+// Reparto de valoraciones de la página visible, para los recuadros.
+$buenas   = 0; $regulares = 0; $malas = 0;
+$columnas = ['staff_attention_rating', 'training_quality_rating',
+             'instructor_performance_rating', 'infrastructure_rating'];
+foreach ($surveys as $s) {
+    foreach ($columnas as $c) {
+        if (($s[$c] ?? '') === 'A-Buena')   { $buenas++; }
+        if (($s[$c] ?? '') === 'B-Regular') { $regulares++; }
+        if (($s[$c] ?? '') === 'C-Mala')    { $malas++; }
+    }
+}
 ?>
 
-<div class="container mx-auto px-4 py-5">
-    <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-900">
-            <i class="fas fa-poll text-blue-600 mr-2"></i>Encuestas de Satisfacción
-        </h1>
-        <span class="text-sm text-gray-600">Total: <?= (int) $total ?></span>
-    </div>
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
 
-    <?php if ($success): ?>
-        <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-4">
-            <?= htmlspecialchars($success) ?>
-        </div>
-    <?php endif; ?>
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
 
-    <?php if ($error): ?>
-        <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded mb-4">
-            <?= htmlspecialchars($error) ?>
-        </div>
-    <?php endif; ?>
-
-    <!--
-        Filtros en una sola línea. Antes ocupaban una rejilla de cuatro
-        columnas más una fila de botones, y con la tarjeta de "Mostrando
-        X de Y" encima de la tabla había que bajar la pantalla entera para
-        ver las primeras encuestas.
-    -->
-    <form method="GET" action="/manager/satisfaction-surveys"
-          class="bg-white rounded-lg shadow p-2.5 mb-4 flex flex-wrap items-center gap-2">
-
-        <select name="course" onchange="this.form.submit()"
-                class="flex-1 min-w-[200px] max-w-[320px] py-2 pl-3 pr-8 text-[13px] border border-gray-200 rounded-lg bg-white focus:border-blue-500 focus:outline-none transition cursor-pointer">
-            <option value="">Todos los cursos</option>
-            <?php foreach ($courses as $course): ?>
-                <option value="<?= htmlspecialchars($course['course_name']) ?>"
-                        <?= $filters['course'] === $course['course_name'] ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($course['course_name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-
-        <select name="rating" onchange="this.form.submit()"
-                class="py-2 pl-3 pr-8 text-[13px] border border-gray-200 rounded-lg bg-white focus:border-blue-500 focus:outline-none transition cursor-pointer">
-            <option value="">Todas las calificaciones</option>
-            <option value="A-Buena"   <?= $filters['rating'] === 'A-Buena'   ? 'selected' : '' ?>>A - Buena</option>
-            <option value="B-Regular" <?= $filters['rating'] === 'B-Regular' ? 'selected' : '' ?>>B - Regular</option>
-            <option value="C-Mala"    <?= $filters['rating'] === 'C-Mala'    ? 'selected' : '' ?>>C - Mala</option>
-        </select>
-
-        <label class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">
-            Desde
-            <input type="date" name="date_from" value="<?= htmlspecialchars($filters['date_from']) ?>"
-                   class="py-2 px-2.5 text-[13px] font-normal normal-case tracking-normal text-gray-700 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition">
-        </label>
-
-        <label class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">
-            Hasta
-            <input type="date" name="date_to" value="<?= htmlspecialchars($filters['date_to']) ?>"
-                   class="py-2 px-2.5 text-[13px] font-normal normal-case tracking-normal text-gray-700 border border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none transition">
-        </label>
-
-        <label class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">
-            Mostrar
-            <select name="per_page" onchange="this.form.submit()"
-                    class="py-2 pl-2.5 pr-7 text-[13px] font-normal normal-case tracking-normal text-gray-700 border border-gray-200 rounded-lg bg-white focus:border-blue-500 focus:outline-none transition cursor-pointer">
-                <?php foreach ($perPageOptions as $n): ?>
-                <option value="<?= $n ?>" <?= (int) $perPage === $n ? 'selected' : '' ?>><?= $n ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-
-        <button type="submit"
-                class="px-4 py-2 text-[13px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">
-            <i class="fas fa-filter mr-1.5"></i>Filtrar
-        </button>
-
-        <?php if ($hayFiltros): ?>
-        <a href="/manager/satisfaction-surveys"
-           class="w-9 h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-rose-200 hover:text-rose-500 transition"
-           title="Limpiar filtros">
-            <i class="fas fa-times text-xs"></i>
-        </a>
-        <?php endif; ?>
-    </form>
-
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="overflow-x-auto">
-            <!--
-                w-full, no min-w-full: con min-width la tabla crece hasta caber
-                el texto más largo, el recorte nunca se aplica y las últimas
-                columnas quedan fuera de la pantalla. El min-w en píxeles es
-                el suelo por debajo del cual aparece la barra horizontal.
-            -->
-            <table class="w-full min-w-[700px] table-fixed divide-y divide-gray-200 text-[13px]">
-                <thead class="bg-gray-50">
-                    <!--
-                        Anchos en porcentaje y sumando 100 exactos, para que la
-                        tabla siga al ancho de la ventana. Ojo con la columna de
-                        acciones: si el porcentaje da menos de lo que miden sus
-                        tres botones, table-fixed no los encoge, ensancha la
-                        tabla entera y el último icono se sale. Por eso los
-                        botones son de 24px y la celda apenas tiene relleno.
-                    -->
-                    <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-normal">
-                        <th class="px-2 py-2 w-[10%]">Fecha</th>
-                        <th class="px-3 py-2 w-[20%]">Estudiante</th>
-                        <th class="px-3 py-2 w-[23%]">Curso</th>
-                        <th class="px-2 py-2 w-[9%] text-center">Personal</th>
-                        <th class="px-2 py-2 w-[9%] text-center">Calidad</th>
-                        <th class="px-2 py-2 w-[9%] text-center">Instruct.</th>
-                        <th class="px-2 py-2 w-[9%] text-center">Infraest.</th>
-                        <th class="px-1 py-2 w-[11%] text-center">Acc.</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    <?php if (empty($surveys)): ?>
-                        <tr>
-                            <td colspan="8" class="px-3 py-12 text-center text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-2"></i>
-                                <p>No se encontraron encuestas</p>
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($surveys as $survey):
-                            $nombre = trim($survey['first_name'] . ' ' . $survey['last_name']);
-                            $curso  = (string) $survey['course_name'];
-                        ?>
-                            <tr class="hover:bg-gray-50 align-middle">
-                                <?php $fecha = strtotime($survey['survey_date']); ?>
-                                <td class="px-2 py-2 whitespace-nowrap text-[12px] text-gray-500"
-                                    title="<?= date('d/m/Y', $fecha) ?>">
-                                    <?= date('d/m/y', $fecha) ?>
-                                </td>
-                                <td class="px-3 py-2">
-                                    <div class="font-semibold text-gray-900 truncate" title="<?= htmlspecialchars($nombre) ?>">
-                                        <?= htmlspecialchars($nombre) ?>
-                                    </div>
-                                    <a href="mailto:<?= htmlspecialchars($survey['email']) ?>"
-                                       class="block text-[11px] text-gray-400 truncate hover:text-blue-600"
-                                       title="<?= htmlspecialchars($survey['email']) ?>">
-                                        <?= htmlspecialchars($survey['email']) ?>
-                                    </a>
-                                </td>
-                                <td class="px-3 py-2">
-                                    <div class="truncate text-gray-800" title="<?= htmlspecialchars($curso) ?>">
-                                        <?= htmlspecialchars($curso) ?>
-                                    </div>
-                                </td>
-                                <td class="px-2 py-2 text-center">
-                                    <?= getRatingBadge($survey['staff_attention_rating']) ?>
-                                </td>
-                                <td class="px-2 py-2 text-center">
-                                    <?= getRatingBadge($survey['training_quality_rating']) ?>
-                                </td>
-                                <td class="px-2 py-2 text-center">
-                                    <?= getRatingBadge($survey['instructor_performance_rating']) ?>
-                                </td>
-                                <td class="px-2 py-2 text-center">
-                                    <?= getRatingBadge($survey['infrastructure_rating']) ?>
-                                </td>
-                                <td class="px-0.5 py-2 whitespace-nowrap text-center">
-                                    <div class="inline-flex items-center">
-                                        <a href="/manager/satisfaction-surveys/<?= $survey['id'] ?>"
-                                           class="w-6 h-6 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition"
-                                           title="Ver detalles">
-                                            <i class="fas fa-eye text-xs"></i>
-                                        </a>
-                                        <a href="/manager/satisfaction-surveys/<?= $survey['id'] ?>/download-word"
-                                           class="w-6 h-6 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition"
-                                           title="Descargar Word">
-                                            <i class="fas fa-file-word text-xs"></i>
-                                        </a>
-                                        <button onclick="deleteSurvey(<?= $survey['id'] ?>)"
-                                                class="w-6 h-6 inline-flex items-center justify-center rounded-md text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition"
-                                                title="Eliminar">
-                                            <i class="fas fa-trash text-xs"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <!--
-            Pie con el recuento y el paginador. Antes el recuento iba en una
-            tarjeta aparte encima de la tabla y el paginador pintaba TODAS
-            las páginas en una fila; ahora la ventana sigue a la actual.
-        -->
-        <?php
-        $desde = max(1, min($page - 2, $totalPages - 4));
-        $hasta = min($totalPages, max($page + 2, 5));
-        ?>
-        <div class="px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 text-[12px]">
-            <p class="text-gray-400">
-                Mostrando <strong class="text-gray-600"><?= $primero ?>–<?= $ultimo ?></strong>
-                de <strong class="text-gray-600"><?= (int) $total ?></strong> encuestas
-            </p>
-
-            <?php if ($totalPages > 1): ?>
-            <nav class="inline-flex items-center gap-1">
-                <a href="<?= $enlace(max(1, $page - 1)) ?>"
-                   class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 <?=
-                       $page <= 1 ? 'text-gray-200 pointer-events-none' : 'text-gray-400 hover:bg-gray-50' ?>"
-                   title="Anterior">
-                    <i class="fas fa-chevron-left text-[10px]"></i>
-                </a>
-
-                <?php for ($i = $desde; $i <= $hasta; $i++): ?>
-                <a href="<?= $enlace($i) ?>"
-                   class="min-w-[1.75rem] h-7 px-2 inline-flex items-center justify-center rounded-lg border font-semibold <?=
-                       $i === $page
-                           ? 'bg-blue-600 border-blue-600 text-white'
-                           : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50' ?>">
-                    <?= $i ?>
-                </a>
-                <?php endfor; ?>
-
-                <a href="<?= $enlace(min($totalPages, $page + 1)) ?>"
-                   class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 <?=
-                       $page >= $totalPages ? 'text-gray-200 pointer-events-none' : 'text-gray-400 hover:bg-gray-50' ?>"
-                   title="Siguiente">
-                    <i class="fas fa-chevron-right text-[10px]"></i>
-                </a>
-            </nav>
-            <?php endif; ?>
-        </div>
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Encuestas de Satisfacción</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($total) ?> encuesta<?= $total === 1 ? '' : 's' ?> encontrada<?= $total === 1 ? '' : 's' ?>
+        </p>
     </div>
 </div>
 
-<!-- Delete Form (hidden) -->
+<?php if ($success): ?>
+<div class="card card-pad mb-4 flex items-center gap-3" style="border-color:#bbf7d0; background:#f0fdf4">
+    <i data-lucide="circle-check" class="ic ic-17 text-emerald-600 flex-shrink-0"></i>
+    <p class="text-[12.5px] font-bold text-emerald-800"><?= htmlspecialchars($success) ?></p>
+</div>
+<?php endif; ?>
+
+<?php if ($error): ?>
+<div class="card card-pad mb-4 flex items-center gap-3" style="border-color:#fecaca; background:#fef2f2">
+    <i data-lucide="circle-alert" class="ic ic-17 text-rose-600 flex-shrink-0"></i>
+    <p class="text-[12.5px] font-bold text-rose-800"><?= htmlspecialchars($error) ?></p>
+</div>
+<?php endif; ?>
+
+<div class="card overflow-hidden">
+
+    <!-- Barra de filtros -->
+    <form method="GET" action="/manager/satisfaction-surveys"
+          class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
+
+        <div>
+            <label class="filtro-rot" for="f-curso">Curso</label>
+            <select id="f-curso" name="course" class="campo" onchange="this.form.submit()" style="max-width:300px">
+                <option value="">Todos los cursos</option>
+                <?php foreach ($courses as $course): ?>
+                <option value="<?= htmlspecialchars($course['course_name'], ENT_QUOTES) ?>"
+                        <?= $filters['course'] === $course['course_name'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($course['course_name']) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <div>
+            <label class="filtro-rot" for="f-calif">Calificación</label>
+            <select id="f-calif" name="rating" class="campo" onchange="this.form.submit()">
+                <option value="">Todas las calificaciones</option>
+                <option value="A-Buena"   <?= $filters['rating'] === 'A-Buena'   ? 'selected' : '' ?>>A — Buena</option>
+                <option value="B-Regular" <?= $filters['rating'] === 'B-Regular' ? 'selected' : '' ?>>B — Regular</option>
+                <option value="C-Mala"    <?= $filters['rating'] === 'C-Mala'    ? 'selected' : '' ?>>C — Mala</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="filtro-rot" for="f-desde">Desde</label>
+            <input type="date" id="f-desde" name="date_from" class="campo"
+                   value="<?= htmlspecialchars($filters['date_from'], ENT_QUOTES) ?>">
+        </div>
+
+        <div>
+            <label class="filtro-rot" for="f-hasta">Hasta</label>
+            <input type="date" id="f-hasta" name="date_to" class="campo"
+                   value="<?= htmlspecialchars($filters['date_to'], ENT_QUOTES) ?>">
+        </div>
+
+        <button type="submit" class="btn-sec">
+            <i data-lucide="search" class="ic ic-14"></i> Filtrar
+        </button>
+
+        <?php if ($hayFiltros): ?>
+        <a href="/manager/satisfaction-surveys" class="btn-sec">
+            <i data-lucide="x" class="ic ic-14"></i> Limpiar
+        </a>
+        <?php endif; ?>
+
+        <input type="hidden" name="per_page" value="<?= $perPage ?>">
+    </form>
+
+    <!-- Reparto de valoraciones de esta página -->
+    <div class="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="kpi">
+            <div class="kpi-label">Encuestas</div>
+            <div class="kpi-value"><?= number_format($total) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Valoraciones buenas</div>
+            <div class="kpi-value"><?= number_format($buenas) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Regulares</div>
+            <div class="kpi-value"><?= number_format($regulares) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Malas</div>
+            <div class="kpi-value"><?= number_format($malas) ?></div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Estudiante</th>
+                    <th>Curso</th>
+                    <th class="centro">Personal</th>
+                    <th class="centro">Calidad</th>
+                    <th class="centro">Instruct.</th>
+                    <th class="centro">Infraest.</th>
+                    <th class="num">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($surveys)): ?>
+                <tr>
+                    <td colspan="8" class="vacio">
+                        <i data-lucide="inbox" class="ic"></i>
+                        <p>No se encontraron encuestas.</p>
+                        <?php if ($hayFiltros): ?>
+                        <a href="/manager/satisfaction-surveys" class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            Limpiar filtros
+                        </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php else: ?>
+                <?php foreach ($surveys as $survey):
+                    $nombre = trim($survey['first_name'] . ' ' . $survey['last_name']);
+                    $curso  = (string) $survey['course_name'];
+                    $fecha  = strtotime($survey['survey_date']);
+                ?>
+                <tr>
+                    <td class="text-slate-400 text-[11.5px] whitespace-nowrap" title="<?= date('d/m/Y', $fecha) ?>">
+                        <?= date('d/m/Y', $fecha) ?>
+                    </td>
+                    <td>
+                        <div class="font-bold text-[12.5px] text-slate-800 truncate" style="max-width:200px"
+                             title="<?= htmlspecialchars($nombre, ENT_QUOTES) ?>">
+                            <?= htmlspecialchars($nombre) ?>
+                        </div>
+                        <a href="mailto:<?= htmlspecialchars($survey['email'], ENT_QUOTES) ?>"
+                           class="block text-[11px] font-semibold text-slate-400 truncate hover:text-blue-600"
+                           style="max-width:200px" title="<?= htmlspecialchars($survey['email'], ENT_QUOTES) ?>">
+                            <?= htmlspecialchars($survey['email']) ?>
+                        </a>
+                    </td>
+                    <td>
+                        <div class="truncate" style="max-width:230px" title="<?= htmlspecialchars($curso, ENT_QUOTES) ?>">
+                            <?= htmlspecialchars($curso) ?>
+                        </div>
+                    </td>
+                    <td class="centro"><?= getRatingBadge($survey['staff_attention_rating']) ?></td>
+                    <td class="centro"><?= getRatingBadge($survey['training_quality_rating']) ?></td>
+                    <td class="centro"><?= getRatingBadge($survey['instructor_performance_rating']) ?></td>
+                    <td class="centro"><?= getRatingBadge($survey['infrastructure_rating']) ?></td>
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="/manager/satisfaction-surveys/<?= $survey['id'] ?>" class="ib ib-azul" title="Ver detalles">
+                                <i data-lucide="eye" class="ic ic-14"></i>
+                            </a>
+                            <a href="/manager/satisfaction-surveys/<?= $survey['id'] ?>/download-word"
+                               class="ib ib-verde" title="Descargar Word">
+                                <i data-lucide="file-text" class="ic ic-14"></i>
+                            </a>
+                            <button onclick="deleteSurvey(<?= $survey['id'] ?>)" class="ib ib-rojo" title="Eliminar encuesta">
+                                <i data-lucide="trash-2" class="ic ic-14"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!--
+        Pie con el recuento y el paginador. La ventana de páginas sigue a la
+        actual en vez de pintarlas todas en una fila.
+    -->
+    <?php
+    $desde = max(1, min($page - 2, $totalPages - 4));
+    $hasta = min($totalPages, max($page + 2, 5));
+    ?>
+    <div class="px-4 py-3.5 border-t flex flex-wrap items-center justify-between gap-3"
+         style="border-color: var(--card-border)">
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <p class="text-[12px] font-semibold text-slate-400">
+                <?php if ($total): ?>
+                Mostrando <?= number_format($primero) ?>-<?= number_format($ultimo) ?> de <?= number_format($total) ?>
+                <?php else: ?>
+                Sin resultados
+                <?php endif; ?>
+            </p>
+
+            <form method="GET" action="/manager/satisfaction-surveys" class="flex items-center gap-2">
+                <input type="hidden" name="course"    value="<?= htmlspecialchars($filters['course'], ENT_QUOTES) ?>">
+                <input type="hidden" name="rating"    value="<?= htmlspecialchars($filters['rating'], ENT_QUOTES) ?>">
+                <input type="hidden" name="date_from" value="<?= htmlspecialchars($filters['date_from'], ENT_QUOTES) ?>">
+                <input type="hidden" name="date_to"   value="<?= htmlspecialchars($filters['date_to'], ENT_QUOTES) ?>">
+                <span class="text-[11.5px] font-semibold text-slate-400">Mostrar</span>
+                <select name="per_page" class="campo" onchange="this.form.submit()" aria-label="Filas por página">
+                    <?php foreach ($perPageOptions as $n): ?>
+                    <option value="<?= $n ?>" <?= $perPage === (int) $n ? 'selected' : '' ?>><?= $n ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="text-[11.5px] font-semibold text-slate-400">filas</span>
+            </form>
+        </div>
+
+        <?php if ($totalPages > 1): ?>
+        <div class="flex items-center gap-1.5">
+            <a href="<?= $enlace(max(1, $page - 1)) ?>" class="pag <?= $page <= 1 ? 'inerte pointer-events-none' : '' ?>" title="Anterior">
+                <i data-lucide="chevron-left" class="ic ic-14"></i>
+            </a>
+
+            <?php for ($i = $desde; $i <= $hasta; $i++): ?>
+            <a href="<?= $enlace($i) ?>" class="pag <?= $i === $page ? 'activa' : '' ?>"><?= $i ?></a>
+            <?php endfor; ?>
+
+            <a href="<?= $enlace(min($totalPages, $page + 1)) ?>" class="pag <?= $page >= $totalPages ? 'inerte pointer-events-none' : '' ?>" title="Siguiente">
+                <i data-lucide="chevron-right" class="ic ic-14"></i>
+            </a>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Formulario oculto de borrado -->
 <form id="deleteForm" method="POST" style="display: none;">
     <?= \Core\Security::getCsrfField() ?>
 </form>
 
 <script>
 function deleteSurvey(id) {
-    if (confirm('¿Está seguro de que desea eliminar esta encuesta?')) {
+    if (confirm('¿Eliminar esta encuesta? Esta acción no se puede deshacer.')) {
         const form = document.getElementById('deleteForm');
         form.action = '/manager/satisfaction-surveys/' + id + '/delete';
         form.submit();

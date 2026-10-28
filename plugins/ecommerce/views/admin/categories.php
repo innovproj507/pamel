@@ -1,103 +1,169 @@
-<div>
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-bold text-gray-900">Categories</h1>
-        <a href="/manager/categories/create" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold py-3 px-6 rounded-lg transition transform hover:scale-105 shadow-lg">
-            <i class="fas fa-plus mr-2"></i>Add Category
-        </a>
+<?php
+/**
+ * Categorías de la tienda, con sus subcategorías sangradas bajo la madre.
+ *
+ * El icono viene de la base como clase de Font Awesome («fa-anchor»), así que
+ * esas filas siguen usando FA en lugar de Lucide: cambiarlo pediría migrar
+ * el dato, no sólo la plantilla.
+ */
+$categories = $categories ?? [];
+$total      = count($categories);
+$principales = count(array_filter($categories, static fn($c) => !isset($c['is_subcategory'])));
+$cursos      = array_sum(array_column($categories, 'product_count'));
+?>
+
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Categorías</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($principales) ?> principal<?= $principales === 1 ? '' : 'es' ?>
+            y <?= number_format($total - $principales) ?> subcategoría<?= ($total - $principales) === 1 ? '' : 's' ?>
+        </p>
     </div>
 
-    <!-- Success/Error Messages -->
-    <?php if (isset($_SESSION['success'])): ?>
-        <div class="mb-4 bg-green-50 border-l-4 border-green-500 p-4 rounded">
-            <p class="text-green-700"><?php echo htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></p>
-        </div>
-    <?php endif; ?>
-    
-    <?php if (isset($_SESSION['error'])): ?>
-        <div class="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded">
-            <p class="text-red-700"><?php echo htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></p>
-        </div>
-    <?php endif; ?>
+    <div class="flex items-center gap-2.5 flex-wrap lg:ml-auto">
+        <a href="/manager/categories/create" class="btn-primario">
+            <i data-lucide="plus" class="ic ic-16"></i> Nueva Categoría
+        </a>
+    </div>
+</div>
 
-    <div class="bg-white shadow-lg rounded-lg overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white">
+<?php if (isset($_SESSION['success'])): ?>
+<div class="card card-pad mb-4 flex items-center gap-3" style="border-color:#bbf7d0; background:#f0fdf4">
+    <i data-lucide="circle-check" class="ic ic-17 text-emerald-600 flex-shrink-0"></i>
+    <p class="text-[12.5px] font-bold text-emerald-800"><?= htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></p>
+</div>
+<?php endif; ?>
+
+<?php if (isset($_SESSION['error'])): ?>
+<div class="card card-pad mb-4 flex items-center gap-3" style="border-color:#fecaca; background:#fef2f2">
+    <i data-lucide="circle-alert" class="ic ic-17 text-rose-600 flex-shrink-0"></i>
+    <p class="text-[12.5px] font-bold text-rose-800"><?= htmlspecialchars($_SESSION['error']); unset($_SESSION['error']); ?></p>
+</div>
+<?php endif; ?>
+
+<div class="card overflow-hidden">
+
+    <!-- Resumen -->
+    <div class="px-4 py-4 grid grid-cols-3 gap-3 border-b" style="border-color: var(--card-border)">
+        <div class="kpi">
+            <div class="kpi-label">Categorías</div>
+            <div class="kpi-value"><?= number_format($total) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Principales</div>
+            <div class="kpi-value"><?= number_format($principales) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Cursos clasificados</div>
+            <div class="kpi-value"><?= number_format($cursos) ?></div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+        <table class="tabla">
+            <thead>
                 <tr>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Icon</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Name</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Slug</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Type</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Products</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Order</th>
-                    <th class="px-6 py-4 text-left text-xs font-bold uppercase tracking-wider">Actions</th>
+                    <th>Categoría</th>
+                    <th>Tipo</th>
+                    <th class="centro">Cursos</th>
+                    <th class="centro">Orden</th>
+                    <th class="num">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <?php foreach ($categories as $category): ?>
-                <tr class="hover:bg-gray-50 transition <?php echo isset($category['is_subcategory']) ? 'bg-blue-50' : ''; ?>">
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <?php if (isset($category['is_subcategory'])): ?>
-                            <span class="ml-6 text-gray-400">└─</span>
-                        <?php endif; ?>
-                        <i class="fas <?php echo htmlspecialchars($category['icon']); ?> text-2xl <?php echo isset($category['is_subcategory']) ? 'text-blue-400' : 'text-cyan-600'; ?>"></i>
+            <tbody>
+                <?php if (empty($categories)): ?>
+                <tr>
+                    <td colspan="5" class="vacio">
+                        <i data-lucide="tags" class="ic"></i>
+                        <p>Todavía no hay categorías.</p>
+                        <a href="/manager/categories/create" class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            Crear la primera
+                        </a>
                     </td>
-                    <td class="px-6 py-4">
-                        <?php if (isset($category['is_subcategory'])): ?>
-                            <div class="ml-8">
-                        <?php endif; ?>
-                        <div class="text-sm font-bold text-gray-900">
-                            <?php echo htmlspecialchars($category['name']); ?>
-                            <?php if ($category['has_subcategories']): ?>
-                                <span class="ml-2 text-xs bg-cyan-100 text-cyan-800 px-2 py-1 rounded-full">
-                                    Has subcategories
-                                </span>
+                </tr>
+                <?php else: ?>
+                <?php foreach ($categories as $category):
+                    $esSub   = isset($category['is_subcategory']);
+                    $nCursos = (int) $category['product_count'];
+                    $conHijas = !empty($category['has_subcategories']);
+                    // Con subcategorías colgando, el borrado no procede: se avisa y se corta.
+                    $aviso = $conHijas
+                        ? 'Esta categoría tiene subcategorías. Elimínalas o reasígnalas antes de borrarla.'
+                        : sprintf('¿Eliminar la categoría «%s»?%s', addslashes($category['name']),
+                                  $nCursos ? " Sus {$nCursos} curso(s) quedarán sin categoría." : '');
+                ?>
+                <tr<?= $esSub ? ' style="background:#f8fafc"' : '' ?>>
+                    <td>
+                        <div class="flex items-center gap-3" <?= $esSub ? 'style="padding-left:26px"' : '' ?>>
+                            <?php if ($esSub): ?>
+                            <span class="text-slate-300 text-[13px] flex-shrink-0 -ml-5">└</span>
                             <?php endif; ?>
+                            <div class="avatar-ini <?= $esSub ? 'av-cian' : '' ?>" <?= $esSub ? 'style="width:30px;height:30px"' : '' ?>>
+                                <i class="fas <?= htmlspecialchars($category['icon']) ?> text-[<?= $esSub ? '12' : '15' ?>px]"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-[12.5px] text-slate-800 flex items-center gap-2 flex-wrap">
+                                    <?= htmlspecialchars($category['name']) ?>
+                                    <?php if ($conHijas): ?>
+                                    <span class="pastilla p-cian">Con subcategorías</span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php if (!empty($category['description'])): ?>
+                                <div class="text-[11px] font-semibold text-slate-400 truncate" style="max-width:320px">
+                                    <?= htmlspecialchars($category['description']) ?>
+                                </div>
+                                <?php endif; ?>
+                                <div class="flex items-center gap-1.5 flex-wrap mt-1">
+                                    <span class="cod">
+                                        <i data-lucide="link" class="ic" style="width:10px;height:10px"></i>
+                                        <?= htmlspecialchars($category['slug']) ?>
+                                    </span>
+                                    <?php if ($esSub && isset($category['parent_name'])): ?>
+                                    <span class="text-[10.5px] font-semibold text-slate-400">
+                                        · dentro de <?= htmlspecialchars($category['parent_name']) ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-sm text-gray-500"><?php echo htmlspecialchars($category['description']); ?></div>
-                        <?php if (isset($category['is_subcategory']) && isset($category['parent_name'])): ?>
-                            <div class="text-xs text-blue-600 mt-1">
-                                <i class="fas fa-arrow-up mr-1"></i>Parent: <?php echo htmlspecialchars($category['parent_name']); ?>
-                            </div>
-                        <?php endif; ?>
-                        <?php if (isset($category['is_subcategory'])): ?>
-                            </div>
-                        <?php endif; ?>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <code class="text-sm bg-gray-100 px-2 py-1 rounded"><?php echo htmlspecialchars($category['slug']); ?></code>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <?php if (isset($category['is_subcategory'])): ?>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                <i class="fas fa-level-down-alt mr-1"></i>Subcategory
-                            </span>
-                        <?php else: ?>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                <i class="fas fa-folder mr-1"></i>Main
-                            </span>
-                        <?php endif; ?>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-                            <?php echo $category['product_count']; ?> courses
+                    <td>
+                        <span class="pastilla <?= $esSub ? 'p-azul' : 'p-verde' ?>">
+                            <?= $esSub ? 'Subcategoría' : 'Principal' ?>
                         </span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        <?php echo $category['display_order']; ?>
+                    <td class="centro">
+                        <span class="pastilla <?= $nCursos ? 'p-violeta' : 'p-gris' ?>"><?= $nCursos ?></span>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <a href="/manager/categories/<?php echo $category['id']; ?>/edit" class="text-cyan-600 hover:text-cyan-900">
-                            <i class="fas fa-edit"></i> Edit
-                        </a>
-                        <form action="/manager/categories/<?php echo $category['id']; ?>/delete" method="POST" class="inline" 
-                              onsubmit="return confirm('<?php echo $category['has_subcategories'] ? 'This category has subcategories! Please delete or reassign them first.' : 'Delete this category?'; ?>');">
-                            <button type="submit" class="text-red-600 hover:text-red-900 <?php echo $category['has_subcategories'] ? 'opacity-50 cursor-not-allowed' : ''; ?>">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </form>
+                    <td class="centro text-slate-400 font-bold"><?= (int) $category['display_order'] ?></td>
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="/manager/categories/<?= (int) $category['id'] ?>/edit" class="acc acc-gris" title="Editar categoría">
+                                <i data-lucide="pencil" class="ic" style="width:12px;height:12px"></i> Editar
+                            </a>
+                            <form action="/manager/categories/<?= (int) $category['id'] ?>/delete" method="POST"
+                                  onsubmit="<?= $conHijas
+                                      ? 'alert(\'' . htmlspecialchars($aviso, ENT_QUOTES) . '\'); return false;'
+                                      : 'return confirm(\'' . htmlspecialchars($aviso, ENT_QUOTES) . '\')' ?>">
+                                <?= \Core\Security::getCsrfField() ?>
+                                <button type="submit" class="acc acc-rojo <?= $conHijas ? 'opacity-50' : '' ?>"
+                                        title="<?= $conHijas ? 'Primero hay que vaciar sus subcategorías' : 'Eliminar categoría' ?>">
+                                    <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
     </div>

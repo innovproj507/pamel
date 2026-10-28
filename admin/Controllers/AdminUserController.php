@@ -58,7 +58,9 @@ class AdminUserController extends Controller
         \Core\Auth::getInstance()->requireCan('users.view', '/manager/login');
 
         $page    = max(1, (int)($_GET['page'] ?? 1));
-        $perPage = 10;
+        // Filas por página: lista cerrada, porque el valor entra en el LIMIT.
+        $perPage = (int)($_GET['per_page'] ?? 20);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) { $perPage = 20; }
         $search  = trim($_GET['search'] ?? '');
         $role    = $_GET['role']   ?? '';
         $status  = $_GET['status'] ?? '';
@@ -78,6 +80,7 @@ class AdminUserController extends Controller
             'search'       => $search,
             'roleFilter'   => $role,
             'statusFilter' => $status,
+            'perPage'      => $perPage,
         ], 'admin/views/layout');
     }
 

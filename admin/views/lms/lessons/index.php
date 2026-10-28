@@ -1,66 +1,127 @@
-<div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div class="flex items-center gap-4">
-        <a href="/manager/lms/courses/<?= $course['id'] ?>/edit" class="w-10 h-10 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:text-blue-600 transition shadow-sm">
-            <i class="fas fa-arrow-left"></i>
-        </a>
-        <div>
-            <h1 class="text-2xl font-bold text-gray-800">Lecciones del Curso</h1>
-            <p class="text-sm text-gray-500"><?= htmlspecialchars($course['title']) ?></p>
-        </div>
-    </div>
-<?php if (can('lms.lessons.manage')): ?>
-    <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold transition shadow-md">
-        <i class="fas fa-plus"></i> Añadir Lección
+<?php
+/** Lecciones de un curso concreto. */
+$lessons = $lessons ?? [];
+$total   = count($lessons);
+$activas = count(array_filter($lessons, static fn($l) => !empty($l['is_active'])));
+$minutos = array_sum(array_column($lessons, 'duration'));
+
+// Icono y nombre de cada tipo de lección.
+$tipos = [
+    'video' => ['play-circle', 'Vídeo'],
+    'file'  => ['paperclip',   'Archivo'],
+    'text'  => ['file-text',   'Texto'],
+];
+?>
+
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager/lms/courses/<?= $course['id'] ?>/edit" class="btn-atras" title="Volver al curso">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
     </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Lecciones del Curso</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5 truncate" style="max-width:520px">
+            <?= htmlspecialchars($course['title']) ?>
+        </p>
+    </div>
+
+    <div class="flex items-center gap-2.5 flex-wrap lg:ml-auto">
+<?php if (can('lms.lessons.manage')): ?>
+        <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create" class="btn-primario">
+            <i data-lucide="plus" class="ic ic-16"></i> Añadir Lección
+        </a>
 <?php endif; ?>
+    </div>
 </div>
 
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+<div class="card overflow-hidden">
+
+    <!-- Resumen -->
+    <div class="px-4 py-4 grid grid-cols-3 gap-3 border-b" style="border-color: var(--card-border)">
+        <div class="kpi">
+            <div class="kpi-label">Lecciones</div>
+            <div class="kpi-value"><?= number_format($total) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Activas</div>
+            <div class="kpi-value"><?= number_format($activas) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Duración total</div>
+            <div class="kpi-value"><?= number_format($minutos) ?> <span class="text-[12px] font-bold text-slate-400">min</span></div>
+        </div>
+    </div>
+
+    <!-- Tabla -->
     <div class="overflow-x-auto">
-        <table class="w-full text-left">
-            <thead class="bg-gray-50 border-b border-gray-100">
+        <table class="tabla">
+            <thead>
                 <tr>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Orden</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Título</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Tipo</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Duración</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
-                    <th class="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-right">Acciones</th>
+                    <th class="centro">#</th>
+                    <th>Lección</th>
+                    <th>Tipo</th>
+                    <th class="num">Duración</th>
+                    <th>Estado</th>
+                    <th class="num">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-50">
-                <?php foreach ($lessons as $lesson): ?>
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4">
-                        <span class="w-7 h-7 rounded-lg bg-gray-100 flex items-center justify-center text-gray-500 text-xs font-bold"><?= $lesson['order_num'] ?></span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <p class="font-semibold text-gray-800"><?= htmlspecialchars($lesson['title']) ?></p>
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="inline-flex items-center gap-1.5 text-xs font-bold px-2 py-1 rounded bg-gray-100 text-gray-600">
-                            <i class="fas <?= $lesson['type'] === 'video' ? 'fa-play-circle' : ($lesson['type'] === 'file' ? 'fa-paperclip' : 'fa-file-alt') ?> opacity-50"></i>
-                            <?= ucfirst($lesson['type']) ?>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-500">
-                        <?= $lesson['duration'] ?> min
-                    </td>
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 rounded-full text-[10px] font-black uppercase <?= $lesson['is_active'] ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400' ?>">
-                            <?= $lesson['is_active'] ? 'Activa' : 'Oculta' ?>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex items-center justify-end gap-2">
+            <tbody>
+                <?php if (empty($lessons)): ?>
+                <tr>
+                    <td colspan="6" class="vacio">
+                        <i data-lucide="book-open" class="ic"></i>
+                        <p>Este curso aún no tiene lecciones.</p>
 <?php if (can('lms.lessons.manage')): ?>
-                            <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/edit" class="p-2 text-gray-400 hover:text-blue-600 transition">
-                                <i class="fas fa-edit"></i>
+                        <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create"
+                           class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            Añadir la primera
+                        </a>
+<?php endif; ?>
+                    </td>
+                </tr>
+                <?php else: ?>
+                <?php foreach ($lessons as $lesson):
+                    $activa = !empty($lesson['is_active']);
+                    [$icono, $tipoTexto] = $tipos[$lesson['type']] ?? ['file-text', ucfirst($lesson['type'])];
+                ?>
+                <tr>
+                    <td class="centro">
+                        <span class="cod"><?= (int)$lesson['order_num'] ?></span>
+                    </td>
+                    <td>
+                        <div class="font-bold text-[12.5px] text-slate-800 truncate" style="max-width:420px"
+                             title="<?= htmlspecialchars($lesson['title'], ENT_QUOTES) ?>">
+                            <?= htmlspecialchars($lesson['title']) ?>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="pastilla p-gris">
+                            <i data-lucide="<?= $icono ?>" class="ic" style="width:11px;height:11px"></i>
+                            <?= htmlspecialchars($tipoTexto) ?>
+                        </span>
+                    </td>
+                    <td class="num font-bold text-slate-700 whitespace-nowrap">
+                        <?= (int)$lesson['duration'] ?> <span class="text-[10.5px] font-semibold text-slate-400">min</span>
+                    </td>
+                    <td>
+                        <span class="pastilla <?= $activa ? 'p-verde' : 'p-gris' ?>">
+                            <span class="punto"></span><?= $activa ? 'Activa' : 'Oculta' ?>
+                        </span>
+                    </td>
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+<?php if (can('lms.lessons.manage')): ?>
+                            <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/edit"
+                               class="acc acc-gris" title="Editar lección">
+                                <i data-lucide="pencil" class="ic" style="width:12px;height:12px"></i> Editar
                             </a>
-                            <form method="POST" action="/manager/lms/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/delete" onsubmit="return confirm('¿Eliminar esta lección?');" class="inline">
-                                <?php echo \Core\Security::getCsrfField(); ?>
-                                <button type="submit" class="p-2 text-gray-400 hover:text-red-600 transition">
-                                    <i class="fas fa-trash"></i>
+                            <form method="POST" action="/manager/lms/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/delete"
+                                  onsubmit="return confirm('¿Eliminar la lección «<?= htmlspecialchars(addslashes($lesson['title']), ENT_QUOTES) ?>»? Esta acción no se puede deshacer.')">
+                                <?= \Core\Security::getCsrfField() ?>
+                                <button type="submit" class="acc acc-rojo" title="Eliminar lección">
+                                    <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar
                                 </button>
                             </form>
 <?php endif; ?>
@@ -68,10 +129,6 @@
                     </td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if (empty($lessons)): ?>
-                <tr>
-                    <td colspan="6" class="px-6 py-10 text-center text-gray-400 italic">Este curso aún no tiene lecciones</td>
-                </tr>
                 <?php endif; ?>
             </tbody>
         </table>

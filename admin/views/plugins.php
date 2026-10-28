@@ -1,59 +1,108 @@
-<div>
-    <h1 class="text-3xl font-bold text-gray-900 mb-8">Plugins</h1>
+<?php
+/** Plugins cargados por el CMS. */
+$plugins = $plugins ?? [];
+$total   = count($plugins);
 
-    <div class="bg-white shadow rounded-lg">
-        <div class="px-4 py-5 sm:px-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">Installed Plugins</h3>
-            <p class="mt-1 text-sm text-gray-500">Manage your CMS plugins and modules</p>
-        </div>
-        <div class="border-t border-gray-200">
-            <ul role="list" class="divide-y divide-gray-200">
+// Los que tienen pantalla de ajustes propia, para ofrecer el atajo.
+$ajustes = [
+    'paypal'      => '/manager/paypal-settings',
+    'seo'         => '/manager/seo',
+    'maintenance' => '/manager/maintenance',
+];
+?>
+
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Plugins</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($total) ?> plugin<?= $total === 1 ? '' : 's' ?> cargado<?= $total === 1 ? '' : 's' ?> por el CMS
+        </p>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+
+    <div class="overflow-x-auto">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Plugin</th>
+                    <th>Estado</th>
+                    <th class="num">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
                 <?php if (empty($plugins)): ?>
-                <li class="px-6 py-4">
-                    <p class="text-gray-500">No plugins loaded</p>
-                </li>
+                <tr>
+                    <td colspan="3" class="vacio">
+                        <i data-lucide="puzzle" class="ic"></i>
+                        <p>No hay ningún plugin cargado.</p>
+                    </td>
+                </tr>
                 <?php else: ?>
-                    <?php foreach ($plugins as $plugin): ?>
-                    <li class="px-6 py-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-8 w-8 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-                                    </svg>
-                                </div>
-                                <div class="ml-4">
-                                    <h4 class="text-lg font-medium text-gray-900"><?php echo ucfirst($plugin['name']); ?></h4>
-                                    <p class="text-sm text-gray-500"><?php echo htmlspecialchars($plugin['path']); ?></p>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                        Active
-                                    </span>
-                                    <?php if ($plugin['name'] === 'paypal'): ?>
-                                        <a href="/manager/paypal-settings" class="inline-flex items-center px-3 py-1 border border-blue-300 rounded-md text-sm font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 transition">
-                                            <i class="fas fa-cog mr-1"></i> Configurar
-                                        </a>
-                                    <?php endif; ?>
+                <?php foreach ($plugins as $plugin):
+                    $nombre  = $plugin['name'];
+                    $inicial = mb_strtoupper(mb_substr($nombre, 0, 1, 'UTF-8'), 'UTF-8');
+                ?>
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar-ini av-violeta"><?= htmlspecialchars($inicial) ?></div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-[12.5px] text-slate-800"><?= htmlspecialchars(ucfirst($nombre)) ?></div>
+                                <div class="mt-1">
+                                    <span class="cod"><?= htmlspecialchars($plugin['path']) ?></span>
                                 </div>
                             </div>
                         </div>
-                    </li>
-                    <?php endforeach; ?>
+                    </td>
+                    <td>
+                        <span class="pastilla p-verde"><span class="punto"></span>Activo</span>
+                    </td>
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <?php if (isset($ajustes[$nombre])): ?>
+                            <a href="<?= $ajustes[$nombre] ?>" class="acc acc-azul" title="Abrir los ajustes del plugin">
+                                <i data-lucide="settings" class="ic" style="width:12px;height:12px"></i> Configurar
+                            </a>
+                            <?php else: ?>
+                            <span class="text-slate-300 text-[10.5px] font-semibold">Sin ajustes</span>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
                 <?php endif; ?>
-            </ul>
-        </div>
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <div class="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 class="text-lg font-medium text-blue-900 mb-2">How to create a plugin</h3>
-        <div class="text-sm text-blue-700 space-y-2">
-            <p>1. Create a new folder in <code class="bg-blue-100 px-2 py-1 rounded">/plugins/your-plugin-name/</code></p>
-            <p>2. Create a main file: <code class="bg-blue-100 px-2 py-1 rounded">your-plugin-name.php</code></p>
-            <p>3. Add your plugin name to <code class="bg-blue-100 px-2 py-1 rounded">config/config.php</code> in the 'plugins' array</p>
-            <p>4. Use hooks: <code class="bg-blue-100 px-2 py-1 rounded">$pm->addAction('hook_name', 'callback')</code></p>
-        </div>
-    </div>
+<!-- Cómo añadir uno nuevo -->
+<div class="card card-pad mt-4">
+    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[.09em] mb-3">Cómo crear un plugin</h3>
+    <ol class="space-y-2 text-[12.5px] text-slate-600">
+        <li class="flex items-start gap-2.5">
+            <span class="cod flex-shrink-0 mt-0.5">1</span>
+            <span>Crea la carpeta <code class="cod">plugins/nombre-del-plugin/</code>.</span>
+        </li>
+        <li class="flex items-start gap-2.5">
+            <span class="cod flex-shrink-0 mt-0.5">2</span>
+            <span>Dentro, el archivo principal <code class="cod">nombre-del-plugin.php</code>.</span>
+        </li>
+        <li class="flex items-start gap-2.5">
+            <span class="cod flex-shrink-0 mt-0.5">3</span>
+            <span>Añade su nombre al array <code class="cod">plugins</code> de <code class="cod">config/config.php</code>.</span>
+        </li>
+        <li class="flex items-start gap-2.5">
+            <span class="cod flex-shrink-0 mt-0.5">4</span>
+            <span>Engánchalo con <code class="cod">$pm-&gt;addAction('nombre_del_hook', 'callback')</code>.</span>
+        </li>
+    </ol>
 </div>

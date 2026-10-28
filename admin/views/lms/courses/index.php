@@ -1,89 +1,98 @@
 <?php
-$q                = htmlspecialchars($q ?? '');
+/**
+ * Listado de cursos del panel.
+ *
+ * Los recuadros de resumen reflejan los filtros activos, no el catálogo
+ * entero: la cifra grande de «Cursos» es la misma que la del paginador.
+ */
+$q                = $q ?? '';
 $filterStatus     = $filterStatus     ?? '';
 $filterCategory   = (int)($filterCategory   ?? 0);
 $filterHasProduct = $filterHasProduct ?? '';
 $filterTeacherId  = (int)($filterTeacherId ?? 0);
 $teachers         = $teachers ?? [];
 $isTeacher        = $isTeacher ?? false;
-$total            = (int)($total   ?? 0);
-$page             = (int)($page    ?? 1);
+$stats            = $stats    ?? [];
+$total            = (int)($total    ?? 0);
+$page             = (int)($page     ?? 1);
+$perPage          = (int)($perPage  ?? 20);
 $lastPage         = (int)($lastPage ?? 1);
 
-// Build base query string for pagination links (preserve all filters)
+$hayFiltros = $q !== '' || $filterStatus !== '' || $filterCategory || $filterHasProduct !== '' || $filterTeacherId;
+
+// Rango que se está mostrando, para el pie de la tabla.
+$desde = $total ? (($page - 1) * $perPage) + 1 : 0;
+$hasta = min($page * $perPage, $total);
+
+// Base de los enlaces del paginador: conserva filtros y filas por página.
 $pagerBase = http_build_query(array_filter([
     'q'           => $q,
     'status'      => $filterStatus,
     'category_id' => $filterCategory ?: null,
     'has_product' => $filterHasProduct,
     'teacher_id'  => $filterTeacherId ?: null,
+    'per_page'    => $perPage !== 20 ? $perPage : null,
 ]));
 $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
+
+$recuadros = [
+    ['Cursos',      $total],
+    ['Publicados',  (int)($stats['publicados']  ?? 0)],
+    ['Borradores',  (int)($stats['borradores']  ?? 0)],
+    ['Lecciones',   (int)($stats['lecciones']   ?? 0)],
+    ['Estudiantes', (int)($stats['estudiantes'] ?? 0)],
+];
 ?>
 
-<!-- Header -->
-<div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-    <div>
-        <h1 class="text-3xl font-black text-slate-800">Gestión de Cursos</h1>
-        <p class="text-slate-500 font-medium">
-            <?= $total ?> curso<?= $total !== 1 ? 's' : '' ?> encontrado<?= $total !== 1 ? 's' : '' ?>
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Gestión de Cursos</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($total) ?> curso<?= $total === 1 ? '' : 's' ?> encontrado<?= $total === 1 ? '' : 's' ?>
         </p>
     </div>
-    <div class="flex items-center gap-3">
+
+    <div class="flex items-center gap-2.5 flex-wrap lg:ml-auto">
+<?php if (can('lms.courses.manage')): ?>
         <form method="POST" action="/manager/products/sync-courses"
               onsubmit="return confirm('¿Crear cursos en borrador para todos los productos activos que aún no tienen curso?')">
             <input type="hidden" name="_csrf" value="<?= \Core\Security::generateCsrfToken() ?>">
-            <button type="submit"
-                    class="inline-flex items-center gap-2 bg-white border border-slate-200 hover:border-blue-400 hover:bg-blue-50 text-slate-600 hover:text-blue-600 px-5 py-3 rounded-2xl font-bold transition text-sm">
-                <i class="fas fa-sync-alt text-xs"></i> Sincronizar Productos
+            <button type="submit" class="btn-violeta">
+                <i data-lucide="refresh-cw" class="ic ic-14"></i> Sincronizar Productos
             </button>
         </form>
-<?php if (can('lms.courses.manage')): ?>
-        <a href="/manager/lms/courses/create"
-           class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-bold transition shadow-lg shadow-blue-600/20">
-            <i class="fas fa-plus"></i> Nuevo Curso
+        <a href="/manager/lms/courses/create" class="btn-primario">
+            <i data-lucide="plus" class="ic ic-16"></i> Nuevo Curso
         </a>
 <?php endif; ?>
     </div>
 </div>
 
-<!-- Filtros -->
-<form method="GET" action="/manager/lms/courses"
-      class="bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5 mb-8">
+<div class="card overflow-hidden">
 
-    <!-- Fila 1: búsqueda -->
-    <div class="flex gap-3 mb-4">
-        <div class="flex-1 relative">
-            <i class="fas fa-search absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none"></i>
-            <input type="text" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES) ?>"
-                   placeholder="Buscar por título, slug o código…"
-                   class="w-full pl-12 pr-5 py-3.5 rounded-xl bg-slate-50 text-sm font-semibold text-slate-700
-                          focus:ring-4 focus:ring-blue-500/10 focus:bg-white border border-transparent
-                          focus:border-blue-200 outline-none transition-all">
-        </div>
-        <button type="submit"
-                class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white
-                       font-bold text-sm px-7 py-3.5 rounded-xl transition-all shadow-md shadow-blue-600/20 whitespace-nowrap">
-            <i class="fas fa-search text-xs"></i> Buscar
-        </button>
-        <?php if ($q || $filterStatus || $filterCategory || $filterHasProduct !== '' || $filterTeacherId): ?>
-        <a href="/manager/lms/courses"
-           class="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600
-                  font-bold text-sm px-5 py-3.5 rounded-xl transition-all whitespace-nowrap">
-            <i class="fas fa-times text-xs"></i> Limpiar
-        </a>
-        <?php endif; ?>
-    </div>
+    <!-- Barra de filtros -->
+    <form method="GET" action="/manager/lms/courses"
+          class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
 
-    <!-- Fila 2: filtros secundarios -->
-    <div class="grid grid-cols-1 sm:grid-cols-<?= !$isTeacher ? '4' : '3' ?> gap-3">
-
-        <!-- Estado -->
         <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Estado</label>
-            <select name="status"
-                    class="w-full px-4 py-2.5 rounded-xl bg-slate-50 text-sm font-bold text-slate-700
-                           border border-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-200 outline-none transition-all">
+            <label class="filtro-rot" for="f-q">Buscar</label>
+            <div class="relative">
+                <i data-lucide="search" class="ic ic-14 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="text" id="f-q" name="q" value="<?= htmlspecialchars($q, ENT_QUOTES) ?>"
+                       placeholder="Buscar por título, slug o código…"
+                       class="campo" style="padding-left:32px; width:250px; border-radius:999px">
+            </div>
+        </div>
+
+        <div>
+            <label class="filtro-rot" for="f-estado">Estado</label>
+            <select id="f-estado" name="status" class="campo" onchange="this.form.submit()">
                 <option value="">Todos los estados</option>
                 <option value="published" <?= $filterStatus === 'published' ? 'selected' : '' ?>>Publicado</option>
                 <option value="draft"     <?= $filterStatus === 'draft'     ? 'selected' : '' ?>>Borrador</option>
@@ -91,12 +100,9 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
             </select>
         </div>
 
-        <!-- Categoría -->
         <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Categoría</label>
-            <select name="category_id"
-                    class="w-full px-4 py-2.5 rounded-xl bg-slate-50 text-sm font-bold text-slate-700
-                           border border-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-200 outline-none transition-all">
+            <label class="filtro-rot" for="f-categoria">Categoría</label>
+            <select id="f-categoria" name="category_id" class="campo" onchange="this.form.submit()">
                 <option value="">Todas las categorías</option>
                 <?php foreach ($categories as $cat): ?>
                 <option value="<?= $cat['id'] ?>" <?= $filterCategory === (int)$cat['id'] ? 'selected' : '' ?>>
@@ -106,25 +112,19 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
             </select>
         </div>
 
-        <!-- Producto vinculado -->
         <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Producto vinculado</label>
-            <select name="has_product"
-                    class="w-full px-4 py-2.5 rounded-xl bg-slate-50 text-sm font-bold text-slate-700
-                           border border-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-200 outline-none transition-all">
+            <label class="filtro-rot" for="f-producto">Producto vinculado</label>
+            <select id="f-producto" name="has_product" class="campo" onchange="this.form.submit()">
                 <option value="">Con y sin producto</option>
-                <option value="1" <?= $filterHasProduct === '1' ? 'selected' : '' ?>>Con producto vinculado</option>
-                <option value="0" <?= $filterHasProduct === '0' ? 'selected' : '' ?>>Sin producto vinculado</option>
+                <option value="1" <?= $filterHasProduct === '1' ? 'selected' : '' ?>>Con producto</option>
+                <option value="0" <?= $filterHasProduct === '0' ? 'selected' : '' ?>>Sin producto</option>
             </select>
         </div>
 
         <?php if (!$isTeacher): ?>
-        <!-- Instructor -->
         <div>
-            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">Instructor</label>
-            <select name="teacher_id"
-                    class="w-full px-4 py-2.5 rounded-xl bg-slate-50 text-sm font-bold text-slate-700
-                           border border-slate-100 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-200 outline-none transition-all">
+            <label class="filtro-rot" for="f-instructor">Instructor</label>
+            <select id="f-instructor" name="teacher_id" class="campo" onchange="this.form.submit()">
                 <option value="">Todos los instructores</option>
                 <?php foreach ($teachers as $t): ?>
                 <option value="<?= $t['id'] ?>" <?= $filterTeacherId === (int)$t['id'] ? 'selected' : '' ?>>
@@ -134,142 +134,194 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
             </select>
         </div>
         <?php endif; ?>
-    </div>
-</form>
 
-<!-- Tabla -->
-<div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden">
+        <button type="submit" class="btn-sec">
+            <i data-lucide="search" class="ic ic-14"></i> Buscar
+        </button>
+
+        <?php if ($hayFiltros): ?>
+        <a href="/manager/lms/courses" class="btn-sec">
+            <i data-lucide="x" class="ic ic-14"></i> Limpiar
+        </a>
+        <?php endif; ?>
+
+        <!-- Las filas por página se eligen en el pie, pero viajan con los
+             filtros para que al buscar no se pierda el tamaño elegido. -->
+        <input type="hidden" name="per_page" value="<?= $perPage ?>">
+    </form>
+
+    <!-- Resumen del conjunto filtrado -->
+    <div class="px-4 py-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        <?php foreach ($recuadros as [$etiqueta, $valor]): ?>
+        <div class="kpi">
+            <div class="kpi-label"><?= $etiqueta ?></div>
+            <div class="kpi-value"><?= number_format($valor) ?></div>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Tabla -->
     <div class="overflow-x-auto">
-        <table class="w-full text-left table-fixed">
+        <table class="tabla">
             <thead>
-                <tr class="bg-white border-b border-slate-50">
-                    <th class="w-1/3 px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Curso</th>
-                    <th class="w-40 px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em]">Instructor</th>
-                    <th class="w-36 px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] text-center">Estado</th>
-                    <th class="w-52 px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] text-center">Contenido</th>
-                    <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.1em] text-right">Acciones</th>
+                <tr>
+                    <th>Curso</th>
+                    <th>Instructor</th>
+                    <th>Estado</th>
+                    <th>Contenido</th>
+                    <th class="num">Acciones</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-slate-50">
+            <tbody>
                 <?php if (empty($courses)): ?>
                 <tr>
-                    <td colspan="5" class="px-8 py-16 text-center text-slate-400">
-                        <i class="fas fa-search text-3xl mb-3 block opacity-30"></i>
-                        <p class="font-semibold text-sm">No se encontraron cursos con esos filtros.</p>
-                        <a href="/manager/lms/courses" class="text-blue-500 text-xs mt-1 inline-block hover:underline">Limpiar filtros</a>
+                    <td colspan="5" class="text-center" style="padding:56px 12px">
+                        <i data-lucide="search-x" class="ic text-slate-300 mx-auto mb-3" style="width:30px;height:30px"></i>
+                        <p class="text-[13px] font-semibold text-slate-400">No se encontraron cursos con esos filtros.</p>
+                        <a href="/manager/lms/courses" class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            Limpiar filtros
+                        </a>
                     </td>
                 </tr>
                 <?php else: ?>
-                <?php foreach ($courses as $course): ?>
-                <tr class="hover:bg-slate-50/30 transition-colors">
+                <?php foreach ($courses as $course):
+                    $estados = [
+                        'published' => ['Publicado', 'p-verde'],
+                        'draft'     => ['Borrador',  'p-ambar'],
+                        'archived'  => ['Archivado', 'p-gris'],
+                    ];
+                    [$estadoTexto, $estadoClase] = $estados[$course['status']] ?? [$course['status'], 'p-gris'];
+                    $lecciones   = (int)($course['lesson_count']  ?? 0);
+                    $estudiantes = (int)($course['student_count'] ?? 0);
+                    // Inicial para el redondel; mb_* porque hay títulos con acento.
+                    $inicial = mb_strtoupper(mb_substr(trim($course['title']), 0, 1, 'UTF-8'), 'UTF-8');
+                ?>
+                <tr>
 
-                    <!-- Curso -->
-                    <td class="px-8 py-5">
-                        <div class="flex items-center gap-4">
-                            <div class="w-10 h-10 rounded-full bg-blue-900 flex items-center justify-center
-                                        text-white font-black text-xs shadow-sm flex-shrink-0">
-                                <?= strtoupper(substr($course['title'], 0, 1)) ?>
-                            </div>
+                    <!-- Curso: inicial, título, categoría, código, producto y fecha -->
+                    <td>
+                        <div class="flex items-start gap-3">
+                            <div class="avatar-ini"><?= htmlspecialchars($inicial) ?></div>
                             <div class="min-w-0">
                                 <a href="/manager/lms/courses/<?= $course['id'] ?>/show"
-                                   class="font-bold text-slate-700 hover:text-blue-600 transition-colors block text-[13px] leading-tight truncate">
+                                   class="block font-bold text-[12.5px] text-slate-800 hover:text-blue-700 hover:underline truncate"
+                                   style="max-width:360px" title="<?= htmlspecialchars($course['title'], ENT_QUOTES) ?>">
                                     <?= htmlspecialchars($course['title']) ?>
                                 </a>
-                                <?php if (!empty($course['course_code'])): ?>
-                                <span class="inline-flex items-center gap-1 mt-0.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest">
-                                    <i class="fas fa-tag" style="font-size:7px"></i>
-                                    <?= htmlspecialchars($course['course_code']) ?>
-                                </span>
+
+                                <?php if (!empty($course['category_name'])): ?>
+                                <div class="sub-cat truncate mt-0.5" style="max-width:360px">
+                                    <?= htmlspecialchars($course['category_name']) ?>
+                                </div>
                                 <?php endif; ?>
-                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-0.5 truncate">
-                                    <?= htmlspecialchars($course['category_name'] ?? '—') ?>
-                                </p>
-                                <?php if (!empty($course['product_name'])): ?>
-                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[9px] font-bold
-                                             <?= $course['product_status'] === 'active' ? 'bg-blue-50 text-blue-600' : 'bg-rose-50 text-rose-500' ?>">
-                                    <i class="fas fa-link" style="font-size:7px"></i>
-                                    &bull; <?= $course['product_status'] === 'active' ? 'activo' : 'inactivo' ?>
-                                </span>
-                                <?php endif; ?>
+
+                                <div class="flex items-center gap-1.5 flex-wrap mt-1.5">
+                                    <?php if (!empty($course['course_code'])): ?>
+                                    <span class="cod">
+                                        <i data-lucide="tag" class="ic" style="width:10px;height:10px"></i>
+                                        <?= htmlspecialchars($course['course_code']) ?>
+                                    </span>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($course['product_name'])): ?>
+                                    <span class="pastilla <?= $course['product_status'] === 'active' ? 'p-azul' : 'p-rojo' ?>"
+                                          title="<?= htmlspecialchars($course['product_name'], ENT_QUOTES) ?>">
+                                        <i data-lucide="link" class="ic" style="width:10px;height:10px"></i>
+                                        <?= $course['product_status'] === 'active' ? 'Vinculado' : 'Inactivo' ?>
+                                    </span>
+                                    <?php else: ?>
+                                    <span class="text-slate-300 text-[10.5px] font-semibold">Sin producto</span>
+                                    <?php endif; ?>
+
+                                    <?php if (!empty($course['created_at'])): ?>
+                                    <span class="text-slate-300 text-[10.5px] font-semibold whitespace-nowrap">
+                                        · <?= date('d/m/Y', strtotime($course['created_at'])) ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </td>
 
                     <!-- Instructor -->
-                    <td class="px-6 py-5">
+                    <td>
                         <?php if (!empty($course['teacher_name'])): ?>
-                        <span class="text-[11px] font-bold text-slate-600"><?= htmlspecialchars($course['teacher_name']) ?></span>
+                        <span class="block truncate font-semibold" style="max-width:130px">
+                            <?= htmlspecialchars($course['teacher_name']) ?>
+                        </span>
                         <?php else: ?>
-                        <span class="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Sin asignar</span>
+                        <span class="sub-cat">Sin asignar</span>
                         <?php endif; ?>
                     </td>
 
                     <!-- Estado -->
-                    <td class="px-6 py-5 text-center">
-                        <?php
-                        $sc = ['published' => 'bg-emerald-50 text-emerald-600',
-                               'draft'     => 'bg-amber-50 text-amber-600',
-                               'archived'  => 'bg-slate-100 text-slate-500'];
-                        $sl = ['published' => 'Publicado', 'draft' => 'Borrador', 'archived' => 'Archivado'];
-                        $dot = ['published' => 'bg-emerald-500', 'draft' => 'bg-amber-500', 'archived' => 'bg-slate-400'];
-                        ?>
-                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest
-                                     <?= $sc[$course['status']] ?? 'bg-slate-100 text-slate-500' ?>">
-                            <span class="w-1 h-1 rounded-full <?= $dot[$course['status']] ?? 'bg-slate-400' ?>"></span>
-                            <?= $sl[$course['status']] ?? $course['status'] ?>
-                        </span>
-                    </td>
+                    <td><span class="pastilla <?= $estadoClase ?>"><?= $estadoTexto ?></span></td>
 
-                    <!-- Contenido -->
-                    <td class="px-6 py-5">
-                        <div class="flex items-center justify-center gap-4">
-                            <div class="flex items-center gap-1.5">
-                                <i class="fas fa-book-open text-[10px] text-blue-600"></i>
-                                <span class="text-[10px] font-bold text-slate-700"><?= (int)($course['lesson_count'] ?? 0) ?> lec.</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <i class="fas fa-vial text-[10px] text-amber-500"></i>
-                                <span class="text-[10px] font-bold text-slate-700"><?= (int)($course['quiz_count'] ?? 0) ?> quiz</span>
-                            </div>
-                            <div class="flex items-center gap-1.5">
-                                <i class="fas fa-users text-[10px] text-emerald-600"></i>
-                                <span class="text-[10px] font-bold text-slate-700"><?= (int)($course['student_count'] ?? 0) ?> est.</span>
-                            </div>
+                    <!-- Contenido: lecciones, quizzes y estudiantes juntos -->
+                    <td>
+                        <div class="flex items-center gap-3.5">
+                            <span class="meta-dato" title="<?= $lecciones ?> lección<?= $lecciones !== 1 ? 'es' : '' ?>">
+                                <i data-lucide="book-open" class="ic ic-14 text-blue-400"></i>
+                                <span>
+                                    <span class="cifra block"><?= $lecciones ?></span>
+                                    <span class="unidad">lec.</span>
+                                </span>
+                            </span>
+                            <span class="meta-dato">
+                                <i data-lucide="pencil-line" class="ic ic-14 text-amber-400"></i>
+                                <span>
+                                    <span class="cifra block"><?= (int)($course['quiz_count'] ?? 0) ?></span>
+                                    <span class="unidad">quiz</span>
+                                </span>
+                            </span>
+                            <span class="meta-dato" title="<?= $estudiantes ?> inscrito<?= $estudiantes !== 1 ? 's' : '' ?>">
+                                <i data-lucide="users" class="ic ic-14 text-emerald-400"></i>
+                                <span>
+                                    <span class="cifra block"><?= $estudiantes ?></span>
+                                    <span class="unidad">est.</span>
+                                </span>
+                            </span>
                         </div>
                     </td>
 
                     <!-- Acciones -->
-                    <td class="px-8 py-5 text-right">
-                        <div class="flex items-center justify-end gap-2 flex-wrap">
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
 <?php if (can('lms.courses.manage')): ?>
-                            <a href="/manager/lms/courses/<?= $course['id'] ?>/edit"
-                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 text-slate-500 text-[9px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all border border-slate-100">
-                                <i class="fas fa-edit text-[10px]"></i> Editar
+                            <a href="/manager/lms/courses/<?= $course['id'] ?>/edit" class="acc acc-gris" title="Editar curso">
+                                <i data-lucide="pencil" class="ic" style="width:12px;height:12px"></i> Editar
                             </a>
 <?php endif; ?>
-                            <a href="/manager/lms/courses/<?= $course['id'] ?>/students"
-                               class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest border border-emerald-100">
-                                <i class="fas fa-user-graduate text-[10px]"></i> Estudiantes
+                            <a href="/manager/lms/courses/<?= $course['id'] ?>/students" class="acc acc-verde"
+                               title="<?= $estudiantes ?> estudiante<?= $estudiantes !== 1 ? 's' : '' ?> inscrito<?= $estudiantes !== 1 ? 's' : '' ?>">
+                                <i data-lucide="users" class="ic" style="width:12px;height:12px"></i> Estudiantes
                             </a>
 <?php if (can('lms.lessons.manage')): ?>
-                            <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create"
-                               class="px-3 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest border border-blue-100">
-                                + Lección
+                            <a href="/manager/lms/courses/<?= $course['id'] ?>/lessons/create" class="acc acc-azul" title="Añadir lección">
+                                <i data-lucide="plus" class="ic" style="width:12px;height:12px"></i> Lección
                             </a>
 <?php endif; ?>
 <?php if (can('lms.quizzes.manage')): ?>
-                            <a href="/manager/lms/quizzes/create?course_id=<?= $course['id'] ?>"
-                               class="px-3 py-1.5 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all text-[9px] font-black uppercase tracking-widest border border-amber-100">
-                                + Quiz
+                            <a href="/manager/lms/quizzes/create?course_id=<?= $course['id'] ?>" class="acc acc-ambar" title="Añadir quiz">
+                                <i data-lucide="plus" class="ic" style="width:12px;height:12px"></i> Quiz
                             </a>
 <?php endif; ?>
 <?php if (can('lms.courses.manage')): ?>
+                            <?php
+                            // El aviso dice qué se lleva por delante el borrado: el
+                            // curso arrastra sus lecciones y sus inscripciones.
+                            $aviso = sprintf(
+                                '¿Eliminar el curso «%s»? Se perderán también sus %d lección%s y sus %d inscripción%s. Esta acción no se puede deshacer.',
+                                addslashes($course['title']),
+                                $lecciones,   $lecciones   === 1 ? '' : 'es',
+                                $estudiantes, $estudiantes === 1 ? '' : 'es'
+                            );
+                            ?>
                             <form method="POST" action="/manager/lms/courses/<?= $course['id'] ?>/delete"
-                                  onsubmit="return confirm('¿Eliminar el curso «<?= htmlspecialchars(addslashes($course['title'])) ?>»? Esta acción no se puede deshacer.')">
+                                  onsubmit="return confirm('<?= htmlspecialchars($aviso, ENT_QUOTES) ?>')">
                                 <?= \Core\Security::getCsrfField() ?>
-                                <button type="submit"
-                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-50 text-rose-500 text-[9px] font-black uppercase tracking-widest hover:bg-rose-500 hover:text-white transition-all border border-rose-100">
-                                    <i class="fas fa-trash text-[10px]"></i> Eliminar
+                                <button type="submit" class="acc acc-rojo" title="Eliminar curso">
+                                    <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar
                                 </button>
                             </form>
 <?php endif; ?>
@@ -282,58 +334,73 @@ $pagerBase = $pagerBase ? "?{$pagerBase}&" : '?';
         </table>
     </div>
 
-    <!-- Paginador -->
-    <?php if ($lastPage > 1): ?>
-    <div class="px-8 py-5 border-t border-slate-50 flex items-center justify-between gap-4">
-        <p class="text-xs text-slate-400 font-medium">
-            Página <strong class="text-slate-600"><?= $page ?></strong> de <strong class="text-slate-600"><?= $lastPage ?></strong>
-            &mdash; <?= $total ?> cursos
-        </p>
-        <div class="flex items-center gap-1">
-            <!-- Anterior -->
+    <!-- Pie: rango y paginador -->
+    <div class="px-4 py-3.5 border-t flex flex-wrap items-center justify-between gap-3"
+         style="border-color: var(--card-border)">
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <p class="text-[12px] font-semibold text-slate-400">
+                <?php if ($total): ?>
+                Mostrando <?= number_format($desde) ?>-<?= number_format($hasta) ?> de <?= number_format($total) ?>
+                <?php else: ?>
+                Sin resultados
+                <?php endif; ?>
+            </p>
+
+            <!-- Formulario aparte: arrastra los filtros activos para no perderlos. -->
+            <form method="GET" action="/manager/lms/courses" class="flex items-center gap-2">
+                <input type="hidden" name="q"           value="<?= htmlspecialchars($q, ENT_QUOTES) ?>">
+                <input type="hidden" name="status"      value="<?= htmlspecialchars($filterStatus, ENT_QUOTES) ?>">
+                <input type="hidden" name="category_id" value="<?= $filterCategory ?: '' ?>">
+                <input type="hidden" name="has_product" value="<?= htmlspecialchars($filterHasProduct, ENT_QUOTES) ?>">
+                <input type="hidden" name="teacher_id"  value="<?= $filterTeacherId ?: '' ?>">
+                <span class="text-[11.5px] font-semibold text-slate-400">Mostrar</span>
+                <select name="per_page" class="campo" onchange="this.form.submit()" aria-label="Filas por página">
+                    <?php foreach ([10, 20, 50, 100] as $n): ?>
+                    <option value="<?= $n ?>" <?= $perPage === $n ? 'selected' : '' ?>><?= $n ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="text-[11.5px] font-semibold text-slate-400">filas</span>
+            </form>
+        </div>
+
+        <?php if ($lastPage > 1): ?>
+        <div class="flex items-center gap-1.5">
+
             <?php if ($page > 1): ?>
-            <a href="/manager/lms/courses/<?= $pagerBase ?>page=<?= $page - 1 ?>"
-               class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center
-                      text-slate-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all text-xs font-bold">
-                <i class="fas fa-chevron-left text-[10px]"></i>
+            <a href="/manager/lms/courses<?= $pagerBase ?>page=<?= $page - 1 ?>" class="pag" title="Anterior">
+                <i data-lucide="chevron-left" class="ic ic-14"></i>
             </a>
+            <?php else: ?>
+            <span class="pag inerte"><i data-lucide="chevron-left" class="ic ic-14"></i></span>
             <?php endif; ?>
 
             <?php
-            // Show up to 7 page buttons with ellipsis
-            $start = max(1, $page - 3);
-            $end   = min($lastPage, $page + 3);
-            if ($start > 1): ?>
-            <a href="/manager/lms/courses/<?= $pagerBase ?>page=1"
-               class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 hover:bg-slate-100 transition-all">1</a>
-            <?php if ($start > 2): ?><span class="text-slate-300 px-1">…</span><?php endif; ?>
+            $inicio = max(1, $page - 2);
+            $fin    = min($lastPage, $page + 2);
+            if ($inicio > 1): ?>
+            <a href="/manager/lms/courses<?= $pagerBase ?>page=1" class="pag">1</a>
+            <?php if ($inicio > 2): ?><span class="pag inerte">…</span><?php endif; ?>
             <?php endif; ?>
 
-            <?php for ($p = $start; $p <= $end; $p++): ?>
-            <a href="/manager/lms/courses/<?= $pagerBase ?>page=<?= $p ?>"
-               class="w-9 h-9 rounded-xl border flex items-center justify-center text-xs font-bold transition-all
-                      <?= $p === $page
-                          ? 'bg-blue-600 border-blue-600 text-white shadow-md shadow-blue-600/25'
-                          : 'bg-slate-50 border-slate-100 text-slate-500 hover:bg-slate-100' ?>">
-                <?= $p ?>
-            </a>
+            <?php for ($p = $inicio; $p <= $fin; $p++): ?>
+            <a href="/manager/lms/courses<?= $pagerBase ?>page=<?= $p ?>"
+               class="pag <?= $p === $page ? 'activa' : '' ?>"><?= $p ?></a>
             <?php endfor; ?>
 
-            <?php if ($end < $lastPage): ?>
-            <?php if ($end < $lastPage - 1): ?><span class="text-slate-300 px-1">…</span><?php endif; ?>
-            <a href="/manager/lms/courses/<?= $pagerBase ?>page=<?= $lastPage ?>"
-               class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 hover:bg-slate-100 transition-all"><?= $lastPage ?></a>
+            <?php if ($fin < $lastPage): ?>
+            <?php if ($fin < $lastPage - 1): ?><span class="pag inerte">…</span><?php endif; ?>
+            <a href="/manager/lms/courses<?= $pagerBase ?>page=<?= $lastPage ?>" class="pag"><?= $lastPage ?></a>
             <?php endif; ?>
 
-            <!-- Siguiente -->
             <?php if ($page < $lastPage): ?>
-            <a href="/manager/lms/courses/<?= $pagerBase ?>page=<?= $page + 1 ?>"
-               class="w-9 h-9 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center
-                      text-slate-500 hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all text-xs font-bold">
-                <i class="fas fa-chevron-right text-[10px]"></i>
+            <a href="/manager/lms/courses<?= $pagerBase ?>page=<?= $page + 1 ?>" class="pag" title="Siguiente">
+                <i data-lucide="chevron-right" class="ic ic-14"></i>
             </a>
+            <?php else: ?>
+            <span class="pag inerte"><i data-lucide="chevron-right" class="ic ic-14"></i></span>
             <?php endif; ?>
         </div>
+        <?php endif; ?>
     </div>
-    <?php endif; ?>
 </div>

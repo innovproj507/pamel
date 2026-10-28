@@ -25,7 +25,9 @@ class AdminCourseController extends BaseController
     {
         $this->requireCan('lms.courses.view');
 
-        $perPage    = 20;
+        // Filas por página: lista cerrada, porque el valor entra en el LIMIT.
+        $perPage    = (int)($_GET['per_page'] ?? 20);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) { $perPage = 20; }
         $page       = max(1, (int)($_GET['page'] ?? 1));
         $q          = trim($_GET['q'] ?? '');
         $status     = $_GET['status'] ?? '';
@@ -67,12 +69,23 @@ class AdminCourseController extends BaseController
 
         $whereStr = implode(' AND ', $where);
 
-        $total = (int)($this->db->fetchOne(
-            "SELECT COUNT(*) AS t FROM lms_courses c
-             LEFT JOIN products p ON p.id = c.product_id
-             WHERE {$whereStr}", $params
-        )['t'] ?? 0);
+        // Un único recuento que alimenta el paginador y los recuadros de
+        // resumen; los recuadros reflejan los filtros activos, no el catálogo
+        // entero, igual que la cifra "N cursos encontrados".
+        $stats = $this->db->fetchOne(
+            "SELECT COUNT(*) total,
+                    SUM(c.status = 'published')   publicados,
+                    SUM(c.status = 'draft')       borradores,
+                    SUM(c.status = 'archived')    archivados,
+                    SUM(c.product_id IS NOT NULL) conProducto,
+                    COALESCE(SUM((SELECT COUNT(*) FROM lms_lessons     WHERE course_id = c.id)), 0) lecciones,
+                    COALESCE(SUM((SELECT COUNT(*) FROM lms_enrollments WHERE course_id = c.id)), 0) estudiantes
+               FROM lms_courses c
+               LEFT JOIN products p ON p.id = c.product_id
+              WHERE {$whereStr}", $params
+        ) ?: [];
 
+        $total   = (int)($stats['total'] ?? 0);
         $offset  = ($page - 1) * $perPage;
         $courses = $this->db->fetchAll(
             "SELECT c.*, u.name as teacher_name, cat.name as category_name,
@@ -102,6 +115,7 @@ class AdminCourseController extends BaseController
             'courses'    => $courses,
             'categories' => $categories,
             'teachers'   => $teachers,
+            'stats'      => $stats,
             'total'      => $total,
             'page'       => $page,
             'perPage'    => $perPage,

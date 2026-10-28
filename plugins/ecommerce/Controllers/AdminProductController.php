@@ -34,7 +34,9 @@ class AdminProductController extends Controller
 
         // Pagination
         $page    = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-        $perPage = 10;
+        // Filas por página: lista cerrada, porque el valor entra en el LIMIT.
+        $perPage = (int)($_GET['per_page'] ?? 20);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) { $perPage = 20; }
         $offset  = ($page - 1) * $perPage;
 
         $total      = $this->productModel->getTotalCountFiltered($filters);

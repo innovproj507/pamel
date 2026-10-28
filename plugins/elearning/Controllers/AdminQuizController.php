@@ -25,7 +25,9 @@ class AdminQuizController extends BaseController
     {
         $this->requireCan('lms.quizzes.view');
 
-        $perPage  = 8;   // cursos por página
+        // Cursos por página: lista cerrada, porque el valor entra en el LIMIT.
+        $perPage  = (int) ($_GET['per_page'] ?? 10);
+        if (!in_array($perPage, [10, 20, 50, 100], true)) { $perPage = 10; }
         $page     = max(1, (int) ($_GET['page'] ?? 1));
         $q        = trim($_GET['q'] ?? '');
         $courseId = (int) ($_GET['course_id'] ?? 0);

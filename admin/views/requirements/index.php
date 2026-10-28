@@ -15,82 +15,105 @@ $estado  = $estado  ?? 'pending';
 $total   = (int) ($total ?? count($docs));
 
 $pestanas = [
-    'pending' => ['Por revisar', $conteos['pending'], 'amber'],
-    'mapped'  => ['Publicados',  $conteos['mapped'],  'emerald'],
-    'ignored' => ['Descartados', $conteos['ignored'], 'slate'],
+    'pending' => ['Por revisar', $conteos['pending'], 'p-ambar'],
+    'mapped'  => ['Publicados',  $conteos['mapped'],  'p-verde'],
+    'ignored' => ['Descartados', $conteos['ignored'], 'p-gris'],
 ];
 
 $etiquetaModo = static fn(string $carpeta): array => match ($carpeta) {
-    'R-RF'  => ['Refresco', 'violet'],
-    'R-AS'  => ['Ascenso',  'sky'],
-    default => ['Curso regular', 'blue'],
+    'R-RF'  => ['Refresco', 'p-violeta'],
+    'R-AS'  => ['Ascenso',  'p-cian'],
+    default => ['Curso regular', 'p-azul'],
 };
 ?>
 
-<div class="mb-6 flex flex-col lg:flex-row lg:items-start justify-between gap-4">
-    <div>
-        <h1 class="text-2xl font-bold text-gray-800">Requisitos de admisión</h1>
-        <p class="text-sm text-gray-500 max-w-3xl">
-            Documentos importados de la carpeta <code>Requisitos/</code>. Asigna cada uno al curso
-            que le corresponde: al hacerlo, sus requisitos quedan publicados y disponibles para el
-            formulario de admisión.
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Requisitos de admisión</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            Documentos importados de <code class="cod">Requisitos/</code> · asigna cada uno a su curso para publicarlos
         </p>
-    </div>
-    <div class="flex gap-3 flex-shrink-0">
-        <div class="card px-4 py-3 text-center">
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Cursos cubiertos</p>
-            <p class="text-xl font-black text-slate-800 mt-0.5"><?= (int) $resumen['cursos'] ?></p>
-        </div>
-        <div class="card px-4 py-3 text-center">
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Requisitos</p>
-            <p class="text-xl font-black text-slate-800 mt-0.5"><?= (int) $resumen['requisitos'] ?></p>
-        </div>
     </div>
 </div>
 
-<!-- Pestañas -->
-<div class="flex items-center gap-2 mb-4 flex-wrap">
-    <?php foreach ($pestanas as $clave => [$texto, $n, $color]): ?>
-    <a href="/manager/requisitos?estado=<?= $clave ?>"
-       class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition border <?=
-           $estado === $clave
-               ? 'bg-slate-800 text-white border-slate-800'
-               : 'bg-white text-slate-500 border-gray-100 hover:bg-slate-50' ?>">
-        <?= $texto ?>
-        <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full <?=
-            $estado === $clave ? 'bg-white/20' : 'bg-' . $color . '-50 text-' . $color . '-600' ?>">
-            <?= (int) $n ?>
-        </span>
-    </a>
-    <?php endforeach; ?>
+<div class="card overflow-hidden">
+
+    <!-- Pestañas y buscador -->
+    <div class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
+
+        <div>
+            <label class="filtro-rot">Bandeja</label>
+            <div class="flex items-center gap-1.5 flex-wrap">
+                <?php foreach ($pestanas as $clave => [$texto, $n, $clase]): ?>
+                <a href="/manager/requisitos?estado=<?= $clave ?>"
+                   class="acc <?= $estado === $clave ? 'acc-azul' : 'acc-gris' ?>"
+                   <?= $estado === $clave ? 'style="border-color:#2563eb; background:#2563eb; color:#fff"' : '' ?>>
+                    <?= $texto ?>
+                    <span class="pastilla <?= $estado === $clave ? '' : $clase ?>" style="padding:1px 6px; font-size:9.5px<?= $estado === $clave ? '; background:rgba(255,255,255,.22); color:#fff' : '' ?>">
+                        <?= (int) $n ?>
+                    </span>
+                </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <?php if (!empty($docs)): ?>
+        <div>
+            <label class="filtro-rot" for="buscador">Buscar</label>
+            <div class="relative">
+                <i data-lucide="search" class="ic ic-14 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="search" id="buscador" autofocus autocomplete="off"
+                       placeholder="Nombre del curso o parte de un requisito…"
+                       class="campo" style="padding-left:32px; width:300px; border-radius:999px">
+            </div>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Resumen -->
+    <div class="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="kpi">
+            <div class="kpi-label">Documentos</div>
+            <div class="kpi-value"><?= number_format($total) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Cursos cubiertos</div>
+            <div class="kpi-value"><?= number_format((int) $resumen['cursos']) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Requisitos publicados</div>
+            <div class="kpi-value"><?= number_format((int) $resumen['requisitos']) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Por revisar</div>
+            <div class="kpi-value"><?= number_format((int) $conteos['pending']) ?></div>
+        </div>
+    </div>
 </div>
 
 <?php if (empty($docs)): ?>
-<div class="card p-14 text-center">
-    <i class="fas fa-circle-check text-4xl text-emerald-300 mb-4"></i>
-    <p class="text-lg font-bold text-slate-700">
-        <?= $estado === 'pending' ? 'No queda ningún documento por revisar' : 'Nada que mostrar aquí' ?>
-    </p>
+<div class="card mt-4">
+    <div class="vacio">
+        <i data-lucide="circle-check" class="ic"></i>
+        <p><?= $estado === 'pending' ? 'No queda ningún documento por revisar.' : 'Nada que mostrar aquí.' ?></p>
+    </div>
 </div>
 <?php else: ?>
 
-<!-- Buscador -->
-<div class="card p-3 mb-4 flex flex-col sm:flex-row sm:items-center gap-3">
-    <div class="relative flex-1">
-        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm"></i>
-        <input type="search" id="buscador" autofocus autocomplete="off"
-               placeholder="Escribe el nombre del curso o parte de un requisito…"
-               class="w-full pl-11 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:border-blue-500 outline-none transition">
-    </div>
-    <p class="text-xs font-bold text-gray-400 whitespace-nowrap px-1">
-        <span id="contadorVisibles"><?= count($docs) ?></span> de <?= $total ?> documento<?= $total === 1 ? '' : 's' ?>
-    </p>
-</div>
+<p class="text-[11.5px] font-semibold text-slate-400 mt-4 mb-2 px-1">
+    <span id="contadorVisibles"><?= count($docs) ?></span> de <?= $total ?> documento<?= $total === 1 ? '' : 's' ?>
+</p>
 
 <div class="space-y-2" id="listaDocs">
     <?php foreach ($docs as $d):
         $sinAsignar = empty($d['product_id']);
-        [$modoTexto, $modoColor] = $etiquetaModo($d['folder']);
+        [$modoTexto, $modoClase] = $etiquetaModo($d['folder']);
         $lista = $d['lista'];
 
         // Texto sobre el que filtra el buscador: título, curso y requisitos
@@ -103,65 +126,69 @@ $etiquetaModo = static fn(string $carpeta): array => match ($carpeta) {
 
         <!-- Cabecera: clic para desplegar -->
         <button type="button"
-                class="w-full flex flex-wrap items-center gap-3 px-4 py-3 text-left hover:bg-slate-50/70 transition cabecera">
-            <i class="fas fa-chevron-right text-gray-300 text-xs transition-transform flecha"></i>
-            <span class="text-[10px] font-black uppercase tracking-wider bg-<?= $modoColor ?>-50 text-<?= $modoColor ?>-600 border border-<?= $modoColor ?>-200 px-2 py-1 rounded-full flex-shrink-0">
-                <?= $modoTexto ?>
-            </span>
-            <span class="font-bold text-slate-800 text-sm flex-1 min-w-0 truncate" title="<?= htmlspecialchars($d['doc_title']) ?>">
+                class="w-full flex flex-wrap items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition cabecera">
+            <i data-lucide="chevron-right" class="ic ic-14 text-slate-300 transition-transform flecha flex-shrink-0"></i>
+
+            <span class="pastilla <?= $modoClase ?> flex-shrink-0"><?= $modoTexto ?></span>
+
+            <span class="font-bold text-slate-800 text-[12.5px] flex-1 min-w-0 truncate"
+                  title="<?= htmlspecialchars($d['doc_title'], ENT_QUOTES) ?>">
                 <?= htmlspecialchars($d['doc_title']) ?>
             </span>
-            <span class="text-[11px] text-gray-400 font-semibold whitespace-nowrap flex-shrink-0">
+
+            <span class="text-[10.5px] text-slate-400 font-semibold whitespace-nowrap flex-shrink-0">
                 <?= count($lista) ?> requisitos
             </span>
+
             <?php if (!$sinAsignar): ?>
-            <span class="text-[11px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-full max-w-[16rem] truncate flex-shrink-0"
-                  title="<?= htmlspecialchars((string) $d['product_name']) ?>">
-                <i class="fas fa-check text-[9px] mr-0.5"></i>
-                <?= htmlspecialchars(mb_strimwidth((string) $d['product_name'], 0, 34, '…')) ?>
+            <span class="pastilla p-verde flex-shrink-0" style="max-width:16rem"
+                  title="<?= htmlspecialchars((string) $d['product_name'], ENT_QUOTES) ?>">
+                <i data-lucide="check" class="ic" style="width:10px;height:10px"></i>
+                <span class="truncate"><?= htmlspecialchars(mb_strimwidth((string) $d['product_name'], 0, 34, '…')) ?></span>
             </span>
             <?php else: ?>
-            <span class="text-[11px] font-black text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded-full flex-shrink-0">
-                Sin curso
-            </span>
+            <span class="pastilla p-ambar flex-shrink-0">Sin curso</span>
             <?php endif; ?>
         </button>
 
         <!-- Detalle -->
         <div class="detalle hidden border-t" style="border-color: var(--card-border)">
 
-            <ul class="px-5 py-3 space-y-1 bg-slate-50/40">
+            <ul class="px-5 py-3 space-y-1.5 bg-slate-50/60">
                 <?php foreach ($lista as $r): ?>
-                <li class="flex items-start gap-2 text-xs text-slate-600">
-                    <i class="fas <?= !empty($r['requires_file']) ? 'fa-paperclip text-blue-400' : 'fa-circle-info text-gray-300' ?> text-[10px] mt-0.5 flex-shrink-0"></i>
+                <li class="flex items-start gap-2 text-[12px] text-slate-600">
+                    <i data-lucide="<?= !empty($r['requires_file']) ? 'paperclip' : 'info' ?>"
+                       class="ic flex-shrink-0 mt-0.5 <?= !empty($r['requires_file']) ? 'text-blue-400' : 'text-slate-300' ?>"
+                       style="width:12px;height:12px"></i>
                     <span><?= htmlspecialchars($r['label']) ?></span>
                 </li>
                 <?php endforeach; ?>
-                <li class="text-[10px] text-gray-400 pt-1">
-                    <i class="fas fa-paperclip"></i> pide documento &nbsp;·&nbsp;
-                    <i class="fas fa-circle-info"></i> solo informativo
+                <li class="text-[10px] font-semibold text-slate-400 pt-1 flex items-center gap-1.5">
+                    <i data-lucide="paperclip" class="ic" style="width:10px;height:10px"></i> pide documento
+                    <span class="text-slate-300">·</span>
+                    <i data-lucide="info" class="ic" style="width:10px;height:10px"></i> solo informativo
                 </li>
             </ul>
 
-            <div class="px-5 py-3 flex flex-col lg:flex-row gap-3 lg:items-center border-t" style="border-color: var(--card-border)">
+            <div class="px-5 py-3 flex flex-col lg:flex-row gap-2.5 lg:items-center border-t" style="border-color: var(--card-border)">
                 <form method="POST" action="/manager/requisitos/<?= (int) $d['id'] ?>/asignar"
                       class="flex flex-1 flex-col sm:flex-row gap-2"
                       onsubmit="return this.product_id.value ? true : (alert('Selecciona primero el curso.'), false);">
                     <?= \Core\Security::getCsrfField() ?>
-                    <input type="hidden" name="volver_estado" value="<?= htmlspecialchars($estado) ?>">
+                    <input type="hidden" name="volver_estado" value="<?= htmlspecialchars($estado, ENT_QUOTES) ?>">
                     <span class="flex-1 ranura-curso" data-elegido="<?= (int) ($d['product_id'] ?? 0) ?>"></span>
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold px-5 py-2 rounded-lg transition whitespace-nowrap">
-                        <i class="fas fa-check mr-1"></i> Asignar y publicar
+                    <button type="submit" class="btn-verde">
+                        <i data-lucide="check" class="ic ic-14"></i> Asignar y publicar
                     </button>
                 </form>
 
                 <?php if (!$sinAsignar): ?>
                 <form method="POST" action="/manager/requisitos/<?= (int) $d['id'] ?>/publicar">
                     <?= \Core\Security::getCsrfField() ?>
-                    <input type="hidden" name="volver_estado" value="<?= htmlspecialchars($estado) ?>">
-                    <button type="submit" class="w-full lg:w-auto px-4 py-2 rounded-lg border border-gray-200 text-slate-500 text-sm font-bold hover:bg-slate-50 transition whitespace-nowrap"
+                    <input type="hidden" name="volver_estado" value="<?= htmlspecialchars($estado, ENT_QUOTES) ?>">
+                    <button type="submit" class="btn-sec w-full lg:w-auto justify-center"
                             title="Vuelve a copiar la lista del documento al curso">
-                        <i class="fas fa-rotate mr-1"></i> Republicar
+                        <i data-lucide="refresh-cw" class="ic ic-14"></i> Republicar
                     </button>
                 </form>
                 <?php endif; ?>
@@ -170,9 +197,9 @@ $etiquetaModo = static fn(string $carpeta): array => match ($carpeta) {
                 <form method="POST" action="/manager/requisitos/<?= (int) $d['id'] ?>/descartar"
                       onsubmit="return confirm('¿Descartar este documento? No se borra nada, solo deja de aparecer como pendiente.');">
                     <?= \Core\Security::getCsrfField() ?>
-                    <input type="hidden" name="volver_estado" value="<?= htmlspecialchars($estado) ?>">
-                    <button type="submit" class="w-full lg:w-auto px-4 py-2 rounded-lg border border-gray-200 text-gray-400 text-sm font-bold hover:border-rose-200 hover:text-rose-600 transition whitespace-nowrap">
-                        Descartar
+                    <input type="hidden" name="volver_estado" value="<?= htmlspecialchars($estado, ENT_QUOTES) ?>">
+                    <button type="submit" class="btn-sec w-full lg:w-auto justify-center">
+                        <i data-lucide="x" class="ic ic-14"></i> Descartar
                     </button>
                 </form>
                 <?php endif; ?>
@@ -182,16 +209,19 @@ $etiquetaModo = static fn(string $carpeta): array => match ($carpeta) {
     <?php endforeach; ?>
 </div>
 
-<p id="sinResultados" class="hidden card p-10 text-center text-sm font-bold text-gray-400">
-    Ningún documento coincide con la búsqueda.
-</p>
+<div id="sinResultados" class="hidden card mt-2">
+    <div class="vacio">
+        <i data-lucide="search-x" class="ic"></i>
+        <p>Ningún documento coincide con la búsqueda.</p>
+    </div>
+</div>
 
 <!--
     El selector de curso se escribe una sola vez y se clona en la fila que se
     abre. Repetirlo en cada documento serían miles de <option> por página.
 -->
 <template id="plantillaCurso">
-    <select name="product_id" class="w-full px-3 py-2 rounded-lg border border-gray-200 text-sm focus:border-blue-500 outline-none transition">
+    <select name="product_id" class="campo w-full">
         <option value="">Selecciona el curso…</option>
         <?php foreach ($cursos as $c): ?>
         <option value="<?= (int) $c['id'] ?>">

@@ -264,6 +264,185 @@ foreach ([
         .menu-item:hover { background: #f4f6fb; color: #2563eb; }
         .menu-item.resaltado { background: #eef2fb; color: #2563eb; }
 
+        /* ── Pantallas de listado ──
+           Cabecera, barra de filtros, recuadros de resumen, tabla y
+           paginador. Son clases nuevas: ninguna pisa a las que ya usan
+           el resto de vistas del panel. */
+        .btn-atras {
+            width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: #fff; border: 1px solid var(--card-border); color: #64748b;
+            transition: background .15s, color .15s;
+        }
+        .btn-atras:hover { background: #f4f6fb; color: #2563eb; }
+
+        .btn-sec, .btn-verde, .btn-violeta {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 9px 16px; border-radius: 10px;
+            font-size: 12.5px; font-weight: 700; white-space: nowrap;
+            transition: transform .15s, box-shadow .15s, background .15s, color .15s;
+        }
+        .btn-sec        { background: #fff; border: 1px solid var(--card-border); color: #475569; }
+        .btn-sec:hover  { background: #f4f6fb; color: #2563eb; }
+        .btn-verde      { background: #16a34a; color: #fff; box-shadow: 0 4px 12px rgba(22,163,74,.30); }
+        .btn-violeta    { background: #6366f1; color: #fff; box-shadow: 0 4px 12px rgba(99,102,241,.30); }
+        .btn-verde:hover, .btn-violeta:hover { transform: translateY(-1px); }
+
+        /* Campos compactos de la barra de filtros */
+        .campo {
+            height: 34px; padding: 0 11px; border-radius: 8px;
+            border: 1px solid var(--card-border); background: #fff;
+            font-size: 12px; font-weight: 600; color: #475569;
+            outline: none; transition: border-color .15s, box-shadow .15s;
+        }
+        .campo:focus { border-color: #c7d7f5; box-shadow: 0 0 0 3px rgba(37,99,235,.08); }
+        select.campo { padding-right: 26px; cursor: pointer; }
+
+        /* Recuadros de resumen sobre la tabla */
+        .kpi { border: 1px solid var(--card-border); border-radius: 12px; padding: 11px 14px; background: #fff; }
+        .kpi-label { font-size: 9.5px; font-weight: 800; color: #94a3b8;
+                     text-transform: uppercase; letter-spacing: .1em; }
+        .kpi-value { font-size: 21px; font-weight: 800; color: var(--ink); line-height: 1.15; margin-top: 4px; }
+
+        /* Tabla de listado */
+        .tabla { width: 100%; border-collapse: collapse; }
+        .tabla th {
+            text-align: left; white-space: nowrap; padding: 11px 12px;
+            font-size: 9.5px; font-weight: 800; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: .09em;
+            border-bottom: 1px solid var(--card-border);
+        }
+        .tabla td {
+            padding: 11px 12px; font-size: 12.5px; color: #475569;
+            border-bottom: 1px solid #f1f5f9; vertical-align: middle;
+        }
+        .tabla tbody tr:last-child td { border-bottom: 0; }
+        .tabla tbody tr:hover { background: #f8fafc; }
+        .tabla .num    { text-align: right; font-variant-numeric: tabular-nums; }
+        .tabla .centro { text-align: center; }
+        /* Estado vacío: mismo bloque en todos los listados. */
+        .vacio { padding: 56px 12px; text-align: center; }
+        .vacio p { font-size: 13px; font-weight: 600; color: #94a3b8; }
+        .vacio .ic { width: 30px; height: 30px; color: #cbd5e1; margin: 0 auto 12px; }
+        /* Que la primera y la última columna queden a plomo con el resto de la tarjeta. */
+        .tabla th:first-child, .tabla td:first-child { padding-left: 16px; }
+        .tabla th:last-child,  .tabla td:last-child  { padding-right: 16px; }
+
+        /* Pastillas de estado */
+        .pastilla {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 3px 9px; border-radius: 7px;
+            font-size: 10.5px; font-weight: 700; white-space: nowrap;
+        }
+        /* Puntito del mismo color que el texto, como en las pastillas de estado. */
+        .pastilla .punto { width: 5px; height: 5px; border-radius: 50%;
+                           background: currentColor; opacity: .75; flex-shrink: 0; }
+        .p-azul  { background: #dbeafe; color: #1d4ed8; }
+        .p-verde { background: #d7f5e5; color: #047857; }
+        .p-ambar { background: #fef3c7; color: #b45309; }
+        .p-gris  { background: #eef2f7; color: #64748b; }
+        .p-rojo  { background: #fee2e2; color: #b91c1c; }
+        .p-violeta { background: #ede9fe; color: #6d28d9; }
+        .p-indigo  { background: #e0e7ff; color: #4338ca; }
+        .p-cian    { background: #cffafe; color: #0e7490; }
+
+        /* Botones de acción cuadrados */
+        .ib {
+            width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #fff; transition: transform .12s, filter .12s;
+        }
+        .ib:hover { transform: translateY(-1px); filter: brightness(1.08); }
+        .ib-azul   { background: #3b82f6; }
+        .ib-ambar  { background: #f59e0b; }
+        .ib-verde  { background: #10b981; }
+        .ib-indigo { background: #6366f1; }
+        .ib-rojo   { background: #ef4444; }
+        /* Acciones secundarias: sin relleno, para que la fila no se vuelva un arcoíris. */
+        .ib-fantasma { background: #fff; border: 1px solid var(--card-border); color: #64748b; }
+        .ib-fantasma:hover { border-color: #c7d7f5; color: #2563eb; filter: none; }
+
+        /* Paginador */
+        .pag {
+            min-width: 32px; height: 32px; padding: 0 9px; border-radius: 8px;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; color: #64748b;
+            background: #fff; border: 1px solid var(--card-border);
+            transition: background .15s, color .15s;
+        }
+        .pag:hover  { background: #f4f6fb; color: #2563eb; }
+        .pag.activa { background: #2563eb; border-color: #2563eb; color: #fff;
+                      box-shadow: 0 4px 10px rgba(37,99,235,.28); }
+        .pag.inerte { border: 0; background: transparent; color: #cbd5e1; }
+
+        /* ── Celda principal: inicial, título, subtítulo y datos ── */
+        .avatar-ini {
+            width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: #fff; font-size: 14px; font-weight: 800; line-height: 1;
+        }
+        /* Tintes alternativos, para distinguir personas de un vistazo. */
+        .av-verde  { background: linear-gradient(135deg, #065f46, #10b981); }
+        .av-ambar  { background: linear-gradient(135deg, #92400e, #f59e0b); }
+        .av-rosa   { background: linear-gradient(135deg, #9f1239, #f43f5e); }
+        .av-violeta{ background: linear-gradient(135deg, #4c1d95, #8b5cf6); }
+        .av-cian   { background: linear-gradient(135deg, #155e75, #06b6d4); }
+        /* Categoría bajo el título, en versalitas. */
+        .sub-cat {
+            font-size: 9.5px; font-weight: 800; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: .08em;
+        }
+        /* Código del curso: monoespaciado para que los dígitos cuadren. */
+        .cod {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 2px 7px; border-radius: 6px; background: #f1f5f9;
+            font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+            font-size: 10px; font-weight: 700; color: #475569; letter-spacing: -.01em;
+        }
+
+        /* Columna de contenido: cifra arriba, unidad debajo. */
+        .meta-dato { display: inline-flex; align-items: center; gap: 6px; }
+        .meta-dato .cifra { font-size: 13px; font-weight: 800; color: #334155; line-height: 1.05; }
+        .meta-dato .unidad { font-size: 9.5px; font-weight: 700; color: #94a3b8; }
+
+        /* Acciones con texto. Tintes suaves: la fila se lee sin gritar. */
+        .acc {
+            /* Sin encoger: si no cabe, la tabla se desplaza en horizontal en
+               vez de apilar los botones y triplicar el alto de la fila. */
+            display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+            padding: 5px 9px; border-radius: 8px; white-space: nowrap;
+            font-size: 10px; font-weight: 800; letter-spacing: .04em;
+            text-transform: uppercase; border: 1px solid transparent;
+            transition: filter .12s, transform .12s;
+        }
+        .acc:hover { filter: brightness(.96); transform: translateY(-1px); }
+        .acc-gris  { background: #fff;     border-color: var(--card-border); color: #475569; }
+        .acc-azul  { background: #eff6ff;  border-color: #dbeafe; color: #1d4ed8; }
+        .acc-verde { background: #ecfdf5;  border-color: #d1fae5; color: #047857; }
+        .acc-ambar { background: #fffbeb;  border-color: #fef3c7; color: #b45309; }
+        .acc-rojo  { background: #fef2f2;  border-color: #fee2e2; color: #b91c1c; }
+
+        /* Miniatura de producto en los listados. */
+        .miniatura { width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+                     object-fit: cover; border: 1px solid var(--card-border); background: #f6f8fc; }
+        .miniatura.vacia { display: flex; align-items: center; justify-content: center; color: #cbd5e1; }
+
+        /* Barra de avance de los listados de seguimiento. */
+        .barra { flex: 1; min-width: 60px; height: 6px; border-radius: 999px;
+                 background: #eef2f7; overflow: hidden; }
+        .barra > span { display: block; height: 100%; border-radius: 999px; background: #3b82f6; }
+        .barra.b-verde > span { background: #10b981; }
+        .barra.b-ambar > span { background: #f59e0b; }
+        .barra.b-gris  > span { background: #cbd5e1; }
+
+        /* Rótulo sobre cada filtro, para que «Con y sin producto» se entienda. */
+        .filtro-rot {
+            display: block; margin-bottom: 4px;
+            font-size: 9px; font-weight: 800; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: .09em;
+        }
+
         @media (max-width: 1280px) { .topbar-search { width: 200px; } }
         @media (max-width: 1024px) { .topbar-search { width: 170px; } }
     </style>
@@ -346,8 +525,8 @@ foreach ([
             <?php if (can('shop.manage')): ?>
             <a href="/manager/products"   class="nav-link" title="Productos"><i data-lucide="package" class="ic"></i><span class="solo-ancho">Productos</span></a>
             <a href="/manager/categories" class="nav-link" title="Categorías"><i data-lucide="folder-tree" class="ic"></i><span class="solo-ancho">Categorías</span></a>
-            <a href="/manager/branches"   class="nav-link" title="Branches"><i data-lucide="git-branch" class="ic"></i><span class="solo-ancho">Branches</span></a>
-            <a href="/manager/modalities" class="nav-link" title="Modalities"><i data-lucide="laptop" class="ic"></i><span class="solo-ancho">Modalities</span></a>
+            <a href="/manager/branches"   class="nav-link" title="Ramas"><i data-lucide="git-branch" class="ic"></i><span class="solo-ancho">Ramas</span></a>
+            <a href="/manager/modalities" class="nav-link" title="Modalidades"><i data-lucide="laptop" class="ic"></i><span class="solo-ancho">Modalidades</span></a>
             <?php endif; ?>
             <?php if (can('shop.orders.view')): ?>
             <a href="/manager/orders" class="nav-link" title="Pedidos"><i data-lucide="receipt" class="ic"></i><span class="solo-ancho">Pedidos</span></a>

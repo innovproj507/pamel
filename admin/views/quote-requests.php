@@ -1,222 +1,223 @@
-<div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">Quote Requests</h1>
-        <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-600">Total: <?php echo $totalCount; ?></span>
-        </div>
+<?php
+/** Bandeja de solicitudes de cotización. */
+$requests      = $requests      ?? [];
+$statusCounts  = $statusCounts  ?? ['pending' => 0, 'quoted' => 0, 'completed' => 0, 'cancelled' => 0];
+$currentStatus = $currentStatus ?? '';
+$currentSearch = $currentSearch ?? '';
+$totalCount    = (int) ($totalCount  ?? 0);
+$currentPage   = (int) ($currentPage ?? 1);
+$totalPages    = (int) ($totalPages  ?? 1);
+
+$hayFiltros = $currentSearch !== '' || $currentStatus !== '';
+
+// Nombre en español y tinte de cada estado.
+$estados = [
+    'pending'   => ['Pendiente',  'p-ambar'],
+    'quoted'    => ['Cotizada',   'p-azul'],
+    'completed' => ['Completada', 'p-verde'],
+    'cancelled' => ['Cancelada',  'p-rojo'],
+];
+
+// Recuadros: el primero quita el filtro, los demás filtran por su estado.
+$recuadros = [
+    ['Todas',      array_sum($statusCounts),     ''],
+    ['Pendientes', $statusCounts['pending'],     'pending'],
+    ['Cotizadas',  $statusCounts['quoted'],      'quoted'],
+    ['Completadas',$statusCounts['completed'],   'completed'],
+    ['Canceladas', $statusCounts['cancelled'],   'cancelled'],
+];
+
+/** URL de paginación conservando filtros. */
+$enlace = static function (int $p) use ($currentStatus, $currentSearch): string {
+    return '/manager/quote-requests?' . http_build_query(array_filter([
+        'page'   => $p,
+        'status' => $currentStatus,
+        'search' => $currentSearch,
+    ], static fn($v) => $v !== '' && $v !== null));
+};
+?>
+
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Cotizaciones</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($totalCount) ?> solicitud<?= $totalCount === 1 ? '' : 'es' ?> encontrada<?= $totalCount === 1 ? '' : 's' ?>
+        </p>
     </div>
+</div>
 
-    <!-- Status Filters -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <a href="/manager/quote-requests"
-               class="status-card <?php echo empty($currentStatus) ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">All Requests</p>
-                        <p class="text-2xl font-bold"><?php echo array_sum($statusCounts); ?></p>
-                    </div>
-                    <i class="fas fa-list text-gray-400 text-2xl"></i>
-                </div>
-            </a>
+<div class="card overflow-hidden">
 
-            <a href="/manager/quote-requests?status=pending"
-               class="status-card <?php echo $currentStatus === 'pending' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Pending</p>
-                        <p class="text-2xl font-bold text-yellow-600"><?php echo $statusCounts['pending']; ?></p>
-                    </div>
-                    <i class="fas fa-clock text-yellow-400 text-2xl"></i>
-                </div>
-            </a>
+    <!-- Barra de filtros -->
+    <form method="GET" action="/manager/quote-requests"
+          class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
 
-            <a href="/manager/quote-requests?status=quoted"
-               class="status-card <?php echo $currentStatus === 'quoted' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Quoted</p>
-                        <p class="text-2xl font-bold text-blue-600"><?php echo $statusCounts['quoted']; ?></p>
-                    </div>
-                    <i class="fas fa-paper-plane text-blue-400 text-2xl"></i>
-                </div>
-            </a>
+        <?php if ($currentStatus): ?>
+        <input type="hidden" name="status" value="<?= htmlspecialchars($currentStatus, ENT_QUOTES) ?>">
+        <?php endif; ?>
 
-            <a href="/manager/quote-requests?status=completed"
-               class="status-card <?php echo $currentStatus === 'completed' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Completed</p>
-                        <p class="text-2xl font-bold text-green-600"><?php echo $statusCounts['completed']; ?></p>
-                    </div>
-                    <i class="fas fa-check-circle text-green-400 text-2xl"></i>
-                </div>
-            </a>
-
-            <a href="/manager/quote-requests?status=cancelled"
-               class="status-card <?php echo $currentStatus === 'cancelled' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm text-gray-600">Cancelled</p>
-                        <p class="text-2xl font-bold text-red-600"><?php echo $statusCounts['cancelled']; ?></p>
-                    </div>
-                    <i class="fas fa-times-circle text-red-400 text-2xl"></i>
-                </div>
-            </a>
-        </div>
-    </div>
-
-    <!-- Search Bar -->
-    <div class="bg-white rounded-lg shadow-md p-4 mb-6">
-        <form method="GET" action="/manager/quote-requests" class="flex gap-4">
-            <?php if ($currentStatus): ?>
-                <input type="hidden" name="status" value="<?php echo htmlspecialchars($currentStatus); ?>">
-            <?php endif; ?>
-            <input type="text"
-                   name="search"
-                   value="<?php echo htmlspecialchars($currentSearch); ?>"
-                   placeholder="Search by name or email..."
-                   class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:outline-none">
-            <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white px-6 py-2 rounded-lg transition">
-                <i class="fas fa-search mr-2"></i>Search
-            </button>
-            <?php if ($currentSearch || $currentStatus): ?>
-                <a href="/manager/quote-requests" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition">
-                    <i class="fas fa-times mr-2"></i>Clear
-                </a>
-            <?php endif; ?>
-        </form>
-    </div>
-
-    <!-- Requests Table -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Courses</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <?php if (empty($requests)): ?>
-                        <tr>
-                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-2"></i>
-                                <p>No quote requests found.</p>
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($requests as $request): ?>
-                            <tr class="hover:bg-gray-50">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    #<?php echo $request['id']; ?>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                    <?php echo htmlspecialchars($request['customer_name']); ?>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    <?php echo htmlspecialchars($request['email']); ?>
-                                </td>
-                                <td class="px-6 py-4 text-sm text-gray-900">
-                                    <div class="max-w-xs truncate">
-                                        <?php echo count($request['items']); ?> course(s):
-                                        <?php echo htmlspecialchars(implode(', ', array_map(fn($i) => $i['product_name'], $request['items']))); ?>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <span class="status-badge status-<?php echo $request['status']; ?>">
-                                        <?php echo ucfirst($request['status']); ?>
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    <?php echo date('Y-m-d H:i', strtotime($request['created_at'])); ?>
-                                </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <a href="/manager/quote-requests/<?php echo $request['id']; ?>"
-                                       class="text-cyan-600 hover:text-cyan-900 mr-3">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                    <?php if ($request['status'] === 'pending'): ?>
-                                        <button onclick="sendQuote(<?php echo $request['id']; ?>, this)"
-                                                class="text-green-600 hover:text-green-900 font-medium">
-                                            <i class="fas fa-paper-plane"></i> Send Quote
-                                        </button>
-                                    <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        <?php if ($totalPages > 1): ?>
-            <div class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm text-gray-700">
-                            Showing page <span class="font-medium"><?php echo $currentPage; ?></span> of <span class="font-medium"><?php echo $totalPages; ?></span>
-                        </p>
-                    </div>
-                    <div>
-                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                            <?php for ($i = 1; $i <= min($totalPages, 5); $i++): ?>
-                                <a href="?page=<?php echo $i; ?><?php echo $currentStatus ? '&status=' . $currentStatus : ''; ?><?php echo $currentSearch ? '&search=' . urlencode($currentSearch) : ''; ?>"
-                                   class="<?php echo $i === $currentPage ? 'bg-cyan-50 border-cyan-500 text-cyan-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'; ?> relative inline-flex items-center px-4 py-2 border text-sm font-medium">
-                                    <?php echo $i; ?>
-                                </a>
-                            <?php endfor; ?>
-                        </nav>
-                    </div>
-                </div>
+        <div>
+            <label class="filtro-rot" for="f-q">Buscar</label>
+            <div class="relative">
+                <i data-lucide="search" class="ic ic-14 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="text" id="f-q" name="search" value="<?= htmlspecialchars($currentSearch, ENT_QUOTES) ?>"
+                       placeholder="Buscar por nombre o correo…"
+                       class="campo" style="padding-left:32px; width:280px; border-radius:999px">
             </div>
+        </div>
+
+        <button type="submit" class="btn-sec">
+            <i data-lucide="search" class="ic ic-14"></i> Buscar
+        </button>
+
+        <?php if ($hayFiltros): ?>
+        <a href="/manager/quote-requests" class="btn-sec">
+            <i data-lucide="x" class="ic ic-14"></i> Limpiar
+        </a>
+        <?php endif; ?>
+    </form>
+
+    <!-- Recuadros: además de contar, filtran por estado -->
+    <div class="px-4 py-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <?php foreach ($recuadros as [$etiqueta, $valor, $clave]):
+            $activo = $currentStatus === $clave;
+            $url = '/manager/quote-requests' . ($clave ? '?status=' . $clave : '');
+        ?>
+        <a href="<?= $url ?>" class="kpi block transition"
+           <?= $activo ? 'style="border-color:#2563eb; background:#f5f8ff"' : '' ?>
+           title="<?= $activo ? 'Quitar este filtro' : 'Ver sólo ' . strtolower($etiqueta) ?>">
+            <div class="kpi-label"><?= $etiqueta ?></div>
+            <div class="kpi-value"><?= number_format($valor) ?></div>
+        </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Cliente</th>
+                    <th>Cursos solicitados</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="num">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($requests)): ?>
+                <tr>
+                    <td colspan="6" class="vacio">
+                        <i data-lucide="inbox" class="ic"></i>
+                        <p>No hay solicitudes de cotización.</p>
+                        <?php if ($hayFiltros): ?>
+                        <a href="/manager/quote-requests" class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            Limpiar filtros
+                        </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php else: ?>
+                <?php foreach ($requests as $request):
+                    [$estadoTexto, $estadoClase] = $estados[$request['status']] ?? [ucfirst($request['status']), 'p-gris'];
+                    $cursos  = array_map(static fn($i) => $i['product_name'], $request['items']);
+                    $nCursos = count($cursos);
+                    $listado = implode(', ', $cursos);
+                ?>
+                <tr>
+                    <td><span class="cod">#<?= (int) $request['id'] ?></span></td>
+                    <td>
+                        <div class="font-bold text-[12.5px] text-slate-800 truncate" style="max-width:200px">
+                            <?= htmlspecialchars($request['customer_name']) ?>
+                        </div>
+                        <a href="mailto:<?= htmlspecialchars($request['email'], ENT_QUOTES) ?>"
+                           class="block text-[11px] font-semibold text-slate-400 truncate hover:text-blue-600"
+                           style="max-width:200px"><?= htmlspecialchars($request['email']) ?></a>
+                    </td>
+                    <td>
+                        <div class="flex items-center gap-2">
+                            <span class="pastilla p-azul"><?= $nCursos ?></span>
+                            <span class="truncate text-slate-400" style="max-width:280px"
+                                  title="<?= htmlspecialchars($listado, ENT_QUOTES) ?>"><?= htmlspecialchars($listado) ?></span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="pastilla <?= $estadoClase ?>"><span class="punto"></span><?= $estadoTexto ?></span>
+                    </td>
+                    <td class="text-slate-400 text-[11.5px] whitespace-nowrap">
+                        <?= date('d/m/Y H:i', strtotime($request['created_at'])) ?>
+                    </td>
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="/manager/quote-requests/<?= (int) $request['id'] ?>" class="acc acc-azul" title="Ver la solicitud">
+                                <i data-lucide="eye" class="ic" style="width:12px;height:12px"></i> Ver
+                            </a>
+                            <?php if ($request['status'] === 'pending'): ?>
+                            <button onclick="sendQuote(<?= (int) $request['id'] ?>, this)" class="acc acc-verde"
+                                    title="Enviar la cotización al cliente">
+                                <i data-lucide="send" class="ic" style="width:12px;height:12px"></i> Cotizar
+                            </button>
+                            <?php endif; ?>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pie -->
+    <div class="px-4 py-3.5 border-t flex flex-wrap items-center justify-between gap-3"
+         style="border-color: var(--card-border)">
+
+        <p class="text-[12px] font-semibold text-slate-400">
+            <?php if ($totalPages > 1): ?>
+            Página <?= $currentPage ?> de <?= $totalPages ?> · <?= number_format($totalCount) ?> solicitudes
+            <?php else: ?>
+            <?= number_format($totalCount) ?> solicitud<?= $totalCount === 1 ? '' : 'es' ?>
+            <?php endif; ?>
+        </p>
+
+        <?php if ($totalPages > 1): ?>
+        <div class="flex items-center gap-1.5">
+            <?php if ($currentPage > 1): ?>
+            <a href="<?= $enlace($currentPage - 1) ?>" class="pag" title="Anterior">
+                <i data-lucide="chevron-left" class="ic ic-14"></i>
+            </a>
+            <?php else: ?>
+            <span class="pag inerte"><i data-lucide="chevron-left" class="ic ic-14"></i></span>
+            <?php endif; ?>
+
+            <?php
+            $inicio = max(1, $currentPage - 2);
+            $fin    = min($totalPages, $currentPage + 2);
+            for ($i = $inicio; $i <= $fin; $i++): ?>
+            <a href="<?= $enlace($i) ?>" class="pag <?= $i === $currentPage ? 'activa' : '' ?>"><?= $i ?></a>
+            <?php endfor; ?>
+
+            <?php if ($currentPage < $totalPages): ?>
+            <a href="<?= $enlace($currentPage + 1) ?>" class="pag" title="Siguiente">
+                <i data-lucide="chevron-right" class="ic ic-14"></i>
+            </a>
+            <?php else: ?>
+            <span class="pag inerte"><i data-lucide="chevron-right" class="ic ic-14"></i></span>
+            <?php endif; ?>
+        </div>
         <?php endif; ?>
     </div>
 </div>
 
-<style>
-/*
-    CSS normal, no @apply: Tailwind viene por CDN y en ese modo @apply no se
-    procesa, así que estas reglas no pintaban nada. Las tarjetas de filtro y
-    las pastillas de estado salían sin estilo.
-*/
-.status-card {
-    display: block;
-    background: #fff;
-    border: 2px solid #e5e7eb;
-    border-radius: .5rem;
-    padding: 1rem;
-    cursor: pointer;
-    transition: border-color .15s, background-color .15s;
-}
-.status-card:hover  { border-color: #06b6d4; }
-.status-card.active { border-color: #06b6d4; background: #ecfeff; }
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: .125rem .625rem;
-    font-size: .75rem;
-    line-height: 1.25rem;
-    font-weight: 600;
-    border-radius: 9999px;
-}
-.status-pending   { background: #fef9c3; color: #854d0e; }
-.status-quoted    { background: #dbeafe; color: #1e40af; }
-.status-completed { background: #dcfce7; color: #166534; }
-.status-cancelled { background: #fee2e2; color: #991b1b; }
-</style>
-
 <script>
 function sendQuote(id, btn) {
-    if (!confirm('Send this quote to the customer with the current course price(s)?')) return;
+    if (!confirm('¿Enviar esta cotización al cliente con los precios actuales de los cursos?')) return;
 
     btn.disabled = true;
     const formData = new FormData();
@@ -228,6 +229,6 @@ function sendQuote(id, btn) {
             if (data.success) { location.reload(); }
             else { alert('Error: ' + data.message); btn.disabled = false; }
         })
-        .catch(() => { alert('Connection error. Please try again.'); btn.disabled = false; });
+        .catch(() => { alert('Error de conexión. Inténtalo de nuevo.'); btn.disabled = false; });
 }
 </script>

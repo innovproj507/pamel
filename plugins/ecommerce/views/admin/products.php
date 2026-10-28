@@ -1,234 +1,262 @@
-<div>
-    <!-- Header -->
-    <div class="mb-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-2xl font-bold text-gray-900">Products / Courses</h1>
-            <p class="text-gray-500 text-sm mt-0.5">Manage all maritime training courses</p>
-        </div>
-        <a href="/manager/products/create" class="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-2.5 px-5 rounded-lg transition shadow flex items-center gap-2 text-sm">
-            <i class="fas fa-plus"></i>Add New Course
-        </a>
+<?php
+/** Listado de productos (los cursos de la tienda). */
+$products    = $products   ?? [];
+$categories  = $categories ?? [];
+$branches    = $branches   ?? [];
+$filters     = $filters    ?? [];
+$total       = (int) ($total ?? 0);
+$currentPage = (int) ($currentPage ?? 1);
+$totalPages  = (int) ($totalPages ?? 1);
+$perPage     = (int) ($perPage ?? 20);
+
+$busqueda  = (string) ($filters['search'] ?? '');
+$selEstado = (string) ($filters['status'] ?? '');
+$selCat    = (string) ($filters['category_id'] ?? '');
+$selBranch = (string) ($filters['branch_id'] ?? '');
+$hayFiltros = !empty($filters);
+
+// Recuentos de la página visible; el total sí es el del filtro completo.
+$vinculados = count(array_filter($products, static fn($p) => !empty($p['lms_course_id'])));
+$activos    = count(array_filter($products, static fn($p) => $p['status'] === 'active'));
+$stockBajo  = count(array_filter($products, static fn($p) => (int) $p['stock'] < 10));
+?>
+
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
+
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
+
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Productos</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($total) ?> producto<?= $total === 1 ? '' : 's' ?> encontrado<?= $total === 1 ? '' : 's' ?>
+        </p>
     </div>
 
-    <!-- Filters -->
-    <form method="GET" action="/manager/products" class="flex flex-wrap gap-2 mb-4">
-        <div class="relative flex-1 min-w-[180px]">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
-            <input type="text" name="search"
-                   value="<?php echo htmlspecialchars($filters['search'] ?? ''); ?>"
-                   placeholder="Nombre o código..."
-                   class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400">
+    <div class="flex items-center gap-2.5 flex-wrap lg:ml-auto">
+        <a href="/manager/products/create" class="btn-primario">
+            <i data-lucide="plus" class="ic ic-16"></i> Nuevo Producto
+        </a>
+    </div>
+</div>
+
+<div class="card overflow-hidden">
+
+    <!-- Barra de filtros -->
+    <form method="GET" action="/manager/products"
+          class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
+
+        <div>
+            <label class="filtro-rot" for="f-q">Buscar</label>
+            <div class="relative">
+                <i data-lucide="search" class="ic ic-14 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="text" id="f-q" name="search" value="<?= htmlspecialchars($busqueda, ENT_QUOTES) ?>"
+                       placeholder="Nombre o código…"
+                       class="campo" style="padding-left:32px; width:230px; border-radius:999px">
+            </div>
         </div>
-        <select name="status" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white">
-            <option value="">Todos los estados</option>
-            <option value="active"   <?php echo ($filters['status'] ?? '') === 'active'   ? 'selected' : ''; ?>>Activo</option>
-            <option value="inactive" <?php echo ($filters['status'] ?? '') === 'inactive' ? 'selected' : ''; ?>>Inactivo</option>
-        </select>
 
-        <?php
-        $selCat = (string)($filters['category_id'] ?? '');
-        $selBranch = (string)($filters['branch_id'] ?? '');
-        ?>
-        <!-- Category -->
-        <select name="category_id"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white">
-            <option value="">Todas las categorías</option>
-            <?php foreach ($categories as $cat): ?>
-                <option value="<?php echo $cat['id']; ?>"
-                    <?php echo $selCat === (string)$cat['id'] ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($cat['name']); ?>
+        <div>
+            <label class="filtro-rot" for="f-estado">Estado</label>
+            <select id="f-estado" name="status" class="campo" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                <option value="active"   <?= $selEstado === 'active'   ? 'selected' : '' ?>>Activo</option>
+                <option value="inactive" <?= $selEstado === 'inactive' ? 'selected' : '' ?>>Inactivo</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="filtro-rot" for="f-categoria">Categoría</label>
+            <select id="f-categoria" name="category_id" class="campo" onchange="this.form.submit()" style="max-width:220px">
+                <option value="">Todas las categorías</option>
+                <?php foreach ($categories as $cat): ?>
+                <option value="<?= (int) $cat['id'] ?>" <?= $selCat === (string) $cat['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($cat['name']) ?>
                 </option>
-            <?php endforeach; ?>
-        </select>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-        <!-- Branch -->
-        <select name="branch_id"
-                class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400 bg-white">
-            <option value="">Todos los branches</option>
-            <?php foreach ($branches as $branch): ?>
-                <option value="<?php echo $branch['id']; ?>"
-                    <?php echo $selBranch === (string)$branch['id'] ? 'selected' : ''; ?>>
-                    <?php echo htmlspecialchars($branch['name']); ?>
+        <div>
+            <label class="filtro-rot" for="f-rama">Rama</label>
+            <select id="f-rama" name="branch_id" class="campo" onchange="this.form.submit()" style="max-width:200px">
+                <option value="">Todas las ramas</option>
+                <?php foreach ($branches as $branch): ?>
+                <option value="<?= (int) $branch['id'] ?>" <?= $selBranch === (string) $branch['id'] ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($branch['name']) ?>
                 </option>
-            <?php endforeach; ?>
-        </select>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
-        <button type="submit" class="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-            <i class="fas fa-filter mr-1"></i>Filtrar
+        <button type="submit" class="btn-sec">
+            <i data-lucide="search" class="ic ic-14"></i> Filtrar
         </button>
-        <?php if (!empty($filters)): ?>
-            <a href="/manager/products" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-1">
-                <i class="fas fa-times"></i>Limpiar
-            </a>
+
+        <?php if ($hayFiltros): ?>
+        <a href="/manager/products" class="btn-sec">
+            <i data-lucide="x" class="ic ic-14"></i> Limpiar
+        </a>
         <?php endif; ?>
+
+        <input type="hidden" name="per_page" value="<?= $perPage ?>">
     </form>
 
-    <?php if (empty($products)): ?>
-        <div class="text-center py-20 text-gray-400">
-            <i class="fas fa-box-open text-5xl mb-3"></i>
-            <p class="text-base">No se encontraron productos.</p>
-            <a href="/manager/products/create" class="mt-3 inline-block text-cyan-600 hover:underline text-sm font-medium">
-                <i class="fas fa-plus mr-1"></i>Crear el primero
-            </a>
+    <!-- Resumen -->
+    <div class="px-4 py-4 grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div class="kpi">
+            <div class="kpi-label">Productos</div>
+            <div class="kpi-value"><?= number_format($total) ?></div>
         </div>
-    <?php else: ?>
+        <div class="kpi">
+            <div class="kpi-label">Activos (esta página)</div>
+            <div class="kpi-value"><?= number_format($activos) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Con curso LMS</div>
+            <div class="kpi-value"><?= number_format($vinculados) ?></div>
+        </div>
+        <div class="kpi">
+            <div class="kpi-label">Stock bajo</div>
+            <div class="kpi-value"><?= number_format($stockBajo) ?></div>
+        </div>
+    </div>
 
-        <!-- Table — table-fixed keeps it inside its container, no overflow -->
-        <table class="w-full table-fixed border-collapse text-sm">
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+        <table class="tabla">
             <thead>
-                <tr class="bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-xs uppercase tracking-wider">
-                    <th class="w-14 px-3 py-3 text-left">Img</th>
-                    <th class="px-3 py-3 text-left">Curso</th>
-                    <th class="w-28 px-3 py-3 text-left">Categoría</th>
-                    <th class="w-24 px-3 py-3 text-center">LMS</th>
-                    <th class="w-16 px-3 py-3 text-center">Stock</th>
-                    <th class="w-20 px-3 py-3 text-center">Estado</th>
-                    <th class="w-32 px-3 py-3 text-center">Acciones</th>
+                <tr>
+                    <th>Producto</th>
+                    <th>Categoría</th>
+                    <th class="centro">Curso LMS</th>
+                    <th class="num">Stock</th>
+                    <th>Estado</th>
+                    <th class="num">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($products as $product): ?>
-                <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
-                    <!-- Image -->
-                    <td class="px-3 py-3">
-                        <?php if (!empty($product['image'])): ?>
-                            <img src="<?php echo htmlspecialchars($product['image']); ?>"
-                                 alt=""
-                                 class="w-10 h-10 object-cover rounded-lg border border-gray-200">
-                        <?php else: ?>
-                            <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-image text-gray-300 text-sm"></i>
+                <?php if (empty($products)): ?>
+                <tr>
+                    <td colspan="6" class="vacio">
+                        <i data-lucide="package-open" class="ic"></i>
+                        <p>No se encontraron productos.</p>
+                        <a href="<?= $hayFiltros ? '/manager/products' : '/manager/products/create' ?>"
+                           class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            <?= $hayFiltros ? 'Limpiar filtros' : 'Crear el primero' ?>
+                        </a>
+                    </td>
+                </tr>
+                <?php else: ?>
+                <?php foreach ($products as $product):
+                    $stock  = (int) $product['stock'];
+                    $activo = $product['status'] === 'active';
+                ?>
+                <tr>
+
+                    <!-- Producto: miniatura, nombre y código -->
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <?php if (!empty($product['image'])): ?>
+                            <img src="<?= htmlspecialchars($product['image'], ENT_QUOTES) ?>" alt="" class="miniatura">
+                            <?php else: ?>
+                            <div class="miniatura vacia">
+                                <i data-lucide="image" class="ic ic-14"></i>
                             </div>
-                        <?php endif; ?>
-                    </td>
-
-                    <!-- Name + code -->
-                    <td class="px-3 py-3 min-w-0">
-                        <div class="font-semibold text-gray-900 truncate" title="<?php echo htmlspecialchars($product['name']); ?>">
-                            <?php echo htmlspecialchars($product['name']); ?>
+                            <?php endif; ?>
+                            <div class="min-w-0">
+                                <div class="font-bold text-[12.5px] text-slate-800 truncate" style="max-width:320px"
+                                     title="<?= htmlspecialchars($product['name'], ENT_QUOTES) ?>">
+                                    <?= htmlspecialchars($product['name']) ?>
+                                </div>
+                                <?php if (!empty($product['course_code'])): ?>
+                                <div class="mt-1">
+                                    <span class="cod">
+                                        <i data-lucide="tag" class="ic" style="width:10px;height:10px"></i>
+                                        <?= htmlspecialchars($product['course_code']) ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
                         </div>
-                        <?php if (!empty($product['course_code'])): ?>
-                            <span class="text-xs text-gray-500 font-mono bg-gray-100 px-1.5 py-0.5 rounded mt-0.5 inline-block">
-                                <?php echo htmlspecialchars($product['course_code']); ?>
-                            </span>
-                        <?php endif; ?>
                     </td>
 
-                    <!-- Category -->
-                    <td class="px-3 py-3">
+                    <!-- Categoría -->
+                    <td>
                         <?php if (!empty($product['category_name'])): ?>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 truncate max-w-full">
-                                <?php echo htmlspecialchars($product['category_name']); ?>
-                            </span>
+                        <span class="pastilla p-violeta" title="<?= htmlspecialchars($product['category_name'], ENT_QUOTES) ?>">
+                            <?= htmlspecialchars(mb_strimwidth($product['category_name'], 0, 26, '…')) ?>
+                        </span>
                         <?php else: ?>
-                            <span class="text-gray-400 text-xs">—</span>
+                        <span class="text-slate-300">—</span>
                         <?php endif; ?>
                     </td>
 
-                    <!-- LMS link -->
-                    <td class="px-3 py-3 text-center">
+                    <!-- Curso del LMS vinculado -->
+                    <td class="centro">
                         <?php if (!empty($product['lms_course_id'])): ?>
-                            <a href="/manager/lms/courses/<?php echo $product['lms_course_id']; ?>/edit"
-                               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 hover:bg-green-200 transition">
-                                <i class="fas fa-check mr-1"></i>Vinculado
-                            </a>
+                        <a href="/manager/lms/courses/<?= (int) $product['lms_course_id'] ?>/edit" class="pastilla p-verde"
+                           title="Abrir el curso vinculado">
+                            <i data-lucide="check" class="ic" style="width:10px;height:10px"></i> Vinculado
+                        </a>
                         <?php else: ?>
-                            <a href="/manager/lms/courses/create?product_id=<?php echo $product['id']; ?>"
-                               class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500 hover:bg-amber-100 hover:text-amber-700 transition">
-                                <i class="fas fa-plus mr-1"></i>Sin curso
-                            </a>
+                        <a href="/manager/lms/courses/create?product_id=<?= (int) $product['id'] ?>" class="pastilla p-gris"
+                           title="Crear el curso para este producto">
+                            <i data-lucide="plus" class="ic" style="width:10px;height:10px"></i> Sin curso
+                        </a>
                         <?php endif; ?>
                     </td>
 
                     <!-- Stock -->
-                    <td class="px-3 py-3 text-center">
-                        <span class="text-sm font-medium text-gray-700"><?php echo $product['stock']; ?></span>
-                        <?php if ($product['stock'] < 10): ?>
-                            <i class="fas fa-exclamation-triangle text-amber-400 text-xs ml-0.5" title="Stock bajo"></i>
+                    <td class="num whitespace-nowrap">
+                        <span class="font-bold <?= $stock < 10 ? 'text-amber-600' : 'text-slate-700' ?>"><?= $stock ?></span>
+                        <?php if ($stock < 10): ?>
+                        <i data-lucide="triangle-alert" class="ic inline-block text-amber-400 ml-0.5"
+                           style="width:11px;height:11px" title="Stock bajo"></i>
                         <?php endif; ?>
                     </td>
 
-                    <!-- Status -->
-                    <td class="px-3 py-3 text-center">
-                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full <?php echo $product['status'] === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'; ?>">
-                            <?php echo $product['status'] === 'active' ? 'Activo' : 'Inactivo'; ?>
+                    <!-- Estado -->
+                    <td>
+                        <span class="pastilla <?= $activo ? 'p-verde' : 'p-rojo' ?>">
+                            <span class="punto"></span><?= $activo ? 'Activo' : 'Inactivo' ?>
                         </span>
                     </td>
 
-                    <!-- Actions -->
-                    <td class="px-3 py-3 text-center">
-                        <div class="flex items-center justify-center gap-2">
-                            <a href="/manager/products/<?php echo $product['id']; ?>/edit"
-                               class="text-cyan-600 hover:text-cyan-800 text-xs font-semibold flex items-center gap-1">
-                                <i class="fas fa-edit"></i>Editar
+                    <!-- Acciones -->
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="/manager/products/<?= (int) $product['id'] ?>/edit" class="acc acc-gris" title="Editar producto">
+                                <i data-lucide="pencil" class="ic" style="width:12px;height:12px"></i> Editar
                             </a>
-                            <span class="text-gray-300">|</span>
-                            <form action="/manager/products/<?php echo $product['id']; ?>/delete" method="POST"
-                                  onsubmit="return confirm('¿Eliminar este producto?')">
-                                <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-semibold flex items-center gap-1">
-                                    <i class="fas fa-trash"></i>Borrar
+                            <form action="/manager/products/<?= (int) $product['id'] ?>/delete" method="POST"
+                                  onsubmit="return confirm('¿Eliminar el producto «<?= htmlspecialchars(addslashes($product['name']), ENT_QUOTES) ?>»? Esta acción no se puede deshacer.')">
+                                <?= \Core\Security::getCsrfField() ?>
+                                <button type="submit" class="acc acc-rojo" title="Eliminar producto">
+                                    <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar
                                 </button>
                             </form>
                         </div>
                     </td>
                 </tr>
                 <?php endforeach; ?>
+                <?php endif; ?>
             </tbody>
         </table>
+    </div>
 
-        <!-- Pagination -->
-        <?php if ($totalPages > 1):
-            $queryBase = http_build_query(array_filter([
-                'search'      => $filters['search'] ?? '',
-                'status'      => $filters['status'] ?? '',
-                'category_id' => $filters['category_id'] ?? '',
-                'branch_id'   => $filters['branch_id'] ?? '',
-            ]));
-            $queryBase = $queryBase ? '&' . $queryBase : '';
-        ?>
-        <div class="mt-4 flex items-center justify-between">
-            <p class="text-xs text-gray-500">
-                <?php echo (($currentPage - 1) * $perPage) + 1; ?>–<?php echo min($currentPage * $perPage, $total); ?>
-                de <?php echo $total; ?> resultados
-            </p>
-            <div class="flex items-center gap-1">
-                <?php if ($currentPage > 1): ?>
-                    <a href="?page=<?php echo $currentPage - 1; ?><?php echo $queryBase; ?>"
-                       class="px-3 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50">
-                        <i class="fas fa-chevron-left"></i>
-                    </a>
-                <?php endif; ?>
-
-                <?php
-                $start = max(1, $currentPage - 2);
-                $end   = min($totalPages, $currentPage + 2);
-                if ($start > 1): ?>
-                    <a href="?page=1<?php echo $queryBase; ?>" class="px-3 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50">1</a>
-                    <?php if ($start > 2): ?><span class="px-1 text-gray-400 text-xs">…</span><?php endif; ?>
-                <?php endif; ?>
-
-                <?php for ($i = $start; $i <= $end; $i++): ?>
-                    <?php if ($i === $currentPage): ?>
-                        <span class="px-3 py-1.5 bg-cyan-500 text-white rounded text-xs font-bold"><?php echo $i; ?></span>
-                    <?php else: ?>
-                        <a href="?page=<?php echo $i; ?><?php echo $queryBase; ?>" class="px-3 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50"><?php echo $i; ?></a>
-                    <?php endif; ?>
-                <?php endfor; ?>
-
-                <?php if ($end < $totalPages): ?>
-                    <?php if ($end < $totalPages - 1): ?><span class="px-1 text-gray-400 text-xs">…</span><?php endif; ?>
-                    <a href="?page=<?php echo $totalPages; ?><?php echo $queryBase; ?>" class="px-3 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50"><?php echo $totalPages; ?></a>
-                <?php endif; ?>
-
-                <?php if ($currentPage < $totalPages): ?>
-                    <a href="?page=<?php echo $currentPage + 1; ?><?php echo $queryBase; ?>"
-                       class="px-3 py-1.5 border border-gray-300 rounded text-xs text-gray-600 hover:bg-gray-50">
-                        <i class="fas fa-chevron-right"></i>
-                    </a>
-                <?php endif; ?>
-            </div>
-        </div>
-        <?php endif; ?>
-
-    <?php endif; ?>
+    <?php
+    $ruta     = '/manager/products';
+    $page     = $currentPage;
+    $lastPage = $totalPages;
+    $filtros  = [
+        'search'      => $busqueda,
+        'status'      => $selEstado,
+        'category_id' => $selCat,
+        'branch_id'   => $selBranch,
+    ];
+    include \Core\Config::get('paths.root') . '/admin/views/partials/paginador.php';
+    ?>
 </div>

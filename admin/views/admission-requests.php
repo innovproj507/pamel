@@ -4,372 +4,314 @@
  *
  * Valores por defecto arriba: la vista se dibuja aunque el controlador no
  * mande las filas por pantalla, y así $perPage ya existe cuando lo usan
- * los enlaces de las tarjetas de estado.
+ * los enlaces de los recuadros de estado.
  */
-$perPage        = $perPage        ?? 15;
+$requests       = $requests       ?? [];
+$statusCounts   = $statusCounts   ?? ['pending' => 0, 'reviewed' => 0, 'approved' => 0, 'rejected' => 0];
+$currentStatus  = $currentStatus  ?? '';
+$currentSearch  = $currentSearch  ?? '';
+$totalCount     = (int) ($totalCount  ?? 0);
+$currentPage    = (int) ($currentPage ?? 1);
+$totalPages     = (int) ($totalPages  ?? 1);
+$perPage        = (int) ($perPage ?? 15);
 $perPageOptions = $perPageOptions ?? [5, 10, 15, 25, 50];
+
+$hayFiltros = $currentSearch !== '' || $currentStatus !== '';
+
+// Estado -> etiqueta en español, pastilla e icono.
+$estados = [
+    'pending'  => ['Pendiente', 'p-ambar', 'clock'],
+    'reviewed' => ['Revisada',  'p-azul',  'eye'],
+    'approved' => ['Aprobada',  'p-verde', 'circle-check'],
+    'rejected' => ['Rechazada', 'p-rojo',  'circle-x'],
+];
+
+// Recuadros: además de contar, filtran por estado.
+$recuadros = [
+    ['Todas',      array_sum($statusCounts),   ''],
+    ['Pendientes', $statusCounts['pending'],   'pending'],
+    ['Revisadas',  $statusCounts['reviewed'],  'reviewed'],
+    ['Aprobadas',  $statusCounts['approved'],  'approved'],
+    ['Rechazadas', $statusCounts['rejected'],  'rejected'],
+];
+
+/** URL de una página conservando filtros y filas por pantalla. */
+$enlace = static function (int $p) use ($currentStatus, $currentSearch, $perPage): string {
+    return '/manager/admission-requests?' . http_build_query(array_filter([
+        'page'     => $p,
+        'status'   => $currentStatus,
+        'search'   => $currentSearch,
+        'per_page' => $perPage,
+    ], static fn($v) => $v !== '' && $v !== null));
+};
+
+$desde = max(1, min($currentPage - 2, $totalPages - 4));
+$hasta = min($totalPages, max($currentPage + 2, 5));
+
+$primero = $totalCount === 0 ? 0 : (($currentPage - 1) * $perPage) + 1;
+$ultimo  = min($currentPage * $perPage, $totalCount);
 ?>
-<div class="container mx-auto px-4 py-5">
-    <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold text-gray-900">Admission Requests</h1>
-        <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-600">Total: <?php echo $totalCount; ?></span>
-        </div>
-    </div>
 
-    <!-- Status Filters -->
-    <div class="bg-white rounded-lg shadow-md p-3 mb-4">
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-            <a href="/manager/admission-requests?per_page=<?php echo $perPage; ?>"
-               class="status-card <?php echo empty($currentStatus) ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">All Requests</p>
-                        <p class="text-xl font-black"><?php echo array_sum($statusCounts); ?></p>
-                    </div>
-                    <i class="fas fa-list text-gray-300 text-lg"></i>
-                </div>
-            </a>
+<!-- Cabecera -->
+<div class="flex flex-col lg:flex-row lg:items-center gap-4 mb-5">
 
-            <a href="/manager/admission-requests?status=pending&per_page=<?php echo $perPage; ?>" 
-               class="status-card <?php echo $currentStatus === 'pending' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Pending</p>
-                        <p class="text-xl font-black text-yellow-600"><?php echo $statusCounts['pending']; ?></p>
-                    </div>
-                    <i class="fas fa-clock text-yellow-400 text-lg"></i>
-                </div>
-            </a>
+    <a href="/manager" class="btn-atras" title="Volver al panel">
+        <i data-lucide="arrow-left" class="ic ic-17"></i>
+    </a>
 
-            <a href="/manager/admission-requests?status=reviewed&per_page=<?php echo $perPage; ?>" 
-               class="status-card <?php echo $currentStatus === 'reviewed' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Reviewed</p>
-                        <p class="text-xl font-black text-blue-600"><?php echo $statusCounts['reviewed']; ?></p>
-                    </div>
-                    <i class="fas fa-eye text-blue-400 text-lg"></i>
-                </div>
-            </a>
-
-            <a href="/manager/admission-requests?status=approved&per_page=<?php echo $perPage; ?>" 
-               class="status-card <?php echo $currentStatus === 'approved' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Approved</p>
-                        <p class="text-xl font-black text-green-600"><?php echo $statusCounts['approved']; ?></p>
-                    </div>
-                    <i class="fas fa-check-circle text-green-400 text-lg"></i>
-                </div>
-            </a>
-
-            <a href="/manager/admission-requests?status=rejected&per_page=<?php echo $perPage; ?>" 
-               class="status-card <?php echo $currentStatus === 'rejected' ? 'active' : ''; ?>">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Rejected</p>
-                        <p class="text-xl font-black text-red-600"><?php echo $statusCounts['rejected']; ?></p>
-                    </div>
-                    <i class="fas fa-times-circle text-red-400 text-lg"></i>
-                </div>
-            </a>
-        </div>
-    </div>
-
-    <!--
-        Barra de filtros en una sola línea: buscar, estado y cuántas filas
-        mostrar. Los desplegables se envían solos al cambiar, así que el
-        único botón que queda es el de buscar.
-    -->
-    <?php
-    $etiquetasEstado = [
-        ''         => 'All statuses',
-        'pending'  => 'Pending',
-        'reviewed' => 'Reviewed',
-        'approved' => 'Approved',
-        'rejected' => 'Rejected',
-    ];
-    ?>
-    <form method="GET" action="/manager/admission-requests"
-          class="bg-white rounded-lg shadow-md p-2.5 mb-4 flex flex-wrap items-center gap-2">
-
-        <!-- Buscar -->
-        <div class="relative flex-1 min-w-[220px]">
-            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
-            <input type="search" name="search" value="<?php echo htmlspecialchars($currentSearch); ?>"
-                   placeholder="Search by name or email…"
-                   class="w-full pl-9 pr-3 py-2 text-[13px] border border-gray-200 rounded-lg focus:border-cyan-500 focus:outline-none transition">
-        </div>
-
-        <!-- Estado -->
-        <select name="status" onchange="this.form.submit()"
-                class="py-2 pl-3 pr-8 text-[13px] border border-gray-200 rounded-lg bg-white focus:border-cyan-500 focus:outline-none transition cursor-pointer">
-            <?php foreach ($etiquetasEstado as $valor => $texto): ?>
-            <option value="<?php echo $valor; ?>" <?php echo $currentStatus === $valor ? 'selected' : ''; ?>>
-                <?php echo $texto; ?>
-            </option>
-            <?php endforeach; ?>
-        </select>
-
-        <!-- Filas por pantalla -->
-        <label class="flex items-center gap-1.5 text-[11px] font-semibold text-gray-400 uppercase tracking-wide whitespace-nowrap">
-            Show
-            <select name="per_page" onchange="this.form.submit()"
-                    class="py-2 pl-2.5 pr-7 text-[13px] font-normal normal-case tracking-normal text-gray-700 border border-gray-200 rounded-lg bg-white focus:border-cyan-500 focus:outline-none transition cursor-pointer">
-                <?php foreach ($perPageOptions as $n): ?>
-                <option value="<?php echo $n; ?>" <?php echo (int) $perPage === $n ? 'selected' : ''; ?>><?php echo $n; ?></option>
-                <?php endforeach; ?>
-            </select>
-        </label>
-
-        <button type="submit"
-                class="px-4 py-2 text-[13px] font-semibold bg-cyan-500 hover:bg-cyan-600 text-white rounded-lg transition">
-            Search
-        </button>
-
-        <?php if ($currentSearch || $currentStatus): ?>
-        <a href="/manager/admission-requests"
-           class="w-9 h-9 inline-flex items-center justify-center rounded-lg border border-gray-200 text-gray-400 hover:border-rose-200 hover:text-rose-500 transition"
-           title="Clear filters">
-            <i class="fas fa-times text-xs"></i>
-        </a>
-        <?php endif; ?>
-    </form>
-
-    <!--
-        Tabla compacta: el contenido se cortaba porque cada celda llevaba
-        px-6 py-4 y el nombre del curso estaba limitado a max-w-xs. Ahora el
-        relleno es menor, el texto más pequeño y el curso se lleva el ancho
-        sobrante; lo que no cabe se corta con puntos suspensivos y el texto
-        completo queda en el title.
-    -->
-    <?php
-    // Estado -> icono, color y etiqueta. El icono sustituye a la palabra.
-    $estados = [
-        'pending'  => ['fa-clock',        'amber',   'Pending'],
-        'reviewed' => ['fa-eye',          'blue',    'Reviewed'],
-        'approved' => ['fa-circle-check', 'emerald', 'Approved'],
-        'rejected' => ['fa-circle-xmark', 'rose',    'Rejected'],
-    ];
-    ?>
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <div class="overflow-x-auto">
-            <!--
-                w-full, no min-w-full: con min-width la tabla crece hasta
-                caber el texto más largo, el recorte nunca se aplica y las
-                últimas columnas quedan fuera de la pantalla. Con w-full el
-                ancho es el del contenedor, cada columna respeta el suyo y
-                el nombre del curso se corta con puntos suspensivos.
-            -->
-            <table class="w-full min-w-[900px] table-fixed divide-y divide-gray-200 text-[13px]">
-                <thead class="bg-gray-50">
-                    <!--
-                        Anchos en porcentaje y sumando 100 exactos. Con anchos
-                        en píxeles, el sobrante iba entero a la columna del
-                        curso: se estiraba sin límite y empujaba las últimas
-                        columnas fuera de la pantalla.
-                    -->
-                    <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                        <!--
-                            Acciones pasó de tres botones a cuatro al añadir
-                            el de eliminar: con el 10% anterior no caben y,
-                            como table-fixed no encoge lo que no cabe, se
-                            ensancharía la tabla entera.
-                        -->
-                        <th class="px-3 py-2 w-[5%]">ID</th>
-                        <th class="px-3 py-2 w-[15%]">Name</th>
-                        <th class="px-3 py-2 w-[18%]">Email</th>
-                        <th class="px-3 py-2 w-[32%]">Course</th>
-                        <th class="px-2 py-2 w-[5%] text-center">St.</th>
-                        <th class="px-3 py-2 w-[11%]">Date</th>
-                        <th class="px-2 py-2 w-[14%] text-right">Actions</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-100">
-                    <?php if (empty($requests)): ?>
-                        <tr>
-                            <td colspan="7" class="px-3 py-12 text-center text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-2"></i>
-                                <p>No admission requests found.</p>
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php foreach ($requests as $request):
-                            $st = $request['status'] ?? 'pending';
-                            [$icono, $color, $etiqueta] = $estados[$st] ?? $estados['pending'];
-                            $curso = (string) $request['course'];
-                        ?>
-                            <tr class="hover:bg-gray-50 align-middle">
-                                <td class="px-3 py-2 whitespace-nowrap text-gray-400 font-semibold">
-                                    #<?php echo $request['id']; ?>
-                                </td>
-                                <td class="px-3 py-2">
-                                    <div class="font-semibold text-gray-900 truncate"
-                                         title="<?php echo htmlspecialchars($request['given_name'] . ' ' . $request['surname']); ?>">
-                                        <?php echo htmlspecialchars($request['given_name'] . ' ' . $request['surname']); ?>
-                                    </div>
-                                    <div class="text-[11px] text-gray-400 truncate">
-                                        <?php echo htmlspecialchars((string) $request['nationality']); ?>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-2">
-                                    <a href="mailto:<?php echo htmlspecialchars($request['email']); ?>"
-                                       class="block truncate text-gray-600 hover:text-cyan-600"
-                                       title="<?php echo htmlspecialchars($request['email']); ?>">
-                                        <?php echo htmlspecialchars($request['email']); ?>
-                                    </a>
-                                </td>
-                                <td class="px-3 py-2">
-                                    <div class="truncate text-gray-800" title="<?php echo htmlspecialchars($curso); ?>">
-                                        <?php echo htmlspecialchars($curso); ?>
-                                    </div>
-                                </td>
-                                <td class="px-2 py-2 text-center">
-                                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-<?php echo $color; ?>-50 text-<?php echo $color; ?>-600 border border-<?php echo $color; ?>-200"
-                                          title="<?php echo $etiqueta; ?>">
-                                        <i class="fas <?php echo $icono; ?> text-xs"></i>
-                                        <span class="sr-only"><?php echo $etiqueta; ?></span>
-                                    </span>
-                                </td>
-                                <td class="px-3 py-2 whitespace-nowrap text-gray-500">
-                                    <?php $t = strtotime($request['created_at']); ?>
-                                    <div><?php echo date('d/m/Y', $t); ?></div>
-                                    <div class="text-[11px] text-gray-400"><?php echo date('H:i', $t); ?></div>
-                                </td>
-                                <td class="px-3 py-2 whitespace-nowrap text-right">
-                                    <div class="inline-flex items-center gap-1">
-                                        <a href="/manager/admission-requests/<?php echo $request['id']; ?>"
-                                           class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-cyan-50 hover:text-cyan-600 transition"
-                                           title="View request">
-                                            <i class="fas fa-eye text-xs"></i>
-                                        </a>
-                                        <a href="/manager/admission-requests/<?php echo $request['id']; ?>/download-word"
-                                           class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition"
-                                           title="Download Word">
-                                            <i class="fas fa-file-word text-xs"></i>
-                                        </a>
-                                        <?php /* El id va como número: se manda tal cual al servidor */ ?>
-                                        <button onclick="toggleDropdown(event, <?php echo (int) $request['id']; ?>)"
-                                                class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-blue-50 hover:text-blue-600 transition"
-                                                title="Change status">
-                                            <i class="fas fa-pen-to-square text-xs"></i>
-                                        </button>
-                                        <?php
-                                        // Eliminar no tiene vuelta atrás y se lleva los adjuntos por
-                                        // delante, así que la confirmación lo dice con todas las letras.
-                                        $_nombre = trim($request['given_name'] . ' ' . $request['surname']);
-                                        $_aviso  = "¿Eliminar la solicitud #{$request['id']} de {$_nombre}?\n\n"
-                                                 . "Se borrarán también los archivos que haya subido.\n"
-                                                 . "Esta acción no se puede deshacer.";
-                                        ?>
-                                        <form method="POST" action="/manager/admission-requests/delete" class="inline"
-                                              onsubmit="return confirm(<?php echo htmlspecialchars(json_encode($_aviso), ENT_QUOTES, 'UTF-8'); ?>);">
-                                            <?php echo \Core\Security::getCsrfField(); ?>
-                                            <input type="hidden" name="id" value="<?php echo (int) $request['id']; ?>">
-                                            <input type="hidden" name="volver_a" value="<?php echo htmlspecialchars('/manager/admission-requests?' . ($_SERVER['QUERY_STRING'] ?? '')); ?>">
-                                            <button type="submit"
-                                                    class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition"
-                                                    title="Delete request">
-                                                <i class="fas fa-trash text-xs"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <!--
-            Paginación. Antes armaba la URL a mano tres veces y sólo pintaba
-            las páginas 1 a 5: con pocas filas por pantalla no había forma de
-            llegar a la sexta. Ahora la ventana sigue a la página actual.
-        -->
-        <?php
-        /** URL de una página conservando filtros y filas por pantalla. */
-        $enlace = static function (int $p) use ($currentStatus, $currentSearch, $perPage): string {
-            return '?' . http_build_query(array_filter([
-                'page'     => $p,
-                'status'   => $currentStatus,
-                'search'   => $currentSearch,
-                'per_page' => $perPage,
-            ], static fn($v) => $v !== '' && $v !== null));
-        };
-
-        $desde = max(1, min($currentPage - 2, $totalPages - 4));
-        $hasta = min($totalPages, max($currentPage + 2, 5));
-
-        $primero = $totalCount === 0 ? 0 : (($currentPage - 1) * $perPage) + 1;
-        $ultimo  = min($currentPage * $perPage, $totalCount);
-        ?>
-        <div class="px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 text-[12px]">
-            <p class="text-gray-400">
-                Showing <strong class="text-gray-600"><?php echo $primero; ?>–<?php echo $ultimo; ?></strong>
-                of <strong class="text-gray-600"><?php echo $totalCount; ?></strong>
-            </p>
-
-            <?php if ($totalPages > 1): ?>
-            <nav class="inline-flex items-center gap-1">
-                <a href="<?php echo $enlace(max(1, $currentPage - 1)); ?>"
-                   class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 <?php
-                       echo $currentPage <= 1 ? 'text-gray-200 pointer-events-none' : 'text-gray-400 hover:bg-gray-50'; ?>"
-                   title="Previous">
-                    <i class="fas fa-chevron-left text-[10px]"></i>
-                </a>
-
-                <?php for ($i = $desde; $i <= $hasta; $i++): ?>
-                <a href="<?php echo $enlace($i); ?>"
-                   class="min-w-[1.75rem] h-7 px-2 inline-flex items-center justify-center rounded-lg border font-semibold <?php
-                       echo $i === $currentPage
-                           ? 'bg-cyan-500 border-cyan-500 text-white'
-                           : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'; ?>">
-                    <?php echo $i; ?>
-                </a>
-                <?php endfor; ?>
-
-                <a href="<?php echo $enlace(min($totalPages, $currentPage + 1)); ?>"
-                   class="w-7 h-7 inline-flex items-center justify-center rounded-lg border border-gray-200 <?php
-                       echo $currentPage >= $totalPages ? 'text-gray-200 pointer-events-none' : 'text-gray-400 hover:bg-gray-50'; ?>"
-                   title="Next">
-                    <i class="fas fa-chevron-right text-[10px]"></i>
-                </a>
-            </nav>
-            <?php endif; ?>
-        </div>
+    <div class="min-w-0">
+        <h1 class="text-[26px] font-black text-slate-800 leading-tight">Solicitudes de Admisión</h1>
+        <p class="text-[12.5px] font-semibold text-slate-400 mt-0.5">
+            <?= number_format($totalCount) ?> solicitud<?= $totalCount === 1 ? '' : 'es' ?> encontrada<?= $totalCount === 1 ? '' : 's' ?>
+        </p>
     </div>
 </div>
 
-<!-- View Detail Modal -->
-<div id="viewModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl">
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-t-2xl">
-            <h3 class="text-xl font-bold text-white flex items-center">
-                <i class="fas fa-user-graduate mr-3"></i>
-                Admission Request Detail
-            </h3>
-            <button onclick="closeModal()" class="text-white hover:text-gray-200 transition">
-                <i class="fas fa-times text-2xl"></i>
-            </button>
-        </div>
+<div class="card overflow-hidden">
 
-        <!-- Modal Body -->
-        <div id="modalBody" class="p-6 space-y-4">
-            <div class="text-center py-8">
-                <i class="fas fa-spinner fa-spin text-cyan-500 text-3xl"></i>
-                <p class="text-gray-500 mt-2">Loading...</p>
+    <!-- Barra de filtros -->
+    <form method="GET" action="/manager/admission-requests"
+          class="px-4 py-3.5 flex flex-wrap items-end gap-2.5 border-b" style="border-color: var(--card-border)">
+
+        <div>
+            <label class="filtro-rot" for="f-q">Buscar</label>
+            <div class="relative">
+                <i data-lucide="search" class="ic ic-14 absolute left-3 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                <input type="search" id="f-q" name="search" value="<?= htmlspecialchars($currentSearch, ENT_QUOTES) ?>"
+                       placeholder="Buscar por nombre o correo…"
+                       class="campo" style="padding-left:32px; width:260px; border-radius:999px">
             </div>
         </div>
 
-        <!-- Modal Footer -->
-        <div id="modalFooter" class="hidden flex justify-between items-center px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-            <div id="modalStatusBadge"></div>
-            <button onclick="closeModal()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2 rounded-lg font-semibold transition">
-                Close
+        <div>
+            <label class="filtro-rot" for="f-estado">Estado</label>
+            <select id="f-estado" name="status" class="campo" onchange="this.form.submit()">
+                <option value="">Todos los estados</option>
+                <?php foreach ($estados as $clave => [$texto, $_c, $_i]): ?>
+                <option value="<?= $clave ?>" <?= $currentStatus === $clave ? 'selected' : '' ?>><?= $texto ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+
+        <button type="submit" class="btn-sec">
+            <i data-lucide="search" class="ic ic-14"></i> Buscar
+        </button>
+
+        <?php if ($hayFiltros): ?>
+        <a href="/manager/admission-requests" class="btn-sec">
+            <i data-lucide="x" class="ic ic-14"></i> Limpiar
+        </a>
+        <?php endif; ?>
+
+        <input type="hidden" name="per_page" value="<?= $perPage ?>">
+    </form>
+
+    <!-- Recuadros: además de contar, filtran por estado -->
+    <div class="px-4 py-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <?php foreach ($recuadros as [$etiqueta, $valor, $clave]):
+            $activo = $currentStatus === $clave;
+            $url = '/manager/admission-requests?' . http_build_query(array_filter([
+                'status'   => $clave,
+                'per_page' => $perPage,
+            ], static fn($v) => $v !== '' && $v !== null));
+        ?>
+        <a href="<?= $url ?>" class="kpi block transition"
+           <?= $activo ? 'style="border-color:#2563eb; background:#f5f8ff"' : '' ?>
+           title="<?= $activo ? 'Quitar este filtro' : 'Ver sólo ' . strtolower($etiqueta) ?>">
+            <div class="kpi-label"><?= $etiqueta ?></div>
+            <div class="kpi-value"><?= number_format($valor) ?></div>
+        </a>
+        <?php endforeach; ?>
+    </div>
+
+    <!-- Tabla -->
+    <div class="overflow-x-auto">
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Nº</th>
+                    <th>Solicitante</th>
+                    <th>Curso</th>
+                    <th>Estado</th>
+                    <th>Fecha</th>
+                    <th class="num">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if (empty($requests)): ?>
+                <tr>
+                    <td colspan="6" class="vacio">
+                        <i data-lucide="inbox" class="ic"></i>
+                        <p>No hay solicitudes de admisión.</p>
+                        <?php if ($hayFiltros): ?>
+                        <a href="/manager/admission-requests" class="text-blue-600 text-xs font-semibold mt-1 inline-block hover:underline">
+                            Limpiar filtros
+                        </a>
+                        <?php endif; ?>
+                    </td>
+                </tr>
+                <?php else: ?>
+                <?php foreach ($requests as $request):
+                    $st = $request['status'] ?? 'pending';
+                    [$etiqueta, $clasePastilla, $icono] = $estados[$st] ?? $estados['pending'];
+                    $curso   = (string) $request['course'];
+                    $nombre  = trim($request['given_name'] . ' ' . $request['surname']);
+                    $inicial = mb_strtoupper(mb_substr($nombre, 0, 1, 'UTF-8'), 'UTF-8');
+                    $t = strtotime($request['created_at']);
+
+                    // Eliminar no tiene vuelta atrás y se lleva los adjuntos por
+                    // delante, así que la confirmación lo dice con todas las letras.
+                    $_aviso = "¿Eliminar la solicitud #{$request['id']} de {$nombre}?\n\n"
+                            . "Se borrarán también los archivos que haya subido.\n"
+                            . "Esta acción no se puede deshacer.";
+                ?>
+                <tr>
+                    <td><span class="cod">#<?= (int) $request['id'] ?></span></td>
+
+                    <!-- Solicitante: inicial, nombre, correo y nacionalidad -->
+                    <td>
+                        <div class="flex items-center gap-3">
+                            <div class="avatar-ini"><?= htmlspecialchars($inicial) ?></div>
+                            <div class="min-w-0">
+                                <div class="font-bold text-[12.5px] text-slate-800 truncate" style="max-width:220px"
+                                     title="<?= htmlspecialchars($nombre, ENT_QUOTES) ?>">
+                                    <?= htmlspecialchars($nombre) ?>
+                                </div>
+                                <a href="mailto:<?= htmlspecialchars($request['email'], ENT_QUOTES) ?>"
+                                   class="block text-[11px] font-semibold text-slate-400 truncate hover:text-blue-600"
+                                   style="max-width:220px" title="<?= htmlspecialchars($request['email'], ENT_QUOTES) ?>">
+                                    <?= htmlspecialchars($request['email']) ?>
+                                </a>
+                                <?php if (!empty($request['nationality'])): ?>
+                                <div class="sub-cat truncate mt-0.5" style="max-width:220px">
+                                    <?= htmlspecialchars((string) $request['nationality']) ?>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </td>
+
+                    <td>
+                        <div class="truncate" style="max-width:300px" title="<?= htmlspecialchars($curso, ENT_QUOTES) ?>">
+                            <?= htmlspecialchars($curso) ?>
+                        </div>
+                    </td>
+
+                    <td>
+                        <span class="pastilla <?= $clasePastilla ?>">
+                            <i data-lucide="<?= $icono ?>" class="ic" style="width:11px;height:11px"></i><?= $etiqueta ?>
+                        </span>
+                    </td>
+
+                    <td class="text-slate-400 text-[11.5px] whitespace-nowrap">
+                        <div><?= date('d/m/Y', $t) ?></div>
+                        <div class="text-slate-300"><?= date('H:i', $t) ?></div>
+                    </td>
+
+                    <td class="num">
+                        <div class="flex items-center justify-end gap-1.5">
+                            <a href="/manager/admission-requests/<?= (int) $request['id'] ?>" class="ib ib-azul" title="Ver la solicitud">
+                                <i data-lucide="eye" class="ic ic-14"></i>
+                            </a>
+                            <a href="/manager/admission-requests/<?= (int) $request['id'] ?>/download-word"
+                               class="ib ib-verde" title="Descargar Word">
+                                <i data-lucide="file-text" class="ic ic-14"></i>
+                            </a>
+                            <?php /* El id va como número: se manda tal cual al servidor */ ?>
+                            <button onclick="toggleDropdown(event, <?= (int) $request['id'] ?>)" class="ib ib-ambar"
+                                    title="Cambiar el estado">
+                                <i data-lucide="square-pen" class="ic ic-14"></i>
+                            </button>
+                            <form method="POST" action="/manager/admission-requests/delete"
+                                  onsubmit="return confirm(<?= htmlspecialchars(json_encode($_aviso), ENT_QUOTES, 'UTF-8') ?>);">
+                                <?= \Core\Security::getCsrfField() ?>
+                                <input type="hidden" name="id" value="<?= (int) $request['id'] ?>">
+                                <input type="hidden" name="volver_a" value="<?= htmlspecialchars('/manager/admission-requests?' . ($_SERVER['QUERY_STRING'] ?? ''), ENT_QUOTES) ?>">
+                                <button type="submit" class="ib ib-rojo" title="Eliminar la solicitud">
+                                    <i data-lucide="trash-2" class="ic ic-14"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+
+    <!--
+        Pie con el recuento, las filas por pantalla y el paginador. La ventana
+        de páginas sigue a la actual en vez de pintar siempre las cinco
+        primeras.
+    -->
+    <div class="px-4 py-3.5 border-t flex flex-wrap items-center justify-between gap-3"
+         style="border-color: var(--card-border)">
+
+        <div class="flex items-center gap-3 flex-wrap">
+            <p class="text-[12px] font-semibold text-slate-400">
+                <?php if ($totalCount): ?>
+                Mostrando <?= number_format($primero) ?>-<?= number_format($ultimo) ?> de <?= number_format($totalCount) ?>
+                <?php else: ?>
+                Sin resultados
+                <?php endif; ?>
+            </p>
+
+            <form method="GET" action="/manager/admission-requests" class="flex items-center gap-2">
+                <input type="hidden" name="status" value="<?= htmlspecialchars($currentStatus, ENT_QUOTES) ?>">
+                <input type="hidden" name="search" value="<?= htmlspecialchars($currentSearch, ENT_QUOTES) ?>">
+                <span class="text-[11.5px] font-semibold text-slate-400">Mostrar</span>
+                <select name="per_page" class="campo" onchange="this.form.submit()" aria-label="Filas por página">
+                    <?php foreach ($perPageOptions as $n): ?>
+                    <option value="<?= $n ?>" <?= $perPage === (int) $n ? 'selected' : '' ?>><?= $n ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="text-[11.5px] font-semibold text-slate-400">filas</span>
+            </form>
+        </div>
+
+        <?php if ($totalPages > 1): ?>
+        <div class="flex items-center gap-1.5">
+            <a href="<?= $enlace(max(1, $currentPage - 1)) ?>"
+               class="pag <?= $currentPage <= 1 ? 'inerte pointer-events-none' : '' ?>" title="Anterior">
+                <i data-lucide="chevron-left" class="ic ic-14"></i>
+            </a>
+
+            <?php for ($i = $desde; $i <= $hasta; $i++): ?>
+            <a href="<?= $enlace($i) ?>" class="pag <?= $i === $currentPage ? 'activa' : '' ?>"><?= $i ?></a>
+            <?php endfor; ?>
+
+            <a href="<?= $enlace(min($totalPages, $currentPage + 1)) ?>"
+               class="pag <?= $currentPage >= $totalPages ? 'inerte pointer-events-none' : '' ?>" title="Siguiente">
+                <i data-lucide="chevron-right" class="ic ic-14"></i>
+            </a>
+        </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+<!-- Ficha de la solicitud -->
+<div id="viewModal" class="hidden fixed inset-0 bg-slate-900/60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
+    <div class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl">
+
+        <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color: var(--card-border)">
+            <h3 class="text-[15px] font-black text-slate-800 flex items-center gap-2.5">
+                <i data-lucide="graduation-cap" class="ic ic-17 text-blue-600"></i>
+                Detalle de la solicitud
+            </h3>
+            <button onclick="closeModal()" class="btn-atras" title="Cerrar">
+                <i data-lucide="x" class="ic ic-17"></i>
             </button>
+        </div>
+
+        <div id="modalBody" class="p-5">
+            <div class="vacio"><p>Cargando…</p></div>
+        </div>
+
+        <div id="modalFooter" class="hidden flex justify-between items-center px-5 py-3.5 border-t bg-slate-50 rounded-b-2xl"
+             style="border-color: var(--card-border)">
+            <div id="modalStatusBadge"></div>
+            <button onclick="closeModal()" class="btn-sec">Cerrar</button>
         </div>
     </div>
 </div>
@@ -378,59 +320,37 @@ $perPageOptions = $perPageOptions ?? [5, 10, 15, 25, 50];
 /*
     CSS normal, no @apply: Tailwind se carga por CDN y en ese modo @apply
     no se procesa, así que estas reglas no pintaban absolutamente nada.
-    Por eso las tarjetas de filtro y las pastillas de estado salían sin
-    estilo.
 */
-.status-card {
-    display: block;
-    background: #fff;
-    border: 2px solid #e5e7eb;
-    border-radius: .5rem;
-    padding: 1rem;
-    cursor: pointer;
-    transition: border-color .15s, background-color .15s;
-}
-.status-card:hover  { border-color: #06b6d4; }
-.status-card.active { border-color: #06b6d4; background: #ecfeff; }
-
 .detail-row {
     display: flex;
-    padding: .75rem 0;
-    border-bottom: 1px solid #f3f4f6;
+    padding: .7rem 0;
+    border-bottom: 1px solid #f1f5f9;
 }
 .detail-row:last-child { border-bottom: 0; }
 .detail-label {
     width: 11rem;
     flex-shrink: 0;
-    font-size: .75rem;
-    font-weight: 600;
-    color: #6b7280;
+    font-size: 9.5px;
+    font-weight: 800;
+    color: #94a3b8;
     text-transform: uppercase;
-    letter-spacing: .05em;
+    letter-spacing: .09em;
+    padding-top: 2px;
 }
-.detail-value { flex: 1; font-size: .875rem; color: #111827; }
-
-/* Oculto a la vista, legible por lectores de pantalla */
-.sr-only {
-    position: absolute;
-    width: 1px; height: 1px;
-    padding: 0; margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap; border: 0;
-}
+.detail-value { flex: 1; font-size: 12.5px; color: #334155; }
 </style>
 
 <script>
-// Shared fixed dropdown element
+// Menú de estado, compartido y en position:fixed para que no lo recorte la tabla
 const _dd = document.createElement('div');
 _dd.id = '_statusDrop';
-_dd.className = 'hidden fixed z-[9999] w-44 bg-white border border-gray-200 rounded-xl shadow-2xl py-1';
+_dd.className = 'hidden fixed z-[9999] w-44 bg-white rounded-xl shadow-2xl py-1';
+_dd.style.border = '1px solid #e8edf6';
 _dd.innerHTML = `
-    <button data-s="pending"  class="w-full text-left px-4 py-2 text-sm hover:bg-yellow-50 flex items-center gap-2"><i class="fas fa-clock text-yellow-500"></i> Pending</button>
-    <button data-s="reviewed" class="w-full text-left px-4 py-2 text-sm hover:bg-blue-50   flex items-center gap-2"><i class="fas fa-eye text-blue-500"></i> Reviewed</button>
-    <button data-s="approved" class="w-full text-left px-4 py-2 text-sm hover:bg-green-50  flex items-center gap-2"><i class="fas fa-check-circle text-green-500"></i> Approved</button>
-    <button data-s="rejected" class="w-full text-left px-4 py-2 text-sm hover:bg-red-50    flex items-center gap-2"><i class="fas fa-times-circle text-red-500"></i> Rejected</button>
+    <button data-s="pending"  class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-amber-50">Pendiente</button>
+    <button data-s="reviewed" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-blue-50">Revisada</button>
+    <button data-s="approved" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-emerald-50">Aprobada</button>
+    <button data-s="rejected" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-rose-50">Rechazada</button>
 `;
 document.body.appendChild(_dd);
 let _ddId = null;
@@ -449,10 +369,6 @@ function toggleDropdown(e, id) {
     /*
         El menú es position:fixed, así que sus coordenadas son las del
         viewport y getBoundingClientRect() ya las da en ese sistema.
-        Sumarle el scroll lo mandaba justo esa distancia más abajo: con la
-        página arriba del todo parecía correcto, y en cuanto se bajaba
-        aparecía lejos de su fila.
-
         Se muestra antes de medir porque un elemento oculto no tiene alto,
         y se ajusta para que no se salga por abajo ni por los lados.
     */
@@ -474,7 +390,6 @@ function toggleDropdown(e, id) {
     _dd.style.top  = top + 'px';
     _dd.style.left = left + 'px';
 
-    // Wire click handlers
     _dd.querySelectorAll('button[data-s]').forEach(b => {
         b.onclick = () => setStatusInline(id, b.dataset.s);
     });
@@ -499,17 +414,13 @@ function setStatusInline(id, status) {
             if (data.success) { location.reload(); }
             else { alert('Error: ' + data.message); }
         })
-        .catch(() => alert('Connection error. Please try again.'));
+        .catch(() => alert('Error de conexión. Inténtalo de nuevo.'));
 }
 
 function viewRequest(id) {
     document.getElementById('viewModal').classList.remove('hidden');
     document.getElementById('modalFooter').classList.add('hidden');
-    document.getElementById('modalBody').innerHTML = `
-        <div class="text-center py-8">
-            <i class="fas fa-spinner fa-spin text-cyan-500 text-3xl"></i>
-            <p class="text-gray-500 mt-2">Loading...</p>
-        </div>`;
+    document.getElementById('modalBody').innerHTML = '<div class="vacio"><p>Cargando…</p></div>';
 
     fetch(`/manager/admission-requests/${id}`)
         .then(r => r.json())
@@ -517,43 +428,45 @@ function viewRequest(id) {
             if (!res.success) throw new Error(res.message);
             const d = res.data;
 
-            const statusColors = {
-                pending:  'bg-yellow-100 text-yellow-800',
-                reviewed: 'bg-blue-100 text-blue-800',
-                approved: 'bg-green-100 text-green-800',
-                rejected: 'bg-red-100 text-red-800'
+            const pastillas = {
+                pending:  'p-ambar',
+                reviewed: 'p-azul',
+                approved: 'p-verde',
+                rejected: 'p-rojo'
             };
+            const nombres = {
+                pending: 'Pendiente', reviewed: 'Revisada',
+                approved: 'Aprobada', rejected: 'Rechazada'
+            };
+            const aceptado = parseInt(d.consent_accepted) === 1;
 
             document.getElementById('modalBody').innerHTML = `
-                <div class="grid grid-cols-1 gap-0 divide-y divide-gray-100 bg-white rounded-xl border border-gray-100">
-                    <div class="detail-row px-4"><span class="detail-label">Request #</span><span class="detail-value font-bold text-cyan-600">#${d.id}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Given Name</span><span class="detail-value">${esc(d.given_name)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Surname</span><span class="detail-value">${esc(d.surname)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Passport / ID</span><span class="detail-value">${esc(d.passport_id)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Nationality</span><span class="detail-value">${esc(d.nationality)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Date of Birth</span><span class="detail-value">${esc(d.date_of_birth)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Country of Birth</span><span class="detail-value">${esc(d.country_of_birth)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Email</span><span class="detail-value"><a href="mailto:${esc(d.email)}" class="text-cyan-600 hover:underline">${esc(d.email)}</a></span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Phone</span><span class="detail-value">${esc(d.phone)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Address</span><span class="detail-value">${esc(d.address)}</span></div>
-                    ${d.capacity ? `<div class="detail-row px-4"><span class="detail-label">Capacity</span><span class="detail-value">${esc(d.capacity)}</span></div>` : ''}
-                    <div class="detail-row px-4"><span class="detail-label">Course</span><span class="detail-value font-semibold">${esc(d.course)}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Terms Consent</span><span class="detail-value text-${parseInt(d.consent_accepted) === 1 ? 'green' : 'red'}-600 font-bold"><i class="fas fa-${parseInt(d.consent_accepted) === 1 ? 'check-circle' : 'times-circle'}"></i> ${parseInt(d.consent_accepted) === 1 ? 'Accepted' : 'Not Accepted'}</span></div>
-                    <div class="detail-row px-4"><span class="detail-label">Status</span><span class="detail-value"><span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[d.status] || ''}">${d.status.charAt(0).toUpperCase() + d.status.slice(1)}</span></span></div>
-                    ${d.notes ? `<div class="detail-row px-4"><span class="detail-label">Notes</span><span class="detail-value text-gray-600 italic">${esc(d.notes)}</span></div>` : ''}
-                    <div class="detail-row px-4"><span class="detail-label">Submitted</span><span class="detail-value text-gray-500">${new Date(d.created_at).toLocaleString()}</span></div>
+                <div class="card" style="padding:4px 16px">
+                    <div class="detail-row"><span class="detail-label">Solicitud</span><span class="detail-value font-bold text-blue-700">#${d.id}</span></div>
+                    <div class="detail-row"><span class="detail-label">Nombre</span><span class="detail-value">${esc(d.given_name)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Apellidos</span><span class="detail-value">${esc(d.surname)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Pasaporte / Cédula</span><span class="detail-value">${esc(d.passport_id)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Nacionalidad</span><span class="detail-value">${esc(d.nationality)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Fecha de nacimiento</span><span class="detail-value">${esc(d.date_of_birth)}</span></div>
+                    <div class="detail-row"><span class="detail-label">País de nacimiento</span><span class="detail-value">${esc(d.country_of_birth)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Correo</span><span class="detail-value"><a href="mailto:${esc(d.email)}" class="text-blue-600 hover:underline">${esc(d.email)}</a></span></div>
+                    <div class="detail-row"><span class="detail-label">Teléfono</span><span class="detail-value">${esc(d.phone)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Dirección</span><span class="detail-value">${esc(d.address)}</span></div>
+                    ${d.capacity ? `<div class="detail-row"><span class="detail-label">Capacidad</span><span class="detail-value">${esc(d.capacity)}</span></div>` : ''}
+                    <div class="detail-row"><span class="detail-label">Curso</span><span class="detail-value font-bold">${esc(d.course)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Consentimiento</span><span class="detail-value"><span class="pastilla ${aceptado ? 'p-verde' : 'p-rojo'}">${aceptado ? 'Aceptado' : 'No aceptado'}</span></span></div>
+                    <div class="detail-row"><span class="detail-label">Estado</span><span class="detail-value"><span class="pastilla ${pastillas[d.status] || 'p-gris'}">${nombres[d.status] || esc(d.status)}</span></span></div>
+                    ${d.notes ? `<div class="detail-row"><span class="detail-label">Notas</span><span class="detail-value text-slate-500 italic">${esc(d.notes)}</span></div>` : ''}
+                    <div class="detail-row"><span class="detail-label">Recibida</span><span class="detail-value text-slate-400">${new Date(d.created_at).toLocaleString()}</span></div>
                 </div>`;
 
             document.getElementById('modalStatusBadge').innerHTML =
-                `<span class="px-3 py-1 rounded-full text-xs font-bold ${statusColors[d.status] || ''}">${d.status}</span>`;
+                `<span class="pastilla ${pastillas[d.status] || 'p-gris'}">${nombres[d.status] || esc(d.status)}</span>`;
             document.getElementById('modalFooter').classList.remove('hidden');
         })
         .catch(err => {
-            document.getElementById('modalBody').innerHTML = `
-                <div class="text-center py-8 text-red-500">
-                    <i class="fas fa-exclamation-triangle text-3xl mb-2"></i>
-                    <p>${err.message}</p>
-                </div>`;
+            document.getElementById('modalBody').innerHTML =
+                `<div class="vacio"><p class="text-rose-500">${err.message}</p></div>`;
         });
 }
 
@@ -561,7 +474,7 @@ function closeModal() {
     document.getElementById('viewModal').classList.add('hidden');
 }
 
-// Close when clicking backdrop
+// Cerrar al pulsar fuera de la ficha
 document.getElementById('viewModal').addEventListener('click', function(e) {
     if (e.target === this) closeModal();
 });
@@ -569,34 +482,5 @@ document.getElementById('viewModal').addEventListener('click', function(e) {
 function esc(str) {
     if (!str) return '—';
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function updateStatus(id, currentStatus) {
-    const status = prompt('Enter new status (pending, reviewed, approved, rejected):', currentStatus);
-    if (status && ['pending', 'reviewed', 'approved', 'rejected'].includes(status)) {
-        const notes = prompt('Add notes (optional):');
-        
-        const formData = new FormData();
-        formData.append('id', id);
-        formData.append('status', status);
-        if (notes) formData.append('notes', notes);
-
-        fetch('/manager/admission-requests/update-status', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Status updated successfully!');
-                location.reload();
-            } else {
-                alert('Error: ' + data.message);
-            }
-        })
-        .catch(error => {
-            alert('Error: ' + error.message);
-        });
-    }
 }
 </script>
