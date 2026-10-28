@@ -223,6 +223,16 @@ class WordGenerator
     private const CATEGORIA_LOGISTICA = 10;
 
     /**
+     * Casilla marcada y sin marcar de los formularios.
+     *
+     * Se usa el mismo símbolo que la plantilla ya trae para el
+     * consentimiento: es el que se sabe que la fuente del documento dibuja
+     * bien, y así todas las casillas del papel se ven iguales.
+     */
+    private const MARCA = '☑';
+    private const VACIA = '☐';
+
+    /**
      * Plantilla que corresponde al curso de una solicitud.
      *
      * Los cursos de logística y puertos usan el F-41; el resto, el F-46.
@@ -276,6 +286,145 @@ class WordGenerator
         $suelto = trim((string) ($data['course'] ?? ''));
 
         return $suelto === '' ? [] : [$suelto];
+    }
+
+    /**
+     * Filas de curso de una plantilla, en el orden en que salen en el papel.
+     *
+     * Busca las filas de tabla que llevan la casilla y saca de cada una su
+     * número, el nombre impreso y el código. Hace falta porque la plantilla
+     * repite el mismo marcador en todas las filas y no hay forma de saber,
+     * desde PhpWord, a qué curso corresponde cada aparición.
+     *
+     * @return array<array{numero:string,nombre:string,codigo:string}>
+     */
+    private static function filasDeCursoDeLaPlantilla(string $plantilla): array
+    {
+        if (!file_exists($plantilla)) {
+            return [];
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($plantilla) !== true) {
+            return [];
+        }
+        $xml = $zip->getFromName('word/document.xml');
+        $zip->close();
+
+        if (!is_string($xml) || $xml === '') {
+            return [];
+        }
+
+        /*
+            Texto plano de un trozo de XML. El patrón exige espacio o cierre
+            tras «w:t»: con «<w:t[^>]*>» también casarían «<w:tcPr>» y
+            compañía, porque ni la c ni la P ni la r son «>».
+        */
+        $texto = static function (string $trozo): string {
+            preg_match_all('#<w:t(?:\s[^>]*)?>(.*?)</w:t>#su', $trozo, $m);
+
+            return trim(preg_replace(
+                '/\s+/u',
+                ' ',
+                html_entity_decode(implode('', $m[1]), ENT_QUOTES | ENT_XML1, 'UTF-8')
+            ));
+        };
+
+        preg_match_all('#<w:tr[ >].*?</w:tr>#su', $xml, $filas);
+
+        $salida = [];
+        foreach ($filas[0] as $tr) {
+            if (!preg_match('/\$\{course_check_\d+\}/u', $tr)) {
+                continue;
+            }
+
+            preg_match_all('#<w:tc[ >].*?</w:tc>#su', $tr, $celdas);
+            $celdas = array_map($texto, $celdas[0]);
+
+            // La columna del nombre es la más larga de la fila; así no
+            // depende de que siempre sea la segunda.
+            $nombre = '';
+            foreach ($celdas as $c) {
+                if (mb_strlen($c) > mb_strlen($nombre) && !str_contains($c, '${')) {
+                    $nombre = $c;
+                }
+            }
+
+            $salida[] = [
+                'numero' => $celdas[0] ?? '',
+                'nombre' => $nombre,
+                'codigo' => $celdas[2] ?? '',
+            ];
+        }
+
+        return $salida;
+    }
+
+    /**
+     * Clave con la que se compara un nombre de curso.
+     *
+     * La plantilla escribe «English name / Nombre en español» y el catálogo
+     * sólo el inglés, así que se corta por la barra. Después se quita todo
+     * lo que no sea letra o número: ahí es justo donde difieren, con guiones
+     * largos, paréntesis y espacios de más.
+     */
+    private static function claveDeCurso(string $texto): string
+    {
+        $texto = explode('/', $texto)[0];
+
+        // Guiones y comillas tipográficas a su versión simple.
+        $texto = str_replace(
+            ["\u{2010}", "\u{2011}", "\u{2012}", "\u{2013}", "\u{2014}", "\u{2018}", "\u{2019}"],
+            ['-', '-', '-', '-', '-', "'", "'"],
+            $texto
+        );
+        $texto = mb_strtolower(trim($texto), 'UTF-8');
+
+        // «Proficiency in Personal Survival Techniques» y «Personal Survival
+        // Techniques» son el mismo curso con distinto encabezado.
+        $texto = preg_replace('/^(proficiency in|training in|course on)\s+/u', '', $texto);
+
+        return (string) preg_replace('/[^a-z0-9]+/u', '', $texto);
+    }
+
+    /**
+     * ¿La fila de la plantilla es uno de los cursos solicitados?
+     *
+     * Se compara por nombre y no por el código de la columna: el de la
+     * plantilla («SSBT», «PST») no es el de los productos («PAM-M-22»), y
+     * de 36 filas sólo una casaría.
+     *
+     * @param string[] $elegidos
+     */
+    private static function filaCorrespondeACurso(string $nombreFila, array $elegidos): bool
+    {
+        $fila = self::claveDeCurso($nombreFila);
+        if ($fila === '') {
+            return false;
+        }
+
+        $claves = array_filter(array_map([self::class, 'claveDeCurso'], $elegidos));
+
+        if (in_array($fila, $claves, true)) {
+            return true;
+        }
+
+        /*
+            Segunda pasada, tolerante: plantilla y catálogo tienen erratas
+            que no se arreglan normalizando («Skils» por «Skills»,
+            «ManagerialSkills» sin espacio). Se exige un parecido muy alto,
+            porque marcar un curso que no es sería peor que no marcar nada:
+            cursos distintos de la misma familia («Basic» contra «Advanced
+            Training for…») se quedan muy por debajo de este umbral.
+        */
+        foreach ($claves as $clave) {
+            similar_text($fila, $clave, $parecido);
+            if ($parecido >= 95.0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -371,50 +520,46 @@ class WordGenerator
             $tp->setValue('current_date',     date('d/m/Y'));
             $tp->setValue('terms_consent',    '☑ Doy mi consentimiento y acepto los términos.');
 
-            // ── Detect how many course_check_N variables exist ─────────────
-            $checkVars = array_values(array_unique(array_filter($allVars, fn($v) => str_starts_with($v, 'course_check_'))));
-            natsort($checkVars); // natural sort: course_check_1, course_check_2 ...
+            /*
+                ── Casillas de curso ──────────────────────────────────────
+
+                El F-46 trae su propia tabla con los cursos ya impresos: una
+                fila por curso, con el nombre en una columna y la casilla en
+                otra. Lo que NO trae es una variable por fila: las 36 filas
+                repiten el mismo ${course_check_1}, y getVariables() lo
+                devuelve una sola vez.
+
+                Por eso hay que recorrer las filas de la plantilla y
+                reemplazar de una en una con límite 1, que preg_replace
+                aplica en orden de documento. En la casilla va sólo la marca;
+                el nombre del curso ya está escrito en su columna.
+            */
+            $checkVars = array_values(array_unique(array_filter(
+                $allVars,
+                static fn($v) => str_starts_with($v, 'course_check_')
+            )));
+            natsort($checkVars);
             $checkVars = array_values($checkVars);
-            $total     = count($checkVars);
 
-            // ── Get ordered course list from DB ────────────────────────────
-            $courseNames = [];
-            try {
-                $db   = \Core\Database::getInstance();
-                $rows = $db->fetchAll("SELECT name FROM products ORDER BY name");
-                foreach ($rows as $r) $courseNames[] = $r['name'];
-            } catch (\Exception $e) {
-                // fallback if DB fails — leave checkboxes empty
-            }
-
-            // ── Fill checkboxes ────────────────────────────────────────────
             $elegidos = self::nombresDeCursos($data);
+            $filas    = self::filasDeCursoDeLaPlantilla($templatePath);
 
-            if ($total > 0 && $total >= count($courseNames)) {
-                // La plantilla lista los cursos uno a uno: se marca el suyo.
-                $enMinusculas = array_map(
-                    static fn($n) => mb_strtolower(trim($n), 'UTF-8'),
-                    $elegidos
-                );
-                for ($i = 0; $i < $total; $i++) {
-                    $courseName = $courseNames[$i] ?? '';
-                    $check      = in_array(mb_strtolower(trim($courseName), 'UTF-8'), $enMinusculas, true) ? '☑' : '☐';
-                    $tp->setValue($checkVars[$i], $check);
+            if ($filas && count($checkVars) === 1) {
+                foreach ($filas as $fila) {
+                    $tp->setValue(
+                        $checkVars[0],
+                        self::filaCorrespondeACurso($fila['nombre'], $elegidos) ? self::MARCA : self::VACIA,
+                        1
+                    );
                 }
-            } elseif ($total > 0) {
-                /*
-                    El F-46 tiene un único hueco, no una casilla por curso.
-                    El bucle de arriba sólo habría marcado algo si el curso
-                    pedido fuese justo el primero por orden alfabético de los
-                    66 productos, así que el formulario salía sin decir qué
-                    curso se pedía. Se escriben los elegidos en ese hueco.
-                */
-                $tp->setValue($checkVars[0], implode('   ', array_map(
-                    static fn($n) => '☑ ' . $n,
-                    $elegidos
-                )));
-                for ($i = 1; $i < $total; $i++) {
-                    $tp->setValue($checkVars[$i], '');
+            } else {
+                // Plantilla con una variable por fila: se marca la que toque.
+                foreach ($checkVars as $i => $var) {
+                    $nombre = $filas[$i]['nombre'] ?? '';
+                    $tp->setValue(
+                        $var,
+                        self::filaCorrespondeACurso($nombre, $elegidos) ? self::MARCA : self::VACIA
+                    );
                 }
             }
 
