@@ -51,6 +51,7 @@ class AdminBranchController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
 
             $this->branchModel->create([
@@ -85,6 +86,7 @@ class AdminBranchController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = isset($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
 
             $this->branchModel->update($id, [
@@ -106,6 +108,7 @@ class AdminBranchController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             if ($this->branchModel->hasProducts($id)) {
                 $_SESSION['error'] = 'Cannot delete branch. It still has products assigned. Please reassign them first.';
                 $this->redirect('/manager/branches');

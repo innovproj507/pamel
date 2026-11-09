@@ -56,6 +56,7 @@ class AdminCategoryController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = strtolower(str_replace(' ', '-', $_POST['name']));
 
             $parentId = !empty($_POST['parent_id']) ? $_POST['parent_id'] : null;
@@ -94,6 +95,7 @@ class AdminCategoryController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = isset($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
 
             $parentId = !empty($_POST['parent_id']) ? $_POST['parent_id'] : null;
@@ -117,6 +119,7 @@ class AdminCategoryController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             // Check if category has subcategories
             if ($this->categoryModel->hasSubcategories($id)) {
                 $_SESSION['error'] = 'Cannot delete category. It has subcategories. Please delete or reassign subcategories first.';

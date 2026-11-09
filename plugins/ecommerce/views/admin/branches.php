@@ -119,6 +119,7 @@ $cursos   = array_sum(array_column($branches, 'product_count'));
                             </a>
                             <form action="/manager/branches/<?= (int) $branch['id'] ?>/delete" method="POST"
                                   onsubmit="return confirm('¿Eliminar la rama «<?= htmlspecialchars(addslashes($branch['name']), ENT_QUOTES) ?>»?<?= $nCursos ? ' Sus ' . $nCursos . ' curso(s) quedarán sin rama.' : '' ?>')">
+<?= \Core\Security::getCsrfField() ?>
                                 <?= \Core\Security::getCsrfField() ?>
                                 <button type="submit" class="acc acc-rojo" title="Eliminar rama">
                                     <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar

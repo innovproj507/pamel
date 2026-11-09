@@ -153,6 +153,7 @@ $cursos      = array_sum(array_column($categories, 'product_count'));
                                   onsubmit="<?= $conHijas
                                       ? 'alert(\'' . htmlspecialchars($aviso, ENT_QUOTES) . '\'); return false;'
                                       : 'return confirm(\'' . htmlspecialchars($aviso, ENT_QUOTES) . '\')' ?>">
+<?= \Core\Security::getCsrfField() ?>
                                 <?= \Core\Security::getCsrfField() ?>
                                 <button type="submit" class="acc acc-rojo <?= $conHijas ? 'opacity-50' : '' ?>"
                                         title="<?= $conHijas ? 'Primero hay que vaciar sus subcategorías' : 'Eliminar categoría' ?>">

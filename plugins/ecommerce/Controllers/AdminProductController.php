@@ -76,6 +76,7 @@ class AdminProductController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->generateSlug($_POST['name']);
 
             $originalSlug = $slug;
@@ -143,6 +144,7 @@ class AdminProductController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->generateSlug($_POST['name']);
             $imagePath = $this->handleImageUpload($_POST['image_url'] ?? '', $_POST['current_image'] ?? '');
             $branchId = !empty($_POST['branch_id']) ? intval($_POST['branch_id']) : null;
@@ -192,6 +194,7 @@ class AdminProductController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $this->productModel->delete($id);
         }
 
@@ -258,6 +261,7 @@ class AdminProductController extends Controller
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             $this->redirect('/manager/products');
         }
+        $this->requireCsrf();
 
         $products = $this->db->fetchAll(
             "SELECT p.id, p.name, p.description, p.price, p.course_code, p.branch_id

@@ -127,6 +127,7 @@ $limitadas  = count(array_filter($modalities, static fn($m) => !empty($m['branch
                             </a>
                             <form action="/manager/modalities/<?= (int) $modality['id'] ?>/delete" method="POST"
                                   onsubmit="return confirm('¿Eliminar la modalidad «<?= htmlspecialchars(addslashes($modality['name']), ENT_QUOTES) ?>»?<?= $nCursos ? ' Sus ' . $nCursos . ' curso(s) quedarán sin modalidad.' : '' ?>')">
+<?= \Core\Security::getCsrfField() ?>
                                 <?= \Core\Security::getCsrfField() ?>
                                 <button type="submit" class="acc acc-rojo" title="Eliminar modalidad">
                                     <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar

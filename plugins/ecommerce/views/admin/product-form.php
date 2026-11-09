@@ -4,6 +4,7 @@
     </div>
 
     <form action="<?php echo $product ? '/manager/products/' . $product['id'] . '/update' : '/manager/products/store'; ?>" method="POST" enctype="multipart/form-data" class="bg-white shadow-lg rounded-lg p-8">
+<?= \Core\Security::getCsrfField() ?>
         
         <div class="mb-6">
             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Product Name *</label>

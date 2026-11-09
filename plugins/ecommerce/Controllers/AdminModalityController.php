@@ -59,6 +59,7 @@ class AdminModalityController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = !empty($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
 
             $this->modalityModel->create([
@@ -94,6 +95,7 @@ class AdminModalityController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             $slug = isset($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
 
             $this->modalityModel->update($id, [
@@ -115,6 +117,7 @@ class AdminModalityController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $this->requireCsrf();
             if ($this->modalityModel->hasProducts($id)) {
                 $_SESSION['error'] = 'Cannot delete modality. It still has products assigned. Please reassign them first.';
                 $this->redirect('/manager/modalities');

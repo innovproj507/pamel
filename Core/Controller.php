@@ -27,6 +27,28 @@ class Controller
         exit;
     }
 
+    /**
+     * Exige un token CSRF válido en una petición POST del panel.
+     *
+     * Si falta o no coincide, deja constancia en el log de seguridad, avisa
+     * en la pantalla de origen y corta la petición sin tocar nada. El token
+     * viaja en el campo csrf_token del formulario o, para fetch(), en la
+     * cabecera X-CSRF-Token.
+     */
+    protected function requireCsrf(): void
+    {
+        $token = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+        if (is_string($token) && $token !== '' && Security::validateCsrfToken($token)) {
+            return;
+        }
+
+        Security::logSecurityEvent('csrf_validation_failed', [
+            'uri' => $_SERVER['REQUEST_URI'] ?? '',
+        ]);
+        $this->flash('error', 'Token de seguridad inválido. Recarga la página e inténtalo de nuevo.');
+        $this->redirect($_SERVER['HTTP_REFERER'] ?? '/manager');
+    }
+
     protected function back()
     {
         $referer = $_SERVER['HTTP_REFERER'] ?? '/';

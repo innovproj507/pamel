@@ -233,6 +233,7 @@ $stockBajo  = count(array_filter($products, static fn($p) => (int) $p['stock'] <
                             </a>
                             <form action="/manager/products/<?= (int) $product['id'] ?>/delete" method="POST"
                                   onsubmit="return confirm('¿Eliminar el producto «<?= htmlspecialchars(addslashes($product['name']), ENT_QUOTES) ?>»? Esta acción no se puede deshacer.')">
+<?= \Core\Security::getCsrfField() ?>
                                 <?= \Core\Security::getCsrfField() ?>
                                 <button type="submit" class="acc acc-rojo" title="Eliminar producto">
                                     <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar

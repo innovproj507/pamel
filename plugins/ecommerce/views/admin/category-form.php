@@ -4,6 +4,7 @@
     </div>
 
     <form action="<?php echo $category ? '/manager/categories/' . $category['id'] . '/update' : '/manager/categories/store'; ?>" method="POST" class="bg-white shadow-lg rounded-lg p-8">
+<?= \Core\Security::getCsrfField() ?>
         
         <div class="mb-6">
             <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Category Name *</label>

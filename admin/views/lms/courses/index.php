@@ -62,6 +62,7 @@ $recuadros = [
 <?php if (can('lms.courses.manage')): ?>
         <form method="POST" action="/manager/products/sync-courses"
               onsubmit="return confirm('¿Crear cursos en borrador para todos los productos activos que aún no tienen curso?')">
+<?= \Core\Security::getCsrfField() ?>
             <input type="hidden" name="_csrf" value="<?= \Core\Security::generateCsrfToken() ?>">
             <button type="submit" class="btn-violeta">
                 <i data-lucide="refresh-cw" class="ic ic-14"></i> Sincronizar Productos
@@ -319,6 +320,7 @@ $recuadros = [
                             ?>
                             <form method="POST" action="/manager/lms/courses/<?= $course['id'] ?>/delete"
                                   onsubmit="return confirm('<?= htmlspecialchars($aviso, ENT_QUOTES) ?>')">
+<?= \Core\Security::getCsrfField() ?>
                                 <?= \Core\Security::getCsrfField() ?>
                                 <button type="submit" class="acc acc-rojo" title="Eliminar curso">
                                     <i data-lucide="trash-2" class="ic" style="width:12px;height:12px"></i> Eliminar
