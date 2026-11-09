@@ -43,8 +43,15 @@ class LessonsApiController extends Controller
         if (!$esGestor) {
             $inscrito = (new \Plugins\Elearning\Models\Enrollment())
                 ->isEnrolled((int) $userId, (int) $lesson['course_id']);
-            if (!$inscrito || empty($lesson['is_active'])) {
+            if (!$inscrito) {
                 $this->apiResponse(['status' => 'error', 'message' => 'No tienes acceso a esta lección'], 403);
+            }
+            // Lección desactivada: la app necesita saber que existe para
+            // avisar al alumno, pero no recibe su contenido.
+            if (empty($lesson['is_active'])) {
+                $lesson['content']   = '';
+                $lesson['video_url'] = null;
+                $lesson['file_path'] = null;
             }
         }
 
