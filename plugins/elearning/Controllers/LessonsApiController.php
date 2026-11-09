@@ -29,10 +29,26 @@ class LessonsApiController extends Controller
             $this->apiResponse(['status' => 'error', 'message' => 'Lección no encontrada'], 404);
         }
 
-        $userId    = ApiToken::fromRequest();
-        $completed = $userId ? $this->lessonModel->isCompleted($userId, (int) $id) : false;
+        // El contenido de la lección es solo para el alumnado inscrito y para
+        // quien gestiona cursos. La app elearning ya manda el token en cada
+        // llamada; sin él, esta ruta dejaba leer cualquier lección.
+        $userId = ApiToken::fromRequest();
+        if (!$userId) {
+            $this->apiResponse(['status' => 'error', 'message' => 'Autenticación requerida'], 401);
+        }
 
-        $lesson['completed'] = $completed;
+        $user = $this->db->fetchOne("SELECT role FROM users WHERE id = ? LIMIT 1", [(int) $userId]);
+        $esGestor = $user && in_array($user['role'], ['admin', 'teacher', 'academic_director'], true);
+
+        if (!$esGestor) {
+            $inscrito = (new \Plugins\Elearning\Models\Enrollment())
+                ->isEnrolled((int) $userId, (int) $lesson['course_id']);
+            if (!$inscrito || empty($lesson['is_active'])) {
+                $this->apiResponse(['status' => 'error', 'message' => 'No tienes acceso a esta lección'], 403);
+            }
+        }
+
+        $lesson['completed'] = $this->lessonModel->isCompleted($userId, (int) $id);
         $this->apiResponse(['status' => 'success', 'data' => $lesson]);
     }
 

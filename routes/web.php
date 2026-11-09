@@ -162,9 +162,4 @@ return function($router) {
 
     // API Routes for E-learning Sync
     $router->get('/api/products', 'Controllers\\ApiController@getProducts', 'api.products');
-
-    // Debug route (remove in production)
-    $router->get('/debug-db', function() {
-        require __DIR__ . '/public/debug_db.php';
-    }, 'debug-db');
 };

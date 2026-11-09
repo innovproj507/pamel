@@ -19,8 +19,8 @@ class SeoController extends Controller
     {
         header('Content-Type: application/xml; charset=utf-8');
 
-        $baseUrl = \Core\Config::get('site.url');
-        
+        $baseUrl = rtrim(\Core\Config::get('site.url'), '/');
+
         // Get all pages
         $pages = $this->db->fetchAll("SELECT slug, updated_at FROM pages WHERE status = 'published'");
         $products = $this->db->fetchAll("SELECT slug, updated_at FROM products WHERE status = 'active'");
@@ -63,7 +63,7 @@ class SeoController extends Controller
     {
         header('Content-Type: text/plain; charset=utf-8');
 
-        $baseUrl = \Core\Config::get('site.url');
+        $baseUrl = rtrim(\Core\Config::get('site.url'), '/');
 
         // Get custom robots.txt from settings
         $robotsTxt = $this->db->fetchOne("SELECT setting_value FROM settings WHERE setting_key = 'robots_txt'");

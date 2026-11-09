@@ -61,14 +61,11 @@ class QuestionBank extends Model
         $limit  = max(1, $limit);
         $offset = max(0, $offset);
 
-        return $this->db->fetchAll(
-            "SELECT q.quiz_id AS set_id,
-                    COUNT(*) AS total,
-                    SUM(CASE WHEN EXISTS (
-                        SELECT 1 FROM lms_questions v
-                        JOIN lms_quizzes zv ON zv.id = v.quiz_id
-                        WHERE v.question = q.question
-                    ) THEN 1 ELSE 0 END) AS duplicadas
+        // Primero solo la página de sets (barato). Calcular "duplicadas" dentro
+        // de esta misma consulta comparaba el texto (TEXT, sin índice) de cada
+        // pregunta huérfana contra todas las vivas: ~17 s con 2 100 huérfanas.
+        $sets = $this->db->fetchAll(
+            "SELECT q.quiz_id AS set_id, COUNT(*) AS total
              FROM lms_questions q
              WHERE " . self::HUERFANA . " {$extra}
              GROUP BY q.quiz_id
@@ -76,6 +73,42 @@ class QuestionBank extends Model
              LIMIT {$limit} OFFSET {$offset}",
             $params
         );
+        if (!$sets) {
+            return [];
+        }
+
+        // Textos de las preguntas que ya viven en un quiz real, una sola vez.
+        $vivas = [];
+        foreach ($this->db->fetchAll(
+            "SELECT v.question FROM lms_questions v
+             JOIN lms_quizzes zv ON zv.id = v.quiz_id"
+        ) as $r) {
+            $vivas[self::normalizar($r['question'])] = true;
+        }
+
+        $ids  = implode(',', array_map(static fn($s) => (int) $s['set_id'], $sets));
+        $dups = [];
+        foreach ($this->db->fetchAll(
+            "SELECT quiz_id, question FROM lms_questions WHERE quiz_id IN ({$ids})"
+        ) as $r) {
+            if (isset($vivas[self::normalizar($r['question'])])) {
+                $k = (int) $r['quiz_id'];
+                $dups[$k] = ($dups[$k] ?? 0) + 1;
+            }
+        }
+
+        foreach ($sets as &$s) {
+            $s['duplicadas'] = $dups[(int) $s['set_id']] ?? 0;
+        }
+        unset($s);
+
+        return $sets;
+    }
+
+    /** Misma comparación que el SQL: sin distinguir mayúsculas ni espacios finales. */
+    private static function normalizar($texto): string
+    {
+        return mb_strtolower(rtrim((string) $texto), 'UTF-8');
     }
 
     /**

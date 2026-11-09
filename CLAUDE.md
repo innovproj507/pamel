@@ -7,8 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Custom PHP CMS built for an educational/training institution (PAMEL). Monolithic, plugin-based architecture with MVC structure, e-commerce, multi-language (EN/ES), PayPal payments, and Word document generation.
 
 - **PHP 7.4+**, MySQL/MariaDB, Apache or Nginx
-- **Local dev URL:** http://cms.test:8080 (configured in `config/config.php`)
-- **Admin panel:** http://cms.test:8080/admin/manager — default credentials: `admin@cms.local` / `admin123`
+- **Local dev URL:** https://pamel.test (set via `SITE_URL` in `.env`; `config/config.php` falls back to http://cms.test)
+- **Admin panel:** https://pamel.test/manager — default credentials: `admin@cms.local` / `admin123`
   - Entry point: `admin/index.php`; all admin routes are prefixed with `/manager/` in `routes/admin.php`
 
 ## Common Commands

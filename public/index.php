@@ -4,6 +4,18 @@ ob_start();
 
 define('BASE_PATH', dirname(__DIR__));
 
+// Cabeceras de seguridad básicas. No se define Content-Security-Policy: las
+// vistas usan scripts en línea y CDN, y una política mal ajustada las rompería.
+header_remove('X-Powered-By');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: SAMEORIGIN');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+header('Permissions-Policy: camera=(), microphone=(), geolocation=()');
+if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') {
+    header('Strict-Transport-Security: max-age=31536000');
+}
+
 require_once BASE_PATH . '/vendor/autoload.php';
 require_once BASE_PATH . '/Controllers/AuthController.php';
 require_once BASE_PATH . '/Controllers/AccountController.php';
