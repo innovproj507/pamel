@@ -57,7 +57,8 @@ class AdminCategoryController extends Controller
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->requireCsrf();
-            $slug = strtolower(str_replace(' ', '-', $_POST['name']));
+            // Respeta el slug escrito en el formulario; si va vacío, sale del nombre.
+            $slug = \Core\Slug::make(trim($_POST['slug'] ?? '') ?: $_POST['name']);
 
             $parentId = !empty($_POST['parent_id']) ? $_POST['parent_id'] : null;
 
@@ -96,7 +97,7 @@ class AdminCategoryController extends Controller
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $this->requireCsrf();
-            $slug = isset($_POST['slug']) ? $_POST['slug'] : strtolower(str_replace(' ', '-', $_POST['name']));
+            $slug = \Core\Slug::make(trim($_POST['slug'] ?? '') ?: $_POST['name']);
 
             $parentId = !empty($_POST['parent_id']) ? $_POST['parent_id'] : null;
 

@@ -63,7 +63,6 @@ $recuadros = [
         <form method="POST" action="/manager/products/sync-courses"
               onsubmit="return confirm('¿Crear cursos en borrador para todos los productos activos que aún no tienen curso?')">
 <?= \Core\Security::getCsrfField() ?>
-            <input type="hidden" name="_csrf" value="<?= \Core\Security::generateCsrfToken() ?>">
             <button type="submit" class="btn-violeta">
                 <i data-lucide="refresh-cw" class="ic ic-14"></i> Sincronizar Productos
             </button>

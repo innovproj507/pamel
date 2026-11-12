@@ -168,7 +168,7 @@ class AdminCourseController extends BaseController
         }
 
         $title = $_POST['title'] ?? '';
-        $slug = $_POST['slug'] ?: $this->generateSlug($title);
+        $slug = trim($_POST['slug'] ?? '') ?: $this->generateSlug($title);
 
         $productId = !empty($_POST['product_id']) ? (int)$_POST['product_id'] : null;
 
@@ -459,10 +459,7 @@ class AdminCourseController extends BaseController
 
     private function generateSlug($string)
     {
-        $string = strtolower(trim($string));
-        $string = preg_replace('/[^a-z0-9-]/', '-', $string);
-        $string = preg_replace('/-+/', '-', $string);
-        return rtrim($string, '-');
+        return \Core\Slug::make((string) $string);
     }
 
     // ─── Lesson Management ────────────────────────────────────────

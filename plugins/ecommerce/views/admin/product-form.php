@@ -116,7 +116,7 @@
             <div>
                 <label for="imo_model_course_no" class="block text-sm font-medium text-gray-700 mb-2">IMO Model Course No.</label>
                 <input type="text" id="imo_model_course_no" name="imo_model_course_no" 
-                       value="<?php echo $product ? htmlspecialchars($product['imo_model_course_no']) : ''; ?>"
+                       value="<?php echo $product ? htmlspecialchars($product['imo_model_course_no'] ?? '') : ''; ?>"
                        placeholder="e.g., 1.02"
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                 <p class="mt-1 text-sm text-gray-500">Example: 1.02, 1.13, 1.21</p>
