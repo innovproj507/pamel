@@ -1,5 +1,9 @@
 <?php
-$levelLabel = ['beginner' => 'Principiante', 'intermediate' => 'Intermedio', 'advanced' => 'Avanzado'];
+$levelLabel = [
+    'beginner'     => __('lms.level.beginner'),
+    'intermediate' => __('lms.level.intermediate'),
+    'advanced'     => __('lms.level.advanced'),
+];
 $levelColor = [
     'beginner'     => 'bg-emerald-100 text-emerald-700',
     'intermediate' => 'bg-blue-100 text-blue-700',
@@ -75,7 +79,7 @@ $quizCount    = (int)($course['quizzes_count'] ?? 0);
             <a href="/courses/<?= htmlspecialchars($course['slug']) ?>"
                class="flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-md shadow-brand-500/20">
                 <i class="fas fa-eye"></i>
-                Ver Curso
+                <?= htmlspecialchars(__('lms.card.view')) ?>
             </a>
         </div>
     </div>

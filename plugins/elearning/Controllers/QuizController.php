@@ -149,7 +149,7 @@ class QuizController extends BaseController
         }
 
         $view->render('plugins/elearning/Views/quizzes/results', [
-            'title'   => 'Resultados: ' . $quiz['title'],
+            'title'   => __('lms.titles.results') . ': ' . $quiz['title'],
             'course'  => $course,
             'quiz'    => $quiz,
             'attempt' => $attempt,

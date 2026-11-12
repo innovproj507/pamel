@@ -23,7 +23,7 @@ class DashboardController extends BaseController
         $enrollments = $this->enrollmentModel->getByStudent($this->user['id']);
 
         $view->render('plugins/elearning/Views/dashboard/index', [
-            'title'       => 'Mi Dashboard',
+            'title'       => __('lms.titles.dashboard'),
             'enrollments' => $enrollments,
             'user'        => $this->user,
         ], 'plugins/elearning/Views/layout');

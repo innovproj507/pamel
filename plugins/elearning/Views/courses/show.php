@@ -12,7 +12,7 @@ $quizCount   = count($quizzes);
 
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-400 mb-8">
-        <a href="/courses" class="hover:text-brand-500 font-semibold transition-colors">Catálogo</a>
+        <a href="/courses" class="hover:text-brand-500 font-semibold transition-colors"><?= htmlspecialchars(__('lms.course.breadcrumb')) ?></a>
         <i class="fas fa-chevron-right text-xs"></i>
         <span class="text-navy font-semibold truncate"><?= htmlspecialchars($course['title']) ?></span>
     </nav>
@@ -46,19 +46,26 @@ $quizCount   = count($quizzes);
                             <?= mb_strtoupper(mb_substr($course['teacher_name'] ?? 'P', 0, 1)) ?>
                         </div>
                         <span class="text-sm text-gray-600">
-                            Por <strong class="text-navy"><?= htmlspecialchars($course['teacher_name'] ?? 'PAMEL') ?></strong>
+                            <?= htmlspecialchars(__('lms.course.by')) ?>
+                            <strong class="text-navy"><?= htmlspecialchars($course['teacher_name'] ?? 'PAMEL') ?></strong>
                         </span>
                     </div>
                     <?php
                     $levelColors = ['beginner'=>'bg-emerald-100 text-emerald-700','intermediate'=>'bg-amber-100 text-amber-700','advanced'=>'bg-red-100 text-red-700'];
-                    $levelLabels = ['beginner'=>'Principiante','intermediate'=>'Intermedio','advanced'=>'Avanzado'];
+                    $levelLabels = [
+                        'beginner'     => __('lms.level.beginner'),
+                        'intermediate' => __('lms.level.intermediate'),
+                        'advanced'     => __('lms.level.advanced'),
+                    ];
                     $lvl = $course['level'] ?? 'beginner';
                     ?>
                     <span class="text-xs font-bold px-2.5 py-1 rounded-full <?= $levelColors[$lvl] ?? 'bg-gray-100 text-gray-600' ?>">
-                        <?= $levelLabels[$lvl] ?? ucfirst($lvl) ?>
+                        <?= htmlspecialchars($levelLabels[$lvl] ?? ucfirst($lvl)) ?>
                     </span>
                     <span class="text-xs text-gray-400 font-semibold ml-auto">
-                        <?= $lessonCount ?> lecciones &bull; <?= $quizCount ?> evaluaciones
+                        <?= htmlspecialchars(__('lms.course.lessons_n', ['n' => $lessonCount])) ?>
+                        &bull;
+                        <?= htmlspecialchars(__('lms.course.quizzes_n', ['n' => $quizCount])) ?>
                     </span>
                 </div>
             </div>
@@ -67,7 +74,7 @@ $quizCount   = count($quizzes);
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 class="font-black text-navy text-lg mb-4 flex items-center gap-2">
                     <span class="w-7 h-7 rounded-lg bg-brand-50 flex items-center justify-center text-brand-500 text-sm">📄</span>
-                    Acerca del Curso
+                    <?= htmlspecialchars(__('lms.course.about')) ?>
                 </h2>
                 <div class="text-gray-600 text-sm leading-relaxed space-y-3">
                     <?= nl2br(htmlspecialchars($course['description'] ?? '')) ?>
@@ -78,8 +85,10 @@ $quizCount   = count($quizzes);
             <?php if (!empty($lessons)): ?>
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 class="font-black text-navy text-lg mb-5">
-                    Contenido del Curso
-                    <span class="text-sm font-semibold text-gray-400 ml-2"><?= $lessonCount ?> lecciones</span>
+                    <?= htmlspecialchars(__('lms.course.content')) ?>
+                    <span class="text-sm font-semibold text-gray-400 ml-2">
+                        <?= htmlspecialchars(__('lms.course.lessons_n', ['n' => $lessonCount])) ?>
+                    </span>
                 </h2>
                 <ul class="space-y-2">
                     <?php
@@ -129,37 +138,37 @@ $quizCount   = count($quizzes);
                         <?php if ($enrolled): ?>
                         <div class="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm px-4 py-3 rounded-xl mb-4 font-bold">
                             <i class="fas fa-check-circle"></i>
-                            Inscripción activa
+                            <?= htmlspecialchars(__('lms.course.enrolled_badge')) ?>
                         </div>
                         <?php if (!empty($lessons)): ?>
                         <a href="/courses/<?= $course['id'] ?>/lessons/<?= $lessons[0]['id'] ?>"
                            class="block w-full text-center bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-brand-500/25 hover:-translate-y-0.5">
-                            Continuar Curso →
+                            <?= htmlspecialchars(__('lms.course.continue')) ?>
                         </a>
                         <?php endif; ?>
                         <?php else: ?>
                         <form method="POST" action="/courses/<?= $course['id'] ?>/enroll">
                             <?= \Core\Security::getCsrfField() ?>
                             <button type="submit" class="block w-full text-center bg-brand-500 hover:bg-brand-600 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-brand-500/25 hover:-translate-y-0.5 mb-3">
-                                Inscribirse Ahora
+                                <?= htmlspecialchars(__('lms.course.enroll')) ?>
                             </button>
                         </form>
-                        <p class="text-xs text-center text-gray-400 mt-2">Acceso inmediato al contenido</p>
+                        <p class="text-xs text-center text-gray-400 mt-2"><?= htmlspecialchars(__('lms.course.instant')) ?></p>
                         <?php endif; ?>
                     </div>
 
                     <ul class="pt-5 space-y-3">
                         <li class="flex items-center gap-3 text-sm text-gray-600 font-semibold">
                             <span class="text-base w-6 text-center">📚</span>
-                            <?= $lessonCount ?> lecciones
+                            <?= htmlspecialchars(__('lms.course.lessons_n', ['n' => $lessonCount])) ?>
                         </li>
                         <li class="flex items-center gap-3 text-sm text-gray-600 font-semibold">
                             <span class="text-base w-6 text-center">📝</span>
-                            <?= $quizCount ?> evaluaciones
+                            <?= htmlspecialchars(__('lms.course.quizzes_n', ['n' => $quizCount])) ?>
                         </li>
                         <li class="flex items-center gap-3 text-sm text-gray-600 font-semibold">
                             <span class="text-base w-6 text-center">🏆</span>
-                            Certificado al completar
+                            <?= htmlspecialchars(__('lms.course.certificate')) ?>
                         </li>
                     </ul>
                 </div>

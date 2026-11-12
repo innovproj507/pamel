@@ -21,7 +21,7 @@ $wrong    = $total - $correct;
             <div class="relative z-10">
                 <div class="text-7xl mb-4" id="result-emoji"><?= $passed ? '🏆' : '📖' ?></div>
                 <h1 class="text-3xl font-black text-white mb-2">
-                    <?= $passed ? '¡Felicidades, aprobaste!' : '¡Sigue practicando!' ?>
+                    <?= htmlspecialchars($passed ? __('lms.quiz.passed_title') : __('lms.quiz.failed_title')) ?>
                 </h1>
                 <p class="text-white/70 text-sm font-semibold"><?= htmlspecialchars($quiz['title']) ?></p>
             </div>
@@ -36,7 +36,7 @@ $wrong    = $total - $correct;
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
                         <span id="score-display" class="text-4xl font-black <?= $passed ? 'text-emerald-600' : 'text-red-500' ?>">0%</span>
-                        <span class="text-[10px] text-gray-400 font-bold uppercase">Puntaje</span>
+                        <span class="text-[10px] text-gray-400 font-bold uppercase"><?= htmlspecialchars(__('lms.quiz.score')) ?></span>
                     </div>
                 </div>
 
@@ -45,14 +45,14 @@ $wrong    = $total - $correct;
                         <span class="w-10 h-10 rounded-xl bg-emerald-500 flex items-center justify-center text-white font-black text-lg flex-shrink-0">✓</span>
                         <div>
                             <p class="text-2xl font-black text-emerald-700"><?= $correct ?></p>
-                            <p class="text-xs text-emerald-600 font-semibold">Correctas</p>
+                            <p class="text-xs text-emerald-600 font-semibold"><?= htmlspecialchars(__('lms.quiz.correct')) ?></p>
                         </div>
                     </div>
                     <div class="flex items-center gap-3 p-4 bg-red-50 rounded-2xl border border-red-100">
                         <span class="w-10 h-10 rounded-xl bg-red-400 flex items-center justify-center text-white font-black text-lg flex-shrink-0">✗</span>
                         <div>
                             <p class="text-2xl font-black text-red-600"><?= $wrong ?></p>
-                            <p class="text-xs text-red-500 font-semibold">Incorrectas</p>
+                            <p class="text-xs text-red-500 font-semibold"><?= htmlspecialchars(__('lms.quiz.incorrect')) ?></p>
                         </div>
                     </div>
                 </div>
@@ -60,10 +60,10 @@ $wrong    = $total - $correct;
 
             <div class="flex flex-col sm:flex-row gap-3">
                 <a href="/courses/<?= $course['id'] ?>/quizzes/<?= $quiz['id'] ?>" class="flex-1 inline-flex items-center justify-center gap-2 bg-brand-500 hover:bg-brand-600 text-white font-bold px-6 py-3.5 rounded-xl text-sm transition-all shadow-lg">
-                    Intentar de nuevo
+                    <?= htmlspecialchars(__('lms.quiz.retry')) ?>
                 </a>
                 <a href="/courses/<?= htmlspecialchars($course['slug']) ?>" class="flex-1 inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold px-6 py-3.5 rounded-xl text-sm transition-all">
-                    Volver al curso
+                    <?= htmlspecialchars(__('lms.quiz.back_course')) ?>
                 </a>
             </div>
         </div>
@@ -72,8 +72,10 @@ $wrong    = $total - $correct;
     <!-- Revisión de respuestas -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center gap-3">
-            <h2 class="font-black text-navy text-sm uppercase tracking-wider">Revisión de Respuestas</h2>
-            <span class="ml-auto text-xs font-bold text-gray-400"><?= $correct ?> / <?= $total ?> Correctas</span>
+            <h2 class="font-black text-navy text-sm uppercase tracking-wider"><?= htmlspecialchars(__('lms.quiz.review')) ?></h2>
+            <span class="ml-auto text-xs font-bold text-gray-400">
+                <?= htmlspecialchars(__('lms.quiz.correct_count', ['correct' => $correct, 'total' => $total])) ?>
+            </span>
         </div>
         <div class="p-5 space-y-3">
             <?php foreach ($attempt['answers'] as $i => $ans): ?>
@@ -89,14 +91,14 @@ $wrong    = $total - $correct;
                 </div>
                 <div class="px-4 py-3 bg-white space-y-1.5">
                     <div class="flex items-start gap-2 text-sm">
-                        <span class="text-xs font-bold <?= $ans['is_correct'] ? 'text-emerald-600' : 'text-red-600' ?> flex-shrink-0 mt-0.5">Respuesta:</span>
+                        <span class="text-xs font-bold <?= $ans['is_correct'] ? 'text-emerald-600' : 'text-red-600' ?> flex-shrink-0 mt-0.5"><?= htmlspecialchars(__('lms.quiz.your_answer')) ?></span>
                         <span class="font-bold <?= $ans['is_correct'] ? 'text-emerald-700' : 'text-red-700' ?>">
-                            <?= htmlspecialchars($ans['selected_text'] ?? 'Sin respuesta') ?>
+                            <?= htmlspecialchars($ans['selected_text'] ?? __('lms.quiz.no_answer')) ?>
                         </span>
                     </div>
                     <?php if (!$ans['is_correct'] && !empty($ans['correct_text'])): ?>
                     <div class="flex items-start gap-2 text-sm">
-                        <span class="text-xs font-bold text-emerald-600 flex-shrink-0 mt-0.5">Correcta:</span>
+                        <span class="text-xs font-bold text-emerald-600 flex-shrink-0 mt-0.5"><?= htmlspecialchars(__('lms.quiz.right_answer')) ?></span>
                         <span class="font-bold text-emerald-700"><?= htmlspecialchars($ans['correct_text']) ?></span>
                     </div>
                     <?php endif; ?>

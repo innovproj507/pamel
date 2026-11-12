@@ -20,7 +20,7 @@ $readingMinutes = max(1, (int) ceil($wordCount / 200));
 <div class="max-w-7xl mx-auto px-4 py-8">
 
     <nav class="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <a href="/courses" class="hover:text-brand-500 font-semibold transition-colors">Catálogo</a>
+        <a href="/courses" class="hover:text-brand-500 font-semibold transition-colors"><?= htmlspecialchars(__('lms.course.breadcrumb')) ?></a>
         <i class="fas fa-chevron-right text-xs"></i>
         <a href="/courses/<?= htmlspecialchars($course['slug']) ?>" class="hover:text-brand-500 font-semibold transition-colors truncate max-w-xs"><?= htmlspecialchars($course['title']) ?></a>
         <i class="fas fa-chevron-right text-xs"></i>
@@ -37,11 +37,16 @@ $readingMinutes = max(1, (int) ceil($wordCount / 200));
                     <div class="flex flex-wrap items-center gap-2">
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-white/15 text-white backdrop-blur-sm">
                             <i class="fas <?= $lesson['type'] === 'video' ? 'fa-play-circle' : ($lesson['type'] === 'file' ? 'fa-paperclip' : 'fa-file-alt') ?>"></i>
-                            <?= ucfirst($lesson['type']) ?>
+                            <?php
+                            // Si llegara un tipo que no está en el diccionario,
+                            // Language::get() devuelve la clave; mejor el tipo.
+                            $tipo = __('lms.lesson.type.' . $lesson['type']);
+                            echo htmlspecialchars(str_contains($tipo, '.') ? ucfirst($lesson['type']) : $tipo);
+                            ?>
                         </span>
                         <?php if ($isCompleted): ?>
                         <span class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-500/40 text-emerald-100">
-                            <i class="fas fa-check"></i> Completada
+                            <i class="fas fa-check"></i> <?= htmlspecialchars(__('lms.lesson.completed_badge')) ?>
                         </span>
                         <?php endif; ?>
                     </div>
@@ -56,7 +61,7 @@ $readingMinutes = max(1, (int) ceil($wordCount / 200));
                     $vid = $m[1] ?: $m[2];
                     echo "<iframe src='https://www.youtube.com/embed/{$vid}?rel=0' class='w-full h-full' allowfullscreen></iframe>";
                 } else {
-                    echo "<div class='flex items-center justify-center h-full text-white p-4 text-center'><a href='".htmlspecialchars($url)."' target='_blank' class='font-bold hover:underline'>Ver vídeo externo <i class='fas fa-external-link-alt ml-1'></i></a></div>";
+                    echo "<div class='flex items-center justify-center h-full text-white p-4 text-center'><a href='".htmlspecialchars($url)."' target='_blank' class='font-bold hover:underline'>".htmlspecialchars(__('lms.lesson.external_video'))." <i class='fas fa-external-link-alt ml-1'></i></a></div>";
                 }
                 ?>
             </div>
@@ -69,7 +74,7 @@ $readingMinutes = max(1, (int) ceil($wordCount / 200));
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between gap-4">
                 <?php if ($prevLesson): ?>
                 <a href="/courses/<?= $course['id'] ?>/lessons/<?= $prevLesson['id'] ?>" class="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-brand-500 transition-colors">
-                    <i class="fas fa-arrow-left"></i> Anterior
+                    <i class="fas fa-arrow-left"></i> <?= htmlspecialchars(__('lms.lesson.prev')) ?>
                 </a>
                 <?php else: ?><div></div><?php endif; ?>
 
@@ -77,16 +82,16 @@ $readingMinutes = max(1, (int) ceil($wordCount / 200));
                 <form method="POST" action="/courses/<?= $course['id'] ?>/lessons/<?= $lesson['id'] ?>/complete">
                     <?= \Core\Security::getCsrfField() ?>
                     <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition-all shadow-lg">
-                        Completar Lección
+                        <?= htmlspecialchars(__('lms.lesson.complete')) ?>
                     </button>
                 </form>
                 <?php else: ?>
-                <span class="text-emerald-600 font-bold"><i class="fas fa-check-circle"></i> Lección completada</span>
+                <span class="text-emerald-600 font-bold"><i class="fas fa-check-circle"></i> <?= htmlspecialchars(__('lms.lesson.done')) ?></span>
                 <?php endif; ?>
 
                 <?php if ($nextLesson): ?>
                 <a href="/courses/<?= $course['id'] ?>/lessons/<?= $nextLesson['id'] ?>" class="flex items-center gap-2 text-sm font-bold text-brand-500 hover:text-brand-600 transition-colors">
-                    Siguiente <i class="fas fa-arrow-right"></i>
+                    <?= htmlspecialchars(__('lms.lesson.next')) ?> <i class="fas fa-arrow-right"></i>
                 </a>
                 <?php else: ?><div></div><?php endif; ?>
             </div>
@@ -95,7 +100,7 @@ $readingMinutes = max(1, (int) ceil($wordCount / 200));
         <div class="lg:col-span-1">
             <div class="sticky top-8 space-y-4">
                 <div class="bg-white rounded-2xl border border-gray-100 shadow-lg p-5">
-                    <p class="text-xs font-black text-gray-400 uppercase tracking-wider mb-4">Contenido del Curso</p>
+                    <p class="text-xs font-black text-gray-400 uppercase tracking-wider mb-4"><?= htmlspecialchars(__('lms.course.content')) ?></p>
                     <ul class="space-y-2 max-h-96 overflow-y-auto">
                         <?php foreach ($allLessons as $i => $ls): 
                             $lsActive = $ls['id'] == $lesson['id'];

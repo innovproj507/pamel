@@ -17,16 +17,16 @@
         <div class="relative z-10 px-8 py-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
                 <p class="text-blue-300 text-xs font-bold uppercase tracking-widest mb-2">PAMEL Maritime Training Center</p>
-                <h1 class="text-3xl font-black text-white mb-2">Catálogo de Cursos</h1>
-                <p class="text-blue-200 text-sm">Formación marítima certificada · Estándares IMO / STCW</p>
+                <h1 class="text-3xl font-black text-white mb-2"><?= htmlspecialchars(__('lms.catalog.title')) ?></h1>
+                <p class="text-blue-200 text-sm"><?= htmlspecialchars(__('lms.catalog.subtitle')) ?></p>
                 <div class="flex flex-wrap gap-4 mt-4">
                     <div class="flex items-center gap-2 text-white/80 text-xs font-semibold">
                         <i class="fas fa-book-open text-blue-300"></i>
-                        <?= $courses['total'] ?> cursos disponibles
+                        <?= htmlspecialchars(__('lms.catalog.available', ['total' => $courses['total']])) ?>
                     </div>
                     <div class="flex items-center gap-2 text-white/80 text-xs font-semibold">
                         <i class="fas fa-check-circle text-blue-300"></i>
-                        Certificación IMO reconocida
+                        <?= htmlspecialchars(__('lms.catalog.cert')) ?>
                     </div>
                 </div>
             </div>
@@ -45,14 +45,14 @@
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-6">
                 <h3 class="font-black text-navy text-xs uppercase tracking-wider mb-4 flex items-center gap-2">
                     <i class="fas fa-filter text-brand-500"></i>
-                    Categorías
+                    <?= htmlspecialchars(__('lms.catalog.categories')) ?>
                 </h3>
                 <ul class="space-y-1">
                     <li>
                         <a href="/courses"
                            class="flex items-center justify-between text-sm px-3 py-2 rounded-xl font-semibold transition-all
                                   <?= !$currentCat ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/25' : 'text-gray-600 hover:bg-slate-50' ?>">
-                            <span>Todos los cursos</span>
+                            <span><?= htmlspecialchars(__('lms.catalog.all')) ?></span>
                             <span class="text-xs <?= !$currentCat ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500' ?> font-bold px-1.5 py-0.5 rounded-md"><?= $courses['total'] ?></span>
                         </a>
                     </li>
@@ -74,15 +74,23 @@
         <div class="flex-1 min-w-0">
             <div class="flex items-center justify-between mb-5">
                 <p class="text-sm text-gray-500 font-semibold">
-                    Mostrando <span class="text-navy font-black"><?= count($courses['data']) ?></span> de <span class="text-navy font-black"><?= $courses['total'] ?></span> cursos
+                    <?php
+                    // Las cifras van resaltadas, así que entran como HTML ya
+                    // armado; por eso esta frase no pasa por htmlspecialchars.
+                    $resalte = static fn($n) => '<span class="text-navy font-black">' . (int) $n . '</span>';
+                    echo __('lms.catalog.showing', [
+                        'shown' => $resalte(count($courses['data'])),
+                        'total' => $resalte($courses['total']),
+                    ]);
+                    ?>
                 </p>
             </div>
 
             <?php if (empty($courses['data'])): ?>
             <div class="py-20 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center text-3xl mx-auto mb-4">🔍</div>
-                <p class="text-gray-500 font-bold mb-4">No hay cursos en esta categoría.</p>
-                <a href="/courses" class="text-brand-500 hover:text-brand-600 font-bold text-sm">Ver todos los cursos →</a>
+                <p class="text-gray-500 font-bold mb-4"><?= htmlspecialchars(__('lms.catalog.empty')) ?></p>
+                <a href="/courses" class="text-brand-500 hover:text-brand-600 font-bold text-sm"><?= htmlspecialchars(__('lms.catalog.see_all')) ?></a>
             </div>
             <?php else: ?>
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">

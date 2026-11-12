@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="scroll-smooth">
+<html lang="<?= \Core\Language::getLocale() ?>" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -46,7 +46,7 @@
 
 <!-- Topbar -->
 <div class="bg-brand-500 text-white text-xs text-center py-2 px-4 font-medium tracking-wide">
-    🚢 Certificaciones IMO reconocidas internacionalmente &mdash; ¡Inscríbete hoy y avanza en tu carrera marítima!
+    <?= htmlspecialchars(__('lms.topbar')) ?>
 </div>
 
 <!-- Navbar -->
@@ -61,34 +61,59 @@
                 </div>
                 <div>
                     <span class="font-black text-navy text-lg leading-none">PAMEL</span>
-                    <p class="text-xs text-gray-500 leading-none font-medium">Maritime Training Center</p>
+                    <p class="text-xs text-gray-500 leading-none font-medium"><?= htmlspecialchars(__('lms.center')) ?></p>
                 </div>
             </a>
 
             <!-- Nav links -->
             <div class="hidden md:flex items-center gap-7">
-                <a href="/" class="nav-link text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors pb-0.5">Inicio</a>
-                <a href="/courses" class="nav-link text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors pb-0.5">Cursos</a>
+                <a href="/" class="nav-link text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors pb-0.5"><?= htmlspecialchars(__('lms.nav.home')) ?></a>
+                <a href="/courses" class="nav-link text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors pb-0.5"><?= htmlspecialchars(__('lms.nav.courses')) ?></a>
                 <?php if (isset($_SESSION['user_id'])): ?>
-                    <a href="/dashboard" class="nav-link text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors pb-0.5">Mi Dashboard</a>
+                    <a href="/dashboard" class="nav-link text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors pb-0.5"><?= htmlspecialchars(__('lms.nav.dashboard')) ?></a>
                 <?php endif; ?>
             </div>
 
             <!-- Auth -->
             <div class="flex items-center gap-3">
+
+                <?php
+                /*
+                    Conmutador de idioma. Se conserva la ruta y el resto de la
+                    query: con un «?lang=es» a secas se perderían el filtro de
+                    categoría o la página en la que estuviera el visitante.
+                */
+                $urlIdioma = static function (string $locale): string {
+                    $q = $_GET;
+                    $q['lang'] = $locale;
+                    return strtok($_SERVER['REQUEST_URI'] ?? '/', '?') . '?' . http_build_query($q);
+                };
+                $actual = \Core\Language::getLocale();
+                ?>
+                <div class="flex items-center gap-1 text-xs font-extrabold">
+                    <?php foreach (['en' => 'EN', 'es' => 'ES'] as $codigo => $etiqueta): ?>
+                    <a href="<?= htmlspecialchars($urlIdioma($codigo), ENT_QUOTES) ?>"
+                       hreflang="<?= $codigo ?>"
+                       class="px-1.5 py-1 rounded transition-colors <?= $actual === $codigo
+                           ? 'text-brand-500 underline'
+                           : 'text-gray-400 hover:text-brand-500' ?>"><?= $etiqueta ?></a>
+                    <?php endforeach; ?>
+                </div>
+                <span class="hidden sm:block w-px h-4 bg-gray-200"></span>
+
                 <?php if (isset($_SESSION['user_id'])): ?>
                     <div class="hidden md:flex items-center gap-2 bg-slate-100 rounded-full px-3 py-1.5">
                         <div class="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs font-bold">
                             <?= mb_strtoupper(mb_substr($_SESSION['user_name'] ?? 'U', 0, 1)) ?>
                         </div>
                         <span class="text-xs font-semibold text-gray-700 max-w-[120px] truncate">
-                            <?= htmlspecialchars($_SESSION['user_name'] ?? 'Usuario') ?>
+                            <?= htmlspecialchars($_SESSION['user_name'] ?? __('lms.nav.user')) ?>
                         </span>
                     </div>
                     <form method="POST" action="/logout">
                         <?= \Core\Security::getCsrfField() ?>
                         <button type="submit" class="text-xs font-semibold text-gray-500 hover:text-red-600 bg-red-50 hover:bg-red-100 px-3 py-2 rounded-lg transition-colors">
-                            Salir
+                            <?= htmlspecialchars(__('lms.nav.logout')) ?>
                         </button>
                     </form>
                 <?php else: ?>
@@ -96,10 +121,10 @@
                         $mainSiteUrl = rtrim(\Core\Config::get('site.url'), '/');
                     ?>
                     <a href="<?= $mainSiteUrl ?>/login" class="text-sm font-semibold text-gray-600 hover:text-brand-500 transition-colors">
-                        Iniciar Sesión
+                        <?= htmlspecialchars(__('lms.nav.login')) ?>
                     </a>
                     <a href="<?= $mainSiteUrl ?>/register" class="text-sm font-bold bg-brand-500 hover:bg-brand-600 text-white px-5 py-2 rounded-xl transition-all shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40 hover:-translate-y-0.5">
-                        Registrarse
+                        <?= htmlspecialchars(__('lms.nav.register')) ?>
                     </a>
                 <?php endif; ?>
             </div>
@@ -120,25 +145,25 @@
                     </div>
                     <span class="text-white font-black text-base">PAMEL LMS</span>
                 </div>
-                <p class="text-sm leading-relaxed">Plataforma de formación marítima profesional con certificaciones IMO reconocidas internacionalmente.</p>
+                <p class="text-sm leading-relaxed"><?= htmlspecialchars(__('lms.footer.about')) ?></p>
             </div>
             <div>
-                <h4 class="text-white font-bold mb-3 text-sm uppercase tracking-widest">Cursos</h4>
+                <h4 class="text-white font-bold mb-3 text-sm uppercase tracking-widest"><?= htmlspecialchars(__('lms.footer.courses_title')) ?></h4>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="/courses" class="hover:text-white transition-colors">Catálogo Completo</a></li>
-                    <li><a href="<?= rtrim(\Core\Config::get('site.url'), '/') ?>/courses" class="hover:text-white transition-colors">Tienda Online</a></li>
+                    <li><a href="/courses" class="hover:text-white transition-colors"><?= htmlspecialchars(__('lms.footer.catalog')) ?></a></li>
+                    <li><a href="<?= rtrim(\Core\Config::get('site.url'), '/') ?>/courses" class="hover:text-white transition-colors"><?= htmlspecialchars(__('lms.footer.shop')) ?></a></li>
                 </ul>
             </div>
             <div>
-                <h4 class="text-white font-bold mb-3 text-sm uppercase tracking-widest">Plataforma</h4>
+                <h4 class="text-white font-bold mb-3 text-sm uppercase tracking-widest"><?= htmlspecialchars(__('lms.footer.platform_title')) ?></h4>
                 <ul class="space-y-2 text-sm">
-                    <li><a href="<?= rtrim(\Core\Config::get('site.url'), '/') ?>/my-account" class="hover:text-white transition-colors">Mi Cuenta</a></li>
-                    <li><a href="/dashboard" class="hover:text-white transition-colors">Mi Dashboard</a></li>
+                    <li><a href="<?= rtrim(\Core\Config::get('site.url'), '/') ?>/my-account" class="hover:text-white transition-colors"><?= htmlspecialchars(__('lms.footer.account')) ?></a></li>
+                    <li><a href="/dashboard" class="hover:text-white transition-colors"><?= htmlspecialchars(__('lms.footer.dashboard')) ?></a></li>
                 </ul>
             </div>
         </div>
         <div class="border-t border-white/10 pt-6 text-center text-xs">
-            &copy; <?= date('Y') ?> PAMEL Maritime Training Center. Todos los derechos reservados.
+            &copy; <?= date('Y') ?> PAMEL <?= htmlspecialchars(__('lms.center')) ?>. <?= htmlspecialchars(__('lms.footer.rights')) ?>
         </div>
     </div>
 </footer>

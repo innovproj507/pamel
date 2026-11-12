@@ -21,7 +21,7 @@ $timeLimit = (int)($quiz['time_limit'] ?? 0);
     <div class="max-w-3xl mx-auto px-4 py-2 flex items-center gap-4">
         <a href="/courses/<?= htmlspecialchars($course['slug']) ?>"
            class="text-xs font-bold text-gray-400 hover:text-brand-500 transition-colors flex items-center gap-1 flex-shrink-0">
-            <i class="fas fa-times text-[10px]"></i> Salir
+            <i class="fas fa-times text-[10px]"></i> <?= htmlspecialchars(__('lms.quiz.exit')) ?>
         </a>
         <div class="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
             <div id="quiz-progress-bar" class="h-2 bg-gradient-to-r from-brand-500 to-blue-400 rounded-full transition-all duration-500" style="width:0%"></div>
@@ -47,10 +47,10 @@ $timeLimit = (int)($quiz['time_limit'] ?? 0);
                     <h1 class="text-xl font-black text-white mb-3"><?= htmlspecialchars($quiz['title']) ?></h1>
                     <div class="flex flex-wrap gap-2">
                         <span class="inline-flex items-center gap-1.5 text-[10px] font-black bg-white/15 text-white px-3 py-1.5 rounded-full uppercase tracking-tighter">
-                            Aprobación: <?= $quiz['pass_percentage'] ?>%
+                            <?= htmlspecialchars(__('lms.quiz.pass_mark', ['pct' => $quiz['pass_percentage']])) ?>
                         </span>
                         <span class="inline-flex items-center gap-1.5 text-[10px] font-black bg-white/15 text-white px-3 py-1.5 rounded-full uppercase tracking-tighter">
-                            <?= $total ?> preguntas
+                            <?= htmlspecialchars(__('lms.quiz.questions_n', ['n' => $total])) ?>
                         </span>
                     </div>
                 </div>
@@ -61,10 +61,11 @@ $timeLimit = (int)($quiz['time_limit'] ?? 0);
                 <span class="text-2xl"><?= $bestAttempt['passed'] ? '🏆' : '📖' ?></span>
                 <div>
                     <p class="text-sm font-black text-white">
-                        <?= $bestAttempt['passed'] ? 'Ya lo aprobaste — puedes intentarlo de nuevo' : 'Aún no has aprobado' ?>
+                        <?= htmlspecialchars($bestAttempt['passed'] ? __('lms.quiz.already_passed') : __('lms.quiz.not_passed')) ?>
                     </p>
                     <p class="text-xs text-white/60 font-semibold">
-                        Mejor puntaje: <strong class="text-white"><?= $bestAttempt['score'] ?>%</strong> · Mínimo: <?= $quiz['pass_percentage'] ?>%
+                        <?= htmlspecialchars(__('lms.quiz.best')) ?>: <strong class="text-white"><?= $bestAttempt['score'] ?>%</strong>
+                        · <?= htmlspecialchars(__('lms.quiz.minimum')) ?>: <?= $quiz['pass_percentage'] ?>%
                     </p>
                 </div>
             </div>
@@ -105,10 +106,10 @@ $timeLimit = (int)($quiz['time_limit'] ?? 0);
         <!-- Submit -->
         <div class="mt-8 bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex flex-col sm:flex-row items-center gap-4 justify-between">
             <div class="text-xs text-gray-500 font-bold uppercase tracking-wider">
-                <span id="answered-count" class="text-navy font-black">0</span> / <?= $total ?> Respondidas
+                <span id="answered-count" class="text-navy font-black">0</span> / <?= $total ?> <?= htmlspecialchars(__('lms.quiz.answered')) ?>
             </div>
             <button type="submit" id="submit-btn" class="w-full sm:w-auto bg-brand-500 hover:bg-brand-600 text-white font-black px-8 py-3.5 rounded-xl text-sm transition-all shadow-lg">
-                Enviar Respuestas
+                <?= htmlspecialchars(__('lms.quiz.submit')) ?>
             </button>
         </div>
     </form>
@@ -147,7 +148,9 @@ const interval = setInterval(() => {
 document.getElementById('quiz-form').addEventListener('submit', function(e) {
     const answered = document.querySelectorAll('input[type=radio]:checked').length;
     if (answered < totalQ) {
-        if (!confirm(`Tienes ${totalQ - answered} pregunta(s) sin responder. ¿Enviar de todas formas?`)) {
+        // El texto trae ":n" como marcador; json_encode lo escapa para JS.
+        const aviso = <?= json_encode(__('lms.quiz.unanswered_confirm'), JSON_UNESCAPED_UNICODE) ?>;
+        if (!confirm(aviso.replace(':n', totalQ - answered))) {
             e.preventDefault();
         }
     }

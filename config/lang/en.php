@@ -951,6 +951,160 @@ return [
         'lessons' => 'Lessons',
         'quizzes' => 'Quizzes',
         'enroll' => 'Enroll Now',
-        'continue' => 'Continue Learning'
+        'continue' => 'Continue Learning',
+
+        // Top bar, navigation and footer of the e-learning site
+        'topbar' => '🚢 Internationally recognised IMO certifications — enrol today and move your maritime career forward!',
+        'center' => 'Maritime Training Center',
+        'nav' => [
+            'home' => 'Home',
+            'courses' => 'Courses',
+            'dashboard' => 'My Dashboard',
+            'logout' => 'Log out',
+            'login' => 'Log in',
+            'register' => 'Sign up',
+            'user' => 'User',
+        ],
+        'footer' => [
+            'about' => 'Professional maritime training platform with internationally recognised IMO certifications.',
+            'courses_title' => 'Courses',
+            'catalog' => 'Full Catalogue',
+            'shop' => 'Online Shop',
+            'platform_title' => 'Platform',
+            'account' => 'My Account',
+            'dashboard' => 'My Dashboard',
+            'rights' => 'All rights reserved.',
+        ],
+
+        // Home page
+        'home' => [
+            'badge' => 'Recognised IMO Certifications',
+            'heading' => 'MARITIME COURSES',
+            'intro' => 'Competency-based professional maritime training with internationally recognised certifications. Move your career forward with PAMEL.',
+            'cta_courses' => 'Browse Courses',
+            'cta_register' => 'Create a Free Account',
+            'cta_dashboard' => 'Go to My Dashboard →',
+            'stat_courses' => 'Courses',
+            'stat_students' => 'Students',
+            'stat_areas' => 'Areas',
+            'feature_imo' => 'IMO-recognised certifications',
+            'feature_access' => '24/7 access from any device',
+            'bar_courses' => 'Available Courses',
+            'bar_students' => 'Active Students',
+            'bar_cert' => 'International Certification',
+            'bar_available' => 'Availability',
+            'featured_title' => 'Featured Courses',
+            'featured_sub' => 'Start your professional training today',
+            'featured_all' => 'See all courses',
+            'empty' => 'No courses published yet.',
+            'view_course' => 'View course',
+        ],
+
+        // Catalogue
+        'catalog' => [
+            'title' => 'Course Catalogue',
+            'subtitle' => 'Certified maritime training · IMO / STCW standards',
+            'available' => ':total courses available',
+            'cert' => 'Recognised IMO certification',
+            'categories' => 'Categories',
+            'all' => 'All courses',
+            'showing' => 'Showing :shown of :total courses',
+            'empty' => 'There are no courses in this category.',
+            'see_all' => 'See all courses →',
+        ],
+
+        // Full course page
+        'course' => [
+            'breadcrumb' => 'Catalogue',
+            'by' => 'By',
+            'about' => 'About the Course',
+            'content' => 'Course Content',
+            'lessons_n' => ':n lessons',
+            'quizzes_n' => ':n assessments',
+            'enrolled_badge' => 'Active enrolment',
+            'continue' => 'Continue Course →',
+            'enroll' => 'Enrol Now',
+            'instant' => 'Immediate access to the content',
+            'certificate' => 'Certificate on completion',
+        ],
+
+        // Browser-tab titles set by the controllers
+        'titles' => [
+            'catalog' => 'Available Courses',
+            'dashboard' => 'My Dashboard',
+            'results' => 'Results',
+        ],
+
+        // Quiz and results
+        'quiz' => [
+            'exit' => 'Exit',
+            'pass_mark' => 'Pass mark: :pct%',
+            'questions_n' => ':n questions',
+            'already_passed' => 'You already passed — you may try again',
+            'not_passed' => 'You have not passed yet',
+            'best' => 'Best score',
+            'minimum' => 'Minimum',
+            'answered' => 'Answered',
+            'submit' => 'Submit Answers',
+            'unanswered_confirm' => 'You have :n unanswered question(s). Submit anyway?',
+            'passed_title' => 'Congratulations, you passed!',
+            'failed_title' => 'Keep practising!',
+            'score' => 'Score',
+            'correct' => 'Correct',
+            'incorrect' => 'Incorrect',
+            'retry' => 'Try again',
+            'back_course' => 'Back to the course',
+            'review' => 'Answer Review',
+            'correct_count' => ':correct / :total Correct',
+            'your_answer' => 'Your answer:',
+            'no_answer' => 'No answer',
+            'right_answer' => 'Correct:',
+        ],
+
+        // Lesson
+        'lesson' => [
+            'completed_badge' => 'Completed',
+            'external_video' => 'Watch external video',
+            'prev' => 'Previous',
+            'next' => 'Next',
+            'complete' => 'Complete Lesson',
+            'done' => 'Lesson completed',
+            'type' => [
+                'video' => 'Video',
+                'file' => 'File',
+                'text' => 'Text',
+            ],
+        ],
+
+        // Student dashboard
+        'dash' => [
+            'greeting' => 'Hello, :name!',
+            'subtitle' => 'Pick your maritime training up where you left off.',
+            'explore' => 'Browse Courses',
+            'progress' => 'My Progress',
+            'overall' => 'Overall',
+            'enrolled' => 'Enrolled',
+            'in_progress' => 'In progress',
+            'completed' => 'Completed',
+            'profile' => 'My CMS Profile',
+            'empty' => 'You are not enrolled in any course yet',
+            'badge_done' => 'COMPLETED',
+            'badge_progress' => 'IN PROGRESS',
+            'badge_available' => 'AVAILABLE',
+            'lessons_count' => ':done / :total LESSONS',
+            'review' => 'REVIEW COURSE',
+            'resume' => 'CONTINUE',
+            'certificate' => 'DOWNLOAD CERTIFICATE',
+        ],
+
+        // Course card
+        'card' => [
+            'view' => 'View Course',
+        ],
+        'level' => [
+            'beginner' => 'Beginner',
+            'intermediate' => 'Intermediate',
+            'advanced' => 'Advanced',
+        ],
     ]
 ];

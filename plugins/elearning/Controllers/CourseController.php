@@ -38,7 +38,7 @@ class CourseController extends BaseController
         );
 
         $view->render('plugins/elearning/Views/courses/index', [
-            'title'      => 'Cursos Disponibles',
+            'title'      => __('lms.titles.catalog'),
             'courses'    => $courses,
             'categories' => $categories,
             'currentCat' => $categoryId,

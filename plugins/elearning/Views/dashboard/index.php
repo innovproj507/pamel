@@ -11,11 +11,13 @@ $inProgress     = $totalEnrolled - $totalCompleted;
 
     <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-black text-navy">¡Hola, <?= htmlspecialchars(explode(' ', $user['name'])[0]) ?>!</h1>
-            <p class="text-gray-500 text-sm mt-1">Continúa tu formación marítima desde donde la dejaste.</p>
+            <h1 class="text-3xl font-black text-navy">
+                <?= htmlspecialchars(__('lms.dash.greeting', ['name' => explode(' ', $user['name'])[0]])) ?>
+            </h1>
+            <p class="text-gray-500 text-sm mt-1"><?= htmlspecialchars(__('lms.dash.subtitle')) ?></p>
         </div>
         <a href="/courses" class="inline-flex items-center gap-2 bg-brand-500 hover:bg-brand-600 text-white text-sm font-bold px-5 py-2.5 rounded-xl transition-all shadow-lg shadow-brand-500/25 hover:-translate-y-0.5">
-            <i class="fas fa-search"></i> Explorar Cursos
+            <i class="fas fa-search"></i> <?= htmlspecialchars(__('lms.dash.explore')) ?>
         </a>
     </div>
 
@@ -23,7 +25,7 @@ $inProgress     = $totalEnrolled - $totalCompleted;
 
         <aside class="w-full lg:w-64 flex-shrink-0 space-y-4">
             <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 sticky top-6">
-                <h3 class="font-black text-navy text-xs mb-4 uppercase tracking-wider">Mi Progreso</h3>
+                <h3 class="font-black text-navy text-xs mb-4 uppercase tracking-wider"><?= htmlspecialchars(__('lms.dash.progress')) ?></h3>
 
                 <div class="flex justify-center mb-5">
                     <div class="relative w-28 h-28">
@@ -35,29 +37,29 @@ $inProgress     = $totalEnrolled - $totalCompleted;
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center">
                             <span class="text-2xl font-black text-navy"><?= $overallPct ?>%</span>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase">General</span>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase"><?= htmlspecialchars(__('lms.dash.overall')) ?></span>
                         </div>
                     </div>
                 </div>
 
                 <ul class="space-y-1">
                     <li class="flex items-center justify-between text-xs px-3 py-2 rounded-xl bg-blue-50">
-                        <span class="font-semibold text-blue-700">Inscritos</span>
+                        <span class="font-semibold text-blue-700"><?= htmlspecialchars(__('lms.dash.enrolled')) ?></span>
                         <span class="font-black text-blue-700"><?= $totalEnrolled ?></span>
                     </li>
                     <li class="flex items-center justify-between text-xs px-3 py-2 rounded-xl">
-                        <span class="font-semibold text-gray-600">En progreso</span>
+                        <span class="font-semibold text-gray-600"><?= htmlspecialchars(__('lms.dash.in_progress')) ?></span>
                         <span class="font-black text-amber-600"><?= $inProgress ?></span>
                     </li>
                     <li class="flex items-center justify-between text-xs px-3 py-2 rounded-xl">
-                        <span class="font-semibold text-gray-600">Completados</span>
+                        <span class="font-semibold text-gray-600"><?= htmlspecialchars(__('lms.dash.completed')) ?></span>
                         <span class="font-black text-emerald-600"><?= $totalCompleted ?></span>
                     </li>
                 </ul>
 
                 <div class="mt-4 pt-4 border-t border-gray-100">
                     <a href="<?= rtrim(\Core\Config::get('site.url'), '/') ?>/account" class="flex items-center justify-between text-xs px-3 py-2 rounded-xl font-bold text-gray-500 hover:bg-slate-50 transition-colors">
-                        <span>Mi Perfil CMS</span>
+                        <span><?= htmlspecialchars(__('lms.dash.profile')) ?></span>
                         <i class="fas fa-chevron-right text-[10px]"></i>
                     </a>
                 </div>
@@ -68,9 +70,9 @@ $inProgress     = $totalEnrolled - $totalCompleted;
             <?php if (empty($enrollments)): ?>
             <div class="py-20 text-center bg-white rounded-2xl border border-gray-100 shadow-sm">
                 <i class="fas fa-ship text-5xl text-gray-200 mb-4"></i>
-                <p class="text-gray-500 font-semibold text-lg mb-2">Aún no estás inscrito en ningún curso</p>
+                <p class="text-gray-500 font-semibold text-lg mb-2"><?= htmlspecialchars(__('lms.dash.empty')) ?></p>
                 <a href="/courses" class="inline-flex items-center gap-2 bg-brand-500 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-brand-600 transition-all">
-                    Explorar Cursos
+                    <?= htmlspecialchars(__('lms.dash.explore')) ?>
                 </a>
             </div>
             <?php else: ?>
@@ -92,7 +94,9 @@ $inProgress     = $totalEnrolled - $totalCompleted;
                         <?php endif; ?>
                         <div class="absolute top-3 right-3">
                             <span class="text-[10px] font-black px-2 py-1 rounded-full shadow-sm <?= $isDone ? 'bg-emerald-500 text-white' : ($pct > 0 ? 'bg-amber-400 text-amber-900' : 'bg-white/20 text-white backdrop-blur-sm') ?>">
-                                <?= $isDone ? 'COMPLETADO' : ($pct > 0 ? 'EN PROGRESO' : 'DISPONIBLE') ?>
+                                <?= htmlspecialchars($isDone
+                                    ? __('lms.dash.badge_done')
+                                    : ($pct > 0 ? __('lms.dash.badge_progress') : __('lms.dash.badge_available'))) ?>
                             </span>
                         </div>
                         <div class="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
@@ -110,15 +114,17 @@ $inProgress     = $totalEnrolled - $totalCompleted;
                             </div>
                             <span class="text-[10px] font-black <?= $isDone ? 'text-emerald-600' : 'text-brand-500' ?>"><?= $pct ?>%</span>
                         </div>
-                        <p class="text-[10px] text-gray-400 font-bold mb-4"><?= $completed ?> / <?= $total ?> LECCIONES</p>
+                        <p class="text-[10px] text-gray-400 font-bold mb-4">
+                            <?= htmlspecialchars(__('lms.dash.lessons_count', ['done' => $completed, 'total' => $total])) ?>
+                        </p>
 
                         <div class="mt-auto space-y-2">
                             <a href="/courses/<?= htmlspecialchars($e['slug']) ?>" class="block w-full text-center py-2.5 rounded-xl text-xs font-black transition-all <?= $isDone ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100' : 'bg-brand-500 text-white hover:bg-brand-600 shadow-md shadow-brand-500/20' ?>">
-                                <?= $isDone ? 'REVISAR CURSO' : 'CONTINUAR' ?>
+                                <?= htmlspecialchars($isDone ? __('lms.dash.review') : __('lms.dash.resume')) ?>
                             </a>
                             <?php if ($isDone): ?>
                             <a href="/cursos/<?= htmlspecialchars($e['slug']) ?>/certificado" class="block w-full text-center py-2.5 rounded-xl text-xs font-black bg-emerald-500 text-white hover:bg-emerald-600 transition-all shadow-md shadow-emerald-500/20">
-                                <i class="fas fa-certificate mr-1"></i> DESCARGAR CERTIFICADO
+                                <i class="fas fa-certificate mr-1"></i> <?= htmlspecialchars(__('lms.dash.certificate')) ?>
                             </a>
                             <?php endif; ?>
                         </div>

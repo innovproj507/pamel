@@ -950,6 +950,160 @@ return [
         'lessons' => 'Lecciones',
         'quizzes' => 'Exámenes',
         'enroll' => 'Inscribirse',
-        'continue' => 'Continuar Aprendizaje'
+        'continue' => 'Continuar Aprendizaje',
+
+        // Barra superior, navegación y pie del elearning
+        'topbar' => '🚢 Certificaciones IMO reconocidas internacionalmente — ¡Inscríbete hoy y avanza en tu carrera marítima!',
+        'center' => 'Centro de Formación Marítima',
+        'nav' => [
+            'home' => 'Inicio',
+            'courses' => 'Cursos',
+            'dashboard' => 'Mi Dashboard',
+            'logout' => 'Salir',
+            'login' => 'Iniciar Sesión',
+            'register' => 'Registrarse',
+            'user' => 'Usuario',
+        ],
+        'footer' => [
+            'about' => 'Plataforma de formación marítima profesional con certificaciones IMO reconocidas internacionalmente.',
+            'courses_title' => 'Cursos',
+            'catalog' => 'Catálogo Completo',
+            'shop' => 'Tienda Online',
+            'platform_title' => 'Plataforma',
+            'account' => 'Mi Cuenta',
+            'dashboard' => 'Mi Dashboard',
+            'rights' => 'Todos los derechos reservados.',
+        ],
+
+        // Portada
+        'home' => [
+            'badge' => 'Certificaciones IMO Reconocidas',
+            'heading' => 'CURSOS MARÍTIMOS',
+            'intro' => 'Formación marítima profesional basada en competencias con certificaciones internacionalmente reconocidas. Avanza en tu carrera con PAMEL.',
+            'cta_courses' => 'Ver Cursos',
+            'cta_register' => 'Crear Cuenta Gratis',
+            'cta_dashboard' => 'Ir a Mi Dashboard →',
+            'stat_courses' => 'Cursos',
+            'stat_students' => 'Estudiantes',
+            'stat_areas' => 'Áreas',
+            'feature_imo' => 'Certificaciones reconocidas por IMO',
+            'feature_access' => 'Acceso 24/7 desde cualquier dispositivo',
+            'bar_courses' => 'Cursos Disponibles',
+            'bar_students' => 'Estudiantes Activos',
+            'bar_cert' => 'Certificación Internacional',
+            'bar_available' => 'Disponibilidad',
+            'featured_title' => 'Cursos Destacados',
+            'featured_sub' => 'Inicia tu formación profesional hoy mismo',
+            'featured_all' => 'Ver todos los cursos',
+            'empty' => 'No hay cursos publicados aún.',
+            'view_course' => 'Ver curso',
+        ],
+
+        // Catálogo
+        'catalog' => [
+            'title' => 'Catálogo de Cursos',
+            'subtitle' => 'Formación marítima certificada · Estándares IMO / STCW',
+            'available' => ':total cursos disponibles',
+            'cert' => 'Certificación IMO reconocida',
+            'categories' => 'Categorías',
+            'all' => 'Todos los cursos',
+            'showing' => 'Mostrando :shown de :total cursos',
+            'empty' => 'No hay cursos en esta categoría.',
+            'see_all' => 'Ver todos los cursos →',
+        ],
+
+        // Ficha completa de un curso
+        'course' => [
+            'breadcrumb' => 'Catálogo',
+            'by' => 'Por',
+            'about' => 'Acerca del Curso',
+            'content' => 'Contenido del Curso',
+            'lessons_n' => ':n lecciones',
+            'quizzes_n' => ':n evaluaciones',
+            'enrolled_badge' => 'Inscripción activa',
+            'continue' => 'Continuar Curso →',
+            'enroll' => 'Inscribirse Ahora',
+            'instant' => 'Acceso inmediato al contenido',
+            'certificate' => 'Certificado al completar',
+        ],
+
+        // Títulos de pestaña que fijan los controladores
+        'titles' => [
+            'catalog' => 'Cursos Disponibles',
+            'dashboard' => 'Mi Dashboard',
+            'results' => 'Resultados',
+        ],
+
+        // Examen y resultados
+        'quiz' => [
+            'exit' => 'Salir',
+            'pass_mark' => 'Aprobación: :pct%',
+            'questions_n' => ':n preguntas',
+            'already_passed' => 'Ya lo aprobaste — puedes intentarlo de nuevo',
+            'not_passed' => 'Aún no has aprobado',
+            'best' => 'Mejor puntaje',
+            'minimum' => 'Mínimo',
+            'answered' => 'Respondidas',
+            'submit' => 'Enviar Respuestas',
+            'unanswered_confirm' => 'Tienes :n pregunta(s) sin responder. ¿Enviar de todas formas?',
+            'passed_title' => '¡Felicidades, aprobaste!',
+            'failed_title' => '¡Sigue practicando!',
+            'score' => 'Puntaje',
+            'correct' => 'Correctas',
+            'incorrect' => 'Incorrectas',
+            'retry' => 'Intentar de nuevo',
+            'back_course' => 'Volver al curso',
+            'review' => 'Revisión de Respuestas',
+            'correct_count' => ':correct / :total Correctas',
+            'your_answer' => 'Respuesta:',
+            'no_answer' => 'Sin respuesta',
+            'right_answer' => 'Correcta:',
+        ],
+
+        // Lección
+        'lesson' => [
+            'completed_badge' => 'Completada',
+            'external_video' => 'Ver vídeo externo',
+            'prev' => 'Anterior',
+            'next' => 'Siguiente',
+            'complete' => 'Completar Lección',
+            'done' => 'Lección completada',
+            'type' => [
+                'video' => 'Vídeo',
+                'file' => 'Archivo',
+                'text' => 'Texto',
+            ],
+        ],
+
+        // Panel del estudiante
+        'dash' => [
+            'greeting' => '¡Hola, :name!',
+            'subtitle' => 'Continúa tu formación marítima desde donde la dejaste.',
+            'explore' => 'Explorar Cursos',
+            'progress' => 'Mi Progreso',
+            'overall' => 'General',
+            'enrolled' => 'Inscritos',
+            'in_progress' => 'En progreso',
+            'completed' => 'Completados',
+            'profile' => 'Mi Perfil CMS',
+            'empty' => 'Aún no estás inscrito en ningún curso',
+            'badge_done' => 'COMPLETADO',
+            'badge_progress' => 'EN PROGRESO',
+            'badge_available' => 'DISPONIBLE',
+            'lessons_count' => ':done / :total LECCIONES',
+            'review' => 'REVISAR CURSO',
+            'resume' => 'CONTINUAR',
+            'certificate' => 'DESCARGAR CERTIFICADO',
+        ],
+
+        // Ficha resumida de curso
+        'card' => [
+            'view' => 'Ver Curso',
+        ],
+        'level' => [
+            'beginner' => 'Principiante',
+            'intermediate' => 'Intermedio',
+            'advanced' => 'Avanzado',
+        ],
     ]
 ];
