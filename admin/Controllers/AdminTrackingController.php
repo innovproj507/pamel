@@ -82,10 +82,19 @@ class AdminTrackingController extends Controller
             $this->redirect('/manager/lms/seguimiento');
         }
 
+        // Qué le falta en cada curso que aún no ha completado
+        $cursos = $this->progreso->matriculas(['student_id' => $id]);
+        foreach ($cursos as &$c) {
+            $c['pendientes'] = $c['estado'] === 'completado'
+                ? ['lecciones' => [], 'examenes' => []]
+                : $this->progreso->pendientesDe($id, (int) $c['course_id']);
+        }
+        unset($c);
+
         (new View())->render('admin/views/lms/tracking/student', [
             'title'      => 'Seguimiento: ' . $estudiante['name'],
             'estudiante' => $estudiante,
-            'cursos'     => $this->progreso->matriculas(['student_id' => $id]),
+            'cursos'     => $cursos,
             'examenes'   => $this->progreso->examenesDeEstudiante($id),
         ], 'admin/views/layout');
     }
@@ -106,22 +115,30 @@ class AdminTrackingController extends Controller
             exit('No autorizado para descargar este documento.');
         }
 
-        $intento = $this->progreso->intentoCompleto($id);
+        $intento = $this->progreso->examenDeIntento($id);
         if (!$intento) {
             http_response_code(404);
             exit('Intento no encontrado.');
         }
 
+        // Con las respuestas guardadas se entrega el examen en el formato oficial de
+        // examen teórico. Un intento sin ellas (importado de la plataforma anterior, o de
+        // un examen que no tenía preguntas) no tiene examen que reconstruir: se entrega
+        // el acta, que solo recoge la nota y el resultado.
+        $formatoExamen = !empty($intento['preguntas']);
+
         try {
-            $ruta = WordGenerator::generateQuizAttemptDocument($intento);
+            $ruta = $formatoExamen
+                ? WordGenerator::generateExamPaper($intento)
+                : WordGenerator::generateQuizAttemptDocument($intento);
         } catch (\Throwable $e) {
-            error_log('Acta de examen ' . $id . ': ' . $e->getMessage());
+            error_log('Examen/acta ' . $id . ': ' . $e->getMessage());
             http_response_code(500);
             exit('No se pudo generar el documento. Revisa el log del servidor.');
         }
 
         $nombre = sprintf(
-            'Acta_%s_%s.docx',
+            ($formatoExamen ? 'Examen_%s_%s.docx' : 'Acta_%s_%s.docx'),
             preg_replace('/[^A-Za-z0-9]+/', '-', (string) $intento['student_name']),
             date('Y-m-d', strtotime((string) ($intento['completed_at'] ?: 'now')))
         );

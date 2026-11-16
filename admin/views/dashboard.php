@@ -154,7 +154,7 @@ $alumnado = [
 
 // ── Inscripciones más paradas ────────────────────────────────────────
 $paradas = $db->fetchAll(
-    "SELECT u.name estudiante, c.title curso, e.progress_percentage p,
+    "SELECT u.id estudiante_id, u.name estudiante, c.title curso, e.progress_percentage p,
             DATEDIFF(NOW(), COALESCE(e.last_accessed_at, e.enrolled_at)) dias
        FROM lms_enrollments e
        JOIN users u       ON u.id = e.student_id
@@ -166,7 +166,7 @@ $paradas = $db->fetchAll(
 
 // ── Listados de apoyo ────────────────────────────────────────────────
 $inscripciones = $db->fetchAll(
-    "SELECT e.enrolled_at, e.progress_percentage, u.name estudiante, c.title curso
+    "SELECT e.enrolled_at, e.progress_percentage, u.id estudiante_id, u.name estudiante, c.title curso
        FROM lms_enrollments e
        JOIN users u       ON u.id = e.student_id
        JOIN lms_courses c ON c.id = e.course_id
@@ -411,7 +411,10 @@ $tarjetas = [
                 ?>
                 <tr class="border-t hover:bg-slate-50/60 transition" style="border-color:#f3f6fb">
                     <td class="pl-5 pr-2 py-3 text-xs font-bold text-slate-700">
-                        <?= htmlspecialchars(mb_strimwidth((string) $p['estudiante'], 0, 20, '…')) ?>
+                        <?php $nombreP = htmlspecialchars(mb_strimwidth((string) $p['estudiante'], 0, 20, '…')); ?>
+                        <?php if (can('lms.courses.manage')): ?>
+                        <a href="/manager/lms/seguimiento/estudiante/<?= (int) $p['estudiante_id'] ?>" class="hover:text-blue-600 hover:underline" title="Ver su progreso y lo que tiene pendiente"><?= $nombreP ?></a>
+                        <?php else: ?><?= $nombreP ?><?php endif; ?>
                     </td>
                     <td class="px-2 py-3 text-[11px] font-medium text-slate-400">
                         <?= htmlspecialchars(mb_strimwidth((string) $p['curso'], 0, 24, '…')) ?>
@@ -460,7 +463,9 @@ $tarjetas = [
                                 <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 text-[10px] font-black flex items-center justify-center flex-shrink-0">
                                     <?= mb_strtoupper(mb_substr($i['estudiante'], 0, 2)) ?>
                                 </div>
-                                <span class="text-sm font-bold text-slate-700"><?= htmlspecialchars($i['estudiante']) ?></span>
+                                <?php if (can('lms.courses.manage')): ?>
+                                <a href="/manager/lms/seguimiento/estudiante/<?= (int) $i['estudiante_id'] ?>" class="text-sm font-bold text-slate-700 hover:text-blue-600 hover:underline" title="Ver su progreso y lo que tiene pendiente"><?= htmlspecialchars($i['estudiante']) ?></a>
+                                <?php else: ?><span class="text-sm font-bold text-slate-700"><?= htmlspecialchars($i['estudiante']) ?></span><?php endif; ?>
                             </div>
                         </td>
                         <td class="px-5 py-3">

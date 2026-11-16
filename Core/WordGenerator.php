@@ -520,6 +520,14 @@ class WordGenerator
             $tp->setValue('current_date',     date('d/m/Y'));
             $tp->setValue('terms_consent',    '☑ Doy mi consentimiento y acepto los términos.');
 
+            // Estado y fecha de la solicitud (recuadro "Para Uso de Oficina" del
+            // F-46). Una solicitud recién enviada aún no tiene fila guardada
+            // con estado: se presenta como pendiente y con la fecha de hoy.
+            $estado = (string) ($data['status'] ?? 'pending');
+            $creada = !empty($data['created_at']) ? strtotime((string) $data['created_at']) : false;
+            $tp->setValue('request_status', self::etiquetaDeEstado($estado));
+            $tp->setValue('request_date',   date('d/m/Y', $creada ?: time()));
+
             /*
                 ── Casillas de curso ──────────────────────────────────────
 
@@ -571,6 +579,7 @@ class WordGenerator
                           . '_' . uniqid('', true) . '.docx';
                 $filepath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . $filename;
                 $tp->saveAs($filepath);
+                self::marcarCasillaDeOficina($filepath, $estado);
                 return $filepath;
             }
         } catch (\Exception $e) {
@@ -578,6 +587,48 @@ class WordGenerator
         }
 
         return self::generateAdmissionFromScratch($data);
+    }
+
+    /** Estado de la solicitud como se imprime en el F-46 (inglés / español). */
+    private static function etiquetaDeEstado(string $estado): string
+    {
+        return [
+            'pending'             => 'Pending / Pendiente',
+            'reviewed'            => 'In review / En revisión',
+            'pending_requirement' => 'Pending requirement / Pendiente de requisito',
+            'approved'            => 'Approved / Aprobada',
+            'rejected'            => 'Not approved / No aprobada',
+        ][$estado] ?? $estado;
+    }
+
+    /**
+     * Marca la casilla "Approved" o "Not Approved" del recuadro de oficina.
+     *
+     * Son controles de contenido (w14:checkbox), que TemplateProcessor no
+     * sabe rellenar, así que se edita el XML del documento ya guardado. Los
+     * otros estados no tienen casilla: se leen en la línea de estado.
+     */
+    private static function marcarCasillaDeOficina(string $ruta, string $estado): void
+    {
+        $ids = ['approved' => '958918036', 'rejected' => '-281352123'];
+        if (!isset($ids[$estado])) {
+            return;
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($ruta) !== true) {
+            return;
+        }
+
+        $xml = $zip->getFromName('word/document.xml');
+        if ($xml !== false) {
+            $patron = '#(<w:id w:val="' . preg_quote($ids[$estado], '#') . '"/><w14:checkbox><w14:checked w14:val=")0(".*?<w:t>)☐(</w:t>)#su';
+            $nuevo  = preg_replace($patron, '${1}1${2}☒${3}', $xml, 1);
+            if ($nuevo !== null && $nuevo !== $xml) {
+                $zip->addFromString('word/document.xml', $nuevo);
+            }
+        }
+        $zip->close();
     }
 
     /**
@@ -708,6 +759,178 @@ class WordGenerator
         return $filepath;
     }
 
+    // ── Examen teórico en el formato de PAMEL ─────────────────────────────
+
+    private const NS_W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main';
+
+    /**
+     * El examen que presentó un estudiante, en el formato oficial de examen
+     * teórico (public/assets/documents/Examen teorico (formato).docx): datos del
+     * candidato y nota final, las instrucciones, cada pregunta con sus opciones
+     * y la marcada por el estudiante, y el recuadro "Para uso de oficina".
+     *
+     * Se parte de la plantilla y solo se rellenan sus huecos y se sustituye el
+     * bloque de preguntas; el resto (logo, instrucciones, tablas, nota final)
+     * es el del documento tal cual. La opción elegida va en negrita y
+     * resaltada, para que se distinga también al imprimir en blanco y negro.
+     *
+     * @param array $e Resultado de Progress::examenDeIntento()
+     * @return string Ruta del .docx generado (en la carpeta temporal)
+     */
+    public static function generateExamPaper(array $e): string
+    {
+        $plantilla = __DIR__ . '/../public/assets/documents/Examen teorico (formato).docx';
+        if (!file_exists($plantilla)) {
+            throw new \RuntimeException('Falta la plantilla del examen: ' . $plantilla);
+        }
+
+        $destino = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'examen_' . ($e['id'] ?? 'x') . '_' . uniqid('', true) . '.docx';
+        if (!copy($plantilla, $destino)) {
+            throw new \RuntimeException('No se pudo copiar la plantilla del examen.');
+        }
+
+        $zip = new \ZipArchive();
+        if ($zip->open($destino) !== true) {
+            throw new \RuntimeException('No se pudo abrir la plantilla del examen.');
+        }
+        $xml = $zip->getFromName('word/document.xml');
+        $dom = new \DOMDocument();
+        if ($xml === false || !$dom->loadXML($xml)) {
+            $zip->close();
+            throw new \RuntimeException('La plantilla del examen no es un documento Word válido.');
+        }
+        $xp = new \DOMXPath($dom);
+        $xp->registerNamespace('w', self::NS_W);
+
+        $body = $xp->query('//w:body')->item(0);
+        $hijos = iterator_to_array($body->childNodes);
+        $tablas = array_values(array_filter($hijos, static fn($n) => $n->nodeName === 'w:tbl'));
+        if (count($tablas) < 2) {
+            $zip->close();
+            throw new \RuntimeException('La plantilla del examen cambió: faltan sus tablas.');
+        }
+        [$tablaCandidato, $tablaOficina] = $tablas;
+
+        // 1) Título: el curso
+        $titulo = $xp->query('./w:p', $body)->item(0);
+        $t = $xp->query('.//w:t', $titulo)->item(0);
+        if ($t) {
+            $t->nodeValue = mb_strtoupper((string) ($e['course_title'] ?? ''), 'UTF-8');
+            foreach (iterator_to_array($xp->query('.//w:t', $titulo)) as $i => $extra) {
+                if ($i > 0) { $extra->parentNode->parentNode->removeChild($extra->parentNode); }
+            }
+        }
+
+        // 2) Datos del candidato (las filas de valores van bajo sus etiquetas)
+        $filas = $xp->query('./w:tr', $tablaCandidato);
+        $celda = static fn(int $fila, int $col) => $xp->query('./w:tc', $filas->item($fila))->item($col);
+        $fecha = !empty($e['completed_at']) ? date('d/m/Y', strtotime((string) $e['completed_at'])) : date('d/m/Y');
+        self::escribirEnCelda($dom, $xp, $celda(1, 0), (string) ($e['given_name'] ?? ''));
+        self::escribirEnCelda($dom, $xp, $celda(1, 1), (string) ($e['surname'] ?? ''));
+        self::escribirEnCelda($dom, $xp, $celda(0, 3), number_format((float) ($e['score'] ?? 0), 2) . ' %', true, 28);
+        self::escribirEnCelda($dom, $xp, $celda(3, 0), 'E-learning (PAMEL)');
+        self::escribirEnCelda($dom, $xp, $celda(3, 1), $fecha);
+
+        // 3) Bloque de preguntas: se sustituye todo lo que hay entre "PART A" y el recuadro de oficina
+        $partA = null;
+        foreach ($xp->query('./w:p', $body) as $p) {
+            if (stripos(trim($p->textContent), 'PART A') === 0) { $partA = $p; break; }
+        }
+        if (!$partA) {
+            $zip->close();
+            throw new \RuntimeException('La plantilla del examen cambió: falta el encabezado "PART A".');
+        }
+        for ($n = $partA->nextSibling; $n && $n !== $tablaOficina; ) {
+            $siguiente = $n->nextSibling;
+            $body->removeChild($n);
+            $n = $siguiente;
+        }
+
+        $w = self::NS_W;
+        $xmlEsc = static fn(string $s) => htmlspecialchars($s, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $limpio = static fn(string $s) => trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($s), ENT_QUOTES | ENT_HTML5, 'UTF-8')));
+        $fuente = '<w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>';
+
+        $bloques = '';
+        $num = 0;
+        foreach ($e['preguntas'] ?? [] as $q) {
+            $num++;
+            $bloques .= '<w:p xmlns:w="' . $w . '"><w:pPr><w:keepNext/><w:spacing w:before="200" w:after="60" w:line="240" w:lineRule="auto"/></w:pPr>'
+                . '<w:r><w:rPr>' . $fuente . '<w:b/><w:bCs/><w:sz w:val="24"/><w:szCs w:val="24"/></w:rPr>'
+                . '<w:t xml:space="preserve">' . $num . '- ' . $xmlEsc($limpio((string) $q['texto'])) . '</w:t></w:r></w:p>';
+
+            foreach (($q['opciones'] ?? []) as $i => $o) {
+                $elegida = $q['elegida'] !== null && (int) $o['id'] === (int) $q['elegida'];
+                $letra = chr(ord('a') + ($i % 26)) . '- ';
+                $rpr = '<w:rPr>' . $fuente . ($elegida ? '<w:b/><w:bCs/>' : '') . '<w:sz w:val="24"/><w:szCs w:val="24"/>'
+                     . ($elegida ? '<w:highlight w:val="yellow"/>' : '') . '</w:rPr>';
+                $bloques .= '<w:p xmlns:w="' . $w . '"><w:pPr><w:keepLines/>' . ($i < count($q['opciones']) - 1 ? '<w:keepNext/>' : '')
+                    . '<w:spacing w:after="0" w:line="240" w:lineRule="auto"/><w:ind w:left="720" w:hanging="360"/></w:pPr>'
+                    . '<w:r>' . $rpr . '<w:t xml:space="preserve">' . $letra . $xmlEsc($limpio((string) $o['texto'])) . '</w:t></w:r></w:p>';
+            }
+        }
+        // Dos párrafos vacíos antes del recuadro de oficina, que flota respecto al párrafo siguiente
+        $bloques .= '<w:p xmlns:w="' . $w . '"/><w:p xmlns:w="' . $w . '"/>';
+
+        $frag = $dom->createDocumentFragment();
+        if (!$frag->appendXML($bloques)) {
+            $zip->close();
+            throw new \RuntimeException('No se pudieron construir las preguntas del examen.');
+        }
+        $body->insertBefore($frag, $tablaOficina);
+
+        // 4) Recuadro de oficina: casilla de aprobado / no aprobado y fecha
+        $id = !empty($e['passed']) ? '958918036' : '-281352123';
+        foreach ($xp->query('.//w:sdt', $tablaOficina) as $sdt) {
+            $ident = $xp->query('./w:sdtPr/w:id/@w:val', $sdt)->item(0);
+            if ($ident && $ident->nodeValue === $id) {
+                $chk = $xp->query('./w:sdtPr//*[local-name()="checked"]/@*[local-name()="val"]', $sdt)->item(0);
+                if ($chk) { $chk->nodeValue = '1'; }
+                $caja = $xp->query('./w:sdtContent//w:t', $sdt)->item(0);
+                if ($caja) { $caja->nodeValue = '☒'; }
+            }
+        }
+        $filasOf = $xp->query('./w:tr', $tablaOficina);
+        if ($filasOf->length > 1) {
+            $celdaFecha = $xp->query('./w:tc', $filasOf->item(1))->item(2);
+            if ($celdaFecha) {
+                self::escribirEnCelda($dom, $xp, $celdaFecha, $fecha);
+            }
+        }
+
+        $zip->addFromString('word/document.xml', $dom->saveXML());
+        $zip->close();
+
+        return $destino;
+    }
+
+    /** Escribe un texto en una celda del formato: un párrafo nuevo con la fuente del documento. */
+    private static function escribirEnCelda(\DOMDocument $dom, \DOMXPath $xp, ?\DOMNode $tc, string $texto, bool $negrita = false, int $medioPunto = 20): void
+    {
+        if (!$tc || $texto === '') {
+            return;
+        }
+        $ultimo = null;
+        foreach ($xp->query('./w:p', $tc) as $p) { $ultimo = $p; }
+        // Si el único párrafo de la celda ya trae texto (la etiqueta), el valor va en uno nuevo debajo
+        $destino = ($ultimo && trim($ultimo->textContent) === '') ? $ultimo : null;
+
+        $w = self::NS_W;
+        $xml = '<w:r xmlns:w="' . $w . '"><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/>'
+             . ($negrita ? '<w:b/><w:bCs/>' : '') . '<w:sz w:val="' . $medioPunto . '"/><w:szCs w:val="' . $medioPunto . '"/></w:rPr>'
+             . '<w:t xml:space="preserve">' . htmlspecialchars($texto, ENT_XML1 | ENT_QUOTES, 'UTF-8') . '</w:t></w:r>';
+        $frag = $dom->createDocumentFragment();
+        $frag->appendXML($xml);
+
+        if ($destino) {
+            $destino->appendChild($frag);
+        } else {
+            $p = $dom->createElementNS($w, 'w:p');
+            $p->appendChild($frag);
+            $tc->appendChild($p);
+        }
+    }
+
     /**
      * Acta de un examen realizado: datos del alumno, calificación y el
      * detalle de cada pregunta con lo que respondió y lo correcto.
@@ -749,7 +972,14 @@ class WordGenerator
         $section->addText('CALIFICACIÓN', ['bold' => true, 'size' => 11, 'color' => '006699']);
         self::addField($section, 'Puntuación',  number_format((float) ($datos['score'] ?? 0), 2) . ' %');
         self::addField($section, 'Mínimo para aprobar', number_format((float) ($datos['pass_percentage'] ?? 70), 2) . ' %');
-        self::addField($section, 'Respuestas correctas', $correctas . ' de ' . $total);
+        // Intentos importados de la plataforma anterior (o hechos cuando el examen
+        // no tenía preguntas) guardan la nota pero no las respuestas: "0 de 0"
+        // junto a un 100 % en un documento oficial confunde.
+        self::addField(
+            $section,
+            'Respuestas correctas',
+            $total > 0 ? $correctas . ' de ' . $total : 'No disponible (el intento conserva solo la nota)'
+        );
         $section->addText(
             'RESULTADO: ' . ($aprobado ? 'APROBADO' : 'NO APROBADO'),
             ['bold' => true, 'size' => 12, 'color' => $aprobado ? '137333' : 'C5221F']
@@ -759,6 +989,14 @@ class WordGenerator
         // ── Detalle ─────────────────────────────────────────────────────
         $section->addText('DETALLE DE RESPUESTAS', ['bold' => true, 'size' => 11, 'color' => '006699']);
         $section->addTextBreak(1);
+        if ($total === 0) {
+            $section->addText(
+                'Este intento no conserva el detalle por pregunta (registrado antes de existir la revisión de respuestas, '
+                . 'o el examen no tenía preguntas en ese momento). Solo se conservan la nota y el resultado.',
+                ['italic' => true, 'size' => 10]
+            );
+            $section->addTextBreak(1);
+        }
 
         $n = 0;
         foreach ($datos['answers'] ?? [] as $a) {

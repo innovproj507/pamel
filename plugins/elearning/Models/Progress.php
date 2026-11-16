@@ -84,7 +84,9 @@ class Progress extends Model
                       WHERE p.student_id = e.student_id
                         AND l2.course_id = c.id AND l2.is_active = 1)          AS lecciones_hechas,
                     (SELECT COUNT(*) FROM lms_quizzes q
-                      WHERE q.course_id = c.id AND q.is_active = 1)            AS examenes,
+                      WHERE q.course_id = c.id AND q.is_active = 1
+                        AND EXISTS (SELECT 1 FROM lms_questions qq
+                                     WHERE qq.quiz_id = q.id))                 AS examenes,
                     (SELECT COUNT(DISTINCT a.quiz_id)
                        FROM lms_quiz_attempts a
                        JOIN lms_quizzes q2 ON q2.id = a.quiz_id
@@ -150,6 +152,46 @@ class Progress extends Model
         } else {
             $f['estado'] = 'en_curso';
         }
+    }
+
+    /**
+     * Qué le falta a un estudiante en un curso: las lecciones activas sin
+     * completar (en orden) y los exámenes con preguntas que aún no ha aprobado.
+     *
+     * Los exámenes sin preguntas no cuentan: no se pueden presentar, y contarlos
+     * dejaba cursos que nadie podía completar. Cada examen pendiente dice cuántos
+     * intentos lleva.
+     *
+     * @return array{lecciones: array<int,array{id:int,title:string}>, examenes: array<int,array{id:int,title:string,intentos:int}>}
+     */
+    public function pendientesDe(int $studentId, int $courseId): array
+    {
+        $lecciones = $this->db->fetchAll(
+            "SELECT l.id, l.title FROM lms_lessons l
+              WHERE l.course_id = ? AND l.is_active = 1
+                AND l.id NOT IN (SELECT lesson_id FROM lms_lesson_progress WHERE student_id = ?)
+              ORDER BY l.order_num ASC, l.id ASC",
+            [$courseId, $studentId]
+        );
+
+        $examenes = $this->db->fetchAll(
+            "SELECT q.id, q.title,
+                    (SELECT COUNT(*) FROM lms_quiz_attempts a
+                      WHERE a.student_id = ? AND a.quiz_id = q.id
+                        AND a.completed_at IS NOT NULL) AS intentos
+               FROM lms_quizzes q
+              WHERE q.course_id = ? AND q.is_active = 1
+                AND EXISTS (SELECT 1 FROM lms_questions qq WHERE qq.quiz_id = q.id)
+                AND NOT EXISTS (SELECT 1 FROM lms_quiz_attempts a2
+                                 WHERE a2.student_id = ? AND a2.quiz_id = q.id AND a2.passed = 1)
+              ORDER BY q.id ASC",
+            [$studentId, $courseId, $studentId]
+        );
+
+        return [
+            'lecciones' => array_map(static fn($l) => ['id' => (int) $l['id'], 'title' => (string) $l['title']], $lecciones),
+            'examenes'  => array_map(static fn($q) => ['id' => (int) $q['id'], 'title' => (string) $q['title'], 'intentos' => (int) $q['intentos']], $examenes),
+        ];
     }
 
     /** Descripción corta de en qué punto del curso está. */
@@ -299,6 +341,74 @@ class Progress extends Model
     }
 
     /** Un intento con todo lo necesario para el acta. */
+    /**
+     * Un intento listo para imprimirse en el formato de examen teórico:
+     * quién es el candidato, y cada pregunta presentada con todas sus
+     * opciones y la que marcó.
+     *
+     * Las preguntas salen en el orden en que se calificaron. Un intento sin
+     * respuestas guardadas (importado, o de un examen vacío) devuelve
+     * 'preguntas' vacío: no hay examen que reconstruir.
+     */
+    public function examenDeIntento(int $attemptId): ?array
+    {
+        $a = $this->intentoCompleto($attemptId);
+        if (!$a) {
+            return null;
+        }
+
+        // Nombre y apellido por separado: la tabla de usuarios guarda uno solo.
+        // Si el alumno entró por una solicitud de admisión, ahí sí vienen separados.
+        $adm = $this->db->fetchOne(
+            "SELECT given_name, surname FROM admission_requests
+              WHERE LOWER(email) = LOWER(?) AND given_name <> '' ORDER BY id DESC LIMIT 1",
+            [(string) $a['student_email']]
+        );
+        if ($adm) {
+            $a['given_name'] = trim((string) $adm['given_name']);
+            $a['surname']    = trim((string) $adm['surname']);
+        } else {
+            $partes = preg_split('/\s+/', trim((string) $a['student_name']), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $n = count($partes);
+            // Convención habitual: 1-2 palabras = nombre y apellido; 3 = nombre + dos apellidos;
+            // 4 o más = dos nombres y el resto apellidos.
+            $corte = $n <= 2 ? 1 : ($n === 3 ? 1 : 2);
+            $a['given_name'] = implode(' ', array_slice($partes, 0, $corte));
+            $a['surname']    = implode(' ', array_slice($partes, $corte));
+            if ($n === 1) {
+                $a['surname'] = '';
+            }
+        }
+
+        $filas = $this->db->fetchAll(
+            "SELECT qa.question_id, qa.selected_option_id, q.question
+               FROM lms_quiz_answers qa
+               JOIN lms_questions q ON q.id = qa.question_id
+              WHERE qa.attempt_id = ?
+              ORDER BY qa.id ASC",
+            [$attemptId]
+        );
+
+        $a['preguntas'] = [];
+        foreach ($filas as $f) {
+            $opciones = $this->db->fetchAll(
+                "SELECT id, option_text FROM lms_question_options
+                  WHERE question_id = ? ORDER BY order_num ASC, id ASC",
+                [(int) $f['question_id']]
+            );
+            $a['preguntas'][] = [
+                'texto'    => (string) $f['question'],
+                'elegida'  => $f['selected_option_id'] !== null ? (int) $f['selected_option_id'] : null,
+                'opciones' => array_map(
+                    static fn($o) => ['id' => (int) $o['id'], 'texto' => (string) $o['option_text']],
+                    $opciones
+                ),
+            ];
+        }
+
+        return $a;
+    }
+
     public function intentoCompleto(int $attemptId): ?array
     {
         $a = $this->db->fetchOne(

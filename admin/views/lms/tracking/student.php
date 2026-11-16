@@ -58,6 +58,40 @@ $estados = [
                 · Exámenes <strong class="text-gray-600"><?= (int) $c['examenes_aprobados'] ?>/<?= (int) $c['examenes'] ?></strong>
                 · <?= htmlspecialchars($c['etapa']) ?>
             </p>
+            <?php
+                $pl = $c['pendientes']['lecciones'] ?? [];
+                $pe = $c['pendientes']['examenes'] ?? [];
+            ?>
+            <?php if ($pl || $pe): ?>
+            <details class="mt-2">
+                <summary class="text-[11px] font-bold text-blue-600 cursor-pointer select-none">
+                    Pendiente: <?= count($pl) ?> <?= count($pl) === 1 ? 'lección' : 'lecciones' ?>
+                    · <?= count($pe) ?> <?= count($pe) === 1 ? 'examen' : 'exámenes' ?>
+                </summary>
+                <div class="mt-2 grid gap-3 sm:grid-cols-2 text-[12px]">
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Lecciones</p>
+                        <?php if ($pl): ?>
+                        <ul class="list-disc pl-4 space-y-0.5 text-gray-600">
+                            <?php foreach ($pl as $l): ?><li><?= htmlspecialchars($l['title']) ?></li><?php endforeach; ?>
+                        </ul>
+                        <?php else: ?><p class="text-gray-400">Todas completadas.</p><?php endif; ?>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black uppercase tracking-wider text-gray-400 mb-1">Exámenes</p>
+                        <?php if ($pe): ?>
+                        <ul class="list-disc pl-4 space-y-0.5 text-gray-600">
+                            <?php foreach ($pe as $q): ?>
+                            <li><?= htmlspecialchars($q['title']) ?>
+                                <span class="text-gray-400">— <?= $q['intentos'] > 0 ? $q['intentos'] . ' ' . ($q['intentos'] === 1 ? 'intento sin aprobar' : 'intentos sin aprobar') : 'sin presentar' ?></span>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                        <?php else: ?><p class="text-gray-400">Todos aprobados.</p><?php endif; ?>
+                    </div>
+                </div>
+            </details>
+            <?php endif; ?>
         </div>
         <?php endforeach; ?>
     </div>
@@ -117,7 +151,7 @@ $estados = [
                     <td class="px-3 py-2 text-right">
                         <a href="/manager/lms/actas/<?= (int) $e['id'] ?>"
                            class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition"
-                           title="Descargar el acta en Word">
+                           title="Descargar el examen en Word">
                             <i class="fas fa-file-word text-xs"></i>
                         </a>
                     </td>
