@@ -233,6 +233,7 @@ class AdminCourseSheetController extends Controller
             $this->db->update('products', $datos, 'id = :id', ['id' => (int) $existente['id']]);
             // Mantiene al día el precio del curso del LMS enlazado.
             $this->db->update('lms_courses', ['price' => $datos['price']], 'product_id = :pid', ['pid' => (int) $existente['id']]);
+            $this->propagarAlCursoLms((int) $existente['id'], $existente, $datos);
             $productId = (int) $existente['id'];
         } else {
             $datos['image'] = $ficha['image'];
@@ -246,6 +247,40 @@ class AdminCourseSheetController extends Controller
                 $productId, $datos['name'], (string) $datos['description'],
                 (float) $datos['price'], $datos['course_code'], (int) $datos['branch_id']
             );
+        }
+    }
+
+    /**
+     * Lleva al curso del LMS lo que se acaba de cambiar en la ficha: título, descripción,
+     * imagen y código. Respeta lo escrito a propósito en el curso: solo se cambia un campo si
+     * el curso aún tenía el valor anterior de la ficha (o estaba vacío). El slug no se toca:
+     * los enlaces ya compartidos al curso siguen funcionando.
+     */
+    private function propagarAlCursoLms(int $productId, array $antes, array $despues): void
+    {
+        $curso = $this->db->fetchOne(
+            'SELECT id, title, description, image, course_code FROM lms_courses WHERE product_id = ?',
+            [$productId]
+        );
+        if (!$curso) {
+            return;
+        }
+        $campos = ['title' => 'name', 'description' => 'description', 'image' => 'image', 'course_code' => 'course_code'];
+        $cambios = [];
+        foreach ($campos as $enCurso => $enFicha) {
+            $nuevo  = trim((string) ($despues[$enFicha] ?? ''));
+            $viejo  = trim((string) ($antes[$enFicha] ?? ''));
+            $actual = trim((string) ($curso[$enCurso] ?? ''));
+            if ($nuevo === '' || $nuevo === $actual) {
+                continue;
+            }
+            if ($actual === '' || $actual === $viejo) {
+                $cambios[$enCurso] = $nuevo;
+            }
+        }
+        if ($cambios) {
+            $set = implode(', ', array_map(fn($c) => "{$c} = :{$c}", array_keys($cambios)));
+            $this->db->query("UPDATE lms_courses SET {$set} WHERE id = :__id", $cambios + ['__id' => (int) $curso['id']]);
         }
     }
 
@@ -273,7 +308,22 @@ class AdminCourseSheetController extends Controller
 
     private function renderForm(?array $sheet, array $offers, array $errors = [], int $productId = 0): void
     {
+        $lmsCursos = [];
+        if (!empty($sheet['id'])) {
+            $lmsCursos = $this->db->fetchAll(
+                "SELECT c.id, c.title, c.status, p.id AS product_id, b.name AS branch_name,
+                        (SELECT COUNT(*) FROM lms_lessons l WHERE l.course_id = c.id) AS lecciones,
+                        (SELECT COUNT(*) FROM lms_quizzes q WHERE q.course_id = c.id) AS quizzes
+                   FROM lms_courses c
+                   JOIN products p ON p.id = c.product_id
+              LEFT JOIN branches b ON b.id = p.branch_id
+                  WHERE p.course_id = ?
+               ORDER BY p.id",
+                [(int) $sheet['id']]
+            );
+        }
         $this->view->render('plugins/ecommerce/views/admin/product-form', [
+            'lmsCursos'  => $lmsCursos,
             'title'      => $sheet && !empty($sheet['id']) ? 'Editar producto' : 'Nuevo producto',
             'productId'  => $productId,
             'sheet'      => $sheet,

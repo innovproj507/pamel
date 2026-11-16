@@ -12,6 +12,7 @@ $categories = $categories ?? [];
 $modalities = $modalities ?? [];
 $esNueva    = empty($sheet['id']);
 $productId  = (int) ($productId ?? 0);
+$lmsCursos  = $lmsCursos ?? [];
 
 $v = static fn($k, $d = '') => htmlspecialchars((string) ($sheet[$k] ?? $d), ENT_QUOTES);
 ?>
@@ -31,6 +32,40 @@ $v = static fn($k, $d = '') => htmlspecialchars((string) ($sheet[$k] ?? $d), ENT
         </p>
     </div>
 </div>
+
+<?php if (!$esNueva): ?>
+<div class="card card-pad mb-4">
+    <div class="flex items-start gap-3">
+        <i data-lucide="graduation-cap" class="ic ic-17" style="margin-top:2px"></i>
+        <div class="min-w-0 flex-1">
+            <p class="text-[13px] font-black text-slate-800">Curso en elearning</p>
+            <?php if (!$lmsCursos): ?>
+            <p class="text-[12px] font-semibold text-slate-400 mt-1">
+                Aún no tiene curso en el portal. Se crea solo, como borrador, al guardar con al menos un país marcado.
+            </p>
+            <?php else: ?>
+            <p class="text-[12px] font-semibold text-slate-400 mt-1">
+                El nombre, la descripción, la imagen y el código que cambies aquí pasan al curso del portal. Las lecciones y los exámenes se gestionan en el curso.
+            </p>
+            <ul class="mt-2 space-y-1.5">
+                <?php
+                $estados = ['draft' => ['Borrador', '#64748b'], 'published' => ['Publicado', '#059669'], 'archived' => ['Archivado', '#b45309']];
+                foreach ($lmsCursos as $c):
+                    [$etq, $col] = $estados[$c['status']] ?? ['—', '#64748b'];
+                ?>
+                <li class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12.5px]">
+                    <span class="font-bold text-slate-700"><?= htmlspecialchars((string) ($c['branch_name'] ?: 'Sin país')) ?></span>
+                    <span class="font-black" style="color:<?= $col ?>"><?= $etq ?></span>
+                    <span class="text-slate-400"><?= (int) $c['lecciones'] ?> lecciones · <?= (int) $c['quizzes'] ?> exámenes</span>
+                    <a href="/manager/lms/courses/<?= (int) $c['id'] ?>/show" class="text-blue-600 font-bold hover:underline">Abrir curso</a>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <?php if ($errors): ?>
 <div class="card card-pad mb-4" style="border-color:#fecaca;background:#fef2f2">
