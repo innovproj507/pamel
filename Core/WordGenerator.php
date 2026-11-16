@@ -896,6 +896,13 @@ class WordGenerator
             }
         }
         $filasOf = $xp->query('./w:tr', $tablaOficina);
+        // Conformidad del instructor, con casilla para marcarla al firmar: el documento se
+        // genera solo, con lo que respondió el estudiante, y no consta que nadie lo haya revisado.
+        if ($filasOf->length > 1) {
+            $celdaInstructor = $xp->query('./w:tc', $filasOf->item(1))->item(0);
+            self::escribirEnCelda($dom, $xp, $celdaInstructor, '☐ ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', true, 14);
+            self::escribirEnCelda($dom, $xp, $celdaInstructor, "THIS EXAM HAS BEEN VERIFIED AND HAS THE INSTRUCTOR'S APPROVAL.", false, 14);
+        }
         if ($filasOf->length > 1) {
             $celdaFecha = $xp->query('./w:tc', $filasOf->item(1))->item(2);
             if ($celdaFecha) {
