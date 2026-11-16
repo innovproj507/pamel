@@ -44,7 +44,7 @@ class AdminQuoteController extends Controller
         $totalPages = ceil($totalCount / 20);
 
         $this->view->render('admin/views/quote-requests', [
-            'title' => 'Quote Requests',
+            'title' => 'Cotizaciones',
             'requests' => $requests,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -74,7 +74,7 @@ class AdminQuoteController extends Controller
         unset($item);
 
         $this->view->render('admin/views/quote/show', [
-            'title' => 'Quote Request #' . $id,
+            'title' => 'Cotización #' . $id,
             'request' => $request,
         ], 'admin/views/layout');
     }

@@ -29,7 +29,7 @@ class AdminBranchController extends Controller
         }
 
         $this->view->render('plugins/ecommerce/views/admin/branches', [
-            'title' => 'Branches',
+            'title' => 'Ramas',
             'branches' => $branches
         ], 'admin/views/layout');
     }
@@ -40,7 +40,7 @@ class AdminBranchController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $this->view->render('plugins/ecommerce/views/admin/branch-form', [
-            'title' => 'Create Branch',
+            'title' => 'Nueva rama',
             'branch' => null
         ], 'admin/views/layout');
     }
@@ -75,7 +75,7 @@ class AdminBranchController extends Controller
         $branch = $this->branchModel->find($id);
 
         $this->view->render('plugins/ecommerce/views/admin/branch-form', [
-            'title' => 'Edit Branch',
+            'title' => 'Editar rama',
             'branch' => $branch
         ], 'admin/views/layout');
     }

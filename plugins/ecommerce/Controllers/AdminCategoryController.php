@@ -31,7 +31,7 @@ class AdminCategoryController extends Controller
         }
 
         $this->view->render('plugins/ecommerce/views/admin/categories', [
-            'title' => 'Categories',
+            'title' => 'Categorías',
             'categories' => $categories
         ], 'admin/views/layout');
     }
@@ -44,7 +44,7 @@ class AdminCategoryController extends Controller
         $parentCategories = $this->categoryModel->getParentCategories();
 
         $this->view->render('plugins/ecommerce/views/admin/category-form', [
-            'title' => 'Create Category',
+            'title' => 'Nueva categoría',
             'category' => null,
             'parentCategories' => $parentCategories
         ], 'admin/views/layout');
@@ -84,7 +84,7 @@ class AdminCategoryController extends Controller
         $parentCategories = $this->categoryModel->getParentCategories();
 
         $this->view->render('plugins/ecommerce/views/admin/category-form', [
-            'title' => 'Edit Category',
+            'title' => 'Editar categoría',
             'category' => $category,
             'parentCategories' => $parentCategories
         ], 'admin/views/layout');

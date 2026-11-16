@@ -36,7 +36,7 @@ class AdminModalityController extends Controller
         }
 
         $this->view->render('plugins/ecommerce/views/admin/modalities', [
-            'title' => 'Modalities',
+            'title' => 'Modalidades',
             'modalities' => $modalities
         ], 'admin/views/layout');
     }
@@ -47,7 +47,7 @@ class AdminModalityController extends Controller
         \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
 
         $this->view->render('plugins/ecommerce/views/admin/modality-form', [
-            'title' => 'Create Modality',
+            'title' => 'Nueva modalidad',
             'modality' => null,
             'branches' => (new Branch())->all()
         ], 'admin/views/layout');
@@ -83,7 +83,7 @@ class AdminModalityController extends Controller
         $modality = $this->modalityModel->find($id);
 
         $this->view->render('plugins/ecommerce/views/admin/modality-form', [
-            'title' => 'Edit Modality',
+            'title' => 'Editar modalidad',
             'modality' => $modality,
             'branches' => (new Branch())->all()
         ], 'admin/views/layout');

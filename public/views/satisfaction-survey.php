@@ -11,8 +11,8 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
 
 <div class="max-w-4xl mx-auto px-4 py-12">
     <div class="bg-white rounded-lg shadow-lg p-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Formulario de Satisfacción</h1>
-        <p class="text-gray-600 mb-8">Por favor, comparte tu experiencia sobre el curso que tomaste</p>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2"><?= __('survey_form.title') ?></h1>
+        <p class="text-gray-600 mb-8"><?= __('survey_form.subtitle') ?></p>
 
         <?php if ($success): ?>
             <div class="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded mb-6">
@@ -31,11 +31,11 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
 
             <!-- Datos Personales -->
             <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4">Datos Personales <span class="text-red-500">*</span></h2>
+                <h2 class="text-xl font-semibold text-gray-800 mb-4"><?= __('survey_form.personal') ?> <span class="text-red-500">*</span></h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-gray-700 mb-2">Nombre</label>
+                        <label class="block text-gray-700 mb-2"><?= __('survey_form.first_name') ?></label>
                         <input type="text" name="first_name" value="<?= htmlspecialchars($old['first_name'] ?? '') ?>" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                                required>
@@ -45,7 +45,7 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
                     </div>
                     
                     <div>
-                        <label class="block text-gray-700 mb-2">Apellidos</label>
+                        <label class="block text-gray-700 mb-2"><?= __('survey_form.last_name') ?></label>
                         <input type="text" name="last_name" value="<?= htmlspecialchars($old['last_name'] ?? '') ?>" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                                required>
@@ -66,9 +66,9 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
                 </div>
 
                 <div>
-                    <label class="block text-gray-700 mb-2">Mencione el nombre del Curso tomado <span class="text-red-500">*</span></label>
+                    <label class="block text-gray-700 mb-2"><?= __('survey_form.course') ?> <span class="text-red-500">*</span></label>
                     <select name="course_name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
-                        <option value="">Seleccione un curso...</option>
+                        <option value=""><?= __('survey_form.select') ?></option>
                         
                         <?php if (isset($courses) && !empty($courses)): ?>
                             <?php foreach ($courses as $course): ?>
@@ -84,7 +84,7 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
                             <option value="Survival Craft and Rescue Boats" <?= ($old['course_name'] ?? '') === 'Survival Craft and Rescue Boats' ? 'selected' : '' ?>>Survival Craft and Rescue Boats</option>
                         <?php endif; ?>
                         
-                        <option value="Otro" <?= ($old['course_name'] ?? '') === 'Otro' ? 'selected' : '' ?>>Otro</option>
+                        <option value="Otro" <?= ($old['course_name'] ?? '') === 'Otro' ? 'selected' : '' ?>><?= __('survey_form.other') ?></option>
                     </select>
                     <?php if (isset($errors['course_name'])): ?>
                         <p class="text-red-500 text-sm mt-1"><?= $errors['course_name'] ?></p>
@@ -95,28 +95,28 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
             <!-- Pregunta 1: Atención del Personal -->
             <div class="mb-8 p-6 bg-gray-50 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    1. Con base al proceso administrativo, califique la atención de nuestro personal <span class="text-red-500">*</span>
+                    <?= __('survey_form.q1') ?> <span class="text-red-500">*</span>
                 </h3>
                 
                 <div class="space-y-2 mb-4">
                     <label class="flex items-center">
                         <input type="radio" name="staff_attention_rating" value="A-Buena" <?= ($old['staff_attention_rating'] ?? '') === 'A-Buena' ? 'checked' : '' ?> class="mr-2" required>
-                        <span>A- Buena</span>
+                        <span><?= __('survey_form.good') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="staff_attention_rating" value="B-Regular" <?= ($old['staff_attention_rating'] ?? '') === 'B-Regular' ? 'checked' : '' ?> class="mr-2">
-                        <span>B- Regular</span>
+                        <span><?= __('survey_form.fair') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="staff_attention_rating" value="C-Mala" <?= ($old['staff_attention_rating'] ?? '') === 'C-Mala' ? 'checked' : '' ?> class="mr-2">
-                        <span>C- Mala</span>
+                        <span><?= __('survey_form.poor') ?></span>
                     </label>
                 </div>
                 <?php if (isset($errors['staff_attention_rating'])): ?>
                     <p class="text-red-500 text-sm mb-2"><?= $errors['staff_attention_rating'] ?></p>
                 <?php endif; ?>
 
-                <label class="block text-gray-700 mb-2">Por favor amplíe su respuesta de ser necesario</label>
+                <label class="block text-gray-700 mb-2"><?= __('survey_form.expand') ?></label>
                 <textarea name="staff_attention_comments" rows="3" 
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"><?= htmlspecialchars($old['staff_attention_comments'] ?? '') ?></textarea>
             </div>
@@ -124,28 +124,28 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
             <!-- Pregunta 2: Calidad del Entrenamiento -->
             <div class="mb-8 p-6 bg-gray-50 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    2. Con base al entrenamiento y curso impartido, califique la calidad del mismo <span class="text-red-500">*</span>
+                    <?= __('survey_form.q2') ?> <span class="text-red-500">*</span>
                 </h3>
                 
                 <div class="space-y-2 mb-4">
                     <label class="flex items-center">
                         <input type="radio" name="training_quality_rating" value="A-Buena" <?= ($old['training_quality_rating'] ?? '') === 'A-Buena' ? 'checked' : '' ?> class="mr-2" required>
-                        <span>A- Buena</span>
+                        <span><?= __('survey_form.good') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="training_quality_rating" value="B-Regular" <?= ($old['training_quality_rating'] ?? '') === 'B-Regular' ? 'checked' : '' ?> class="mr-2">
-                        <span>B- Regular</span>
+                        <span><?= __('survey_form.fair') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="training_quality_rating" value="C-Mala" <?= ($old['training_quality_rating'] ?? '') === 'C-Mala' ? 'checked' : '' ?> class="mr-2">
-                        <span>C- Mala</span>
+                        <span><?= __('survey_form.poor') ?></span>
                     </label>
                 </div>
                 <?php if (isset($errors['training_quality_rating'])): ?>
                     <p class="text-red-500 text-sm mb-2"><?= $errors['training_quality_rating'] ?></p>
                 <?php endif; ?>
 
-                <label class="block text-gray-700 mb-2">Por favor amplíe su respuesta de ser necesario</label>
+                <label class="block text-gray-700 mb-2"><?= __('survey_form.expand') ?></label>
                 <textarea name="training_quality_comments" rows="3" 
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"><?= htmlspecialchars($old['training_quality_comments'] ?? '') ?></textarea>
             </div>
@@ -153,28 +153,28 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
             <!-- Pregunta 3: Desempeño del Instructor -->
             <div class="mb-8 p-6 bg-gray-50 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    3. Con base al desarrollo del instructor, califique el desempeño del instructor <span class="text-red-500">*</span>
+                    <?= __('survey_form.q3') ?> <span class="text-red-500">*</span>
                 </h3>
                 
                 <div class="space-y-2 mb-4">
                     <label class="flex items-center">
                         <input type="radio" name="instructor_performance_rating" value="A-Buena" <?= ($old['instructor_performance_rating'] ?? '') === 'A-Buena' ? 'checked' : '' ?> class="mr-2" required>
-                        <span>A- Buena</span>
+                        <span><?= __('survey_form.good') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="instructor_performance_rating" value="B-Regular" <?= ($old['instructor_performance_rating'] ?? '') === 'B-Regular' ? 'checked' : '' ?> class="mr-2">
-                        <span>B- Regular</span>
+                        <span><?= __('survey_form.fair') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="instructor_performance_rating" value="C-Mala" <?= ($old['instructor_performance_rating'] ?? '') === 'C-Mala' ? 'checked' : '' ?> class="mr-2">
-                        <span>C- Mala</span>
+                        <span><?= __('survey_form.poor') ?></span>
                     </label>
                 </div>
                 <?php if (isset($errors['instructor_performance_rating'])): ?>
                     <p class="text-red-500 text-sm mb-2"><?= $errors['instructor_performance_rating'] ?></p>
                 <?php endif; ?>
 
-                <label class="block text-gray-700 mb-2">Por favor amplíe su respuesta de ser necesario</label>
+                <label class="block text-gray-700 mb-2"><?= __('survey_form.expand') ?></label>
                 <textarea name="instructor_performance_comments" rows="3" 
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"><?= htmlspecialchars($old['instructor_performance_comments'] ?? '') ?></textarea>
             </div>
@@ -182,39 +182,41 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
             <!-- Pregunta 4: Infraestructura y Equipos -->
             <div class="mb-8 p-6 bg-gray-50 rounded-lg">
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">
-                    4. Con base a la infraestructura, equipos y simulador (si aplica), califique las condiciones generales <span class="text-red-500">*</span>
+                    <?= __('survey_form.q4') ?> <span class="text-red-500">*</span>
                 </h3>
                 
                 <div class="space-y-2 mb-4">
                     <label class="flex items-center">
                         <input type="radio" name="infrastructure_rating" value="A-Buena" <?= ($old['infrastructure_rating'] ?? '') === 'A-Buena' ? 'checked' : '' ?> class="mr-2" required>
-                        <span>A- Buena</span>
+                        <span><?= __('survey_form.good') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="infrastructure_rating" value="B-Regular" <?= ($old['infrastructure_rating'] ?? '') === 'B-Regular' ? 'checked' : '' ?> class="mr-2">
-                        <span>B- Regular</span>
+                        <span><?= __('survey_form.fair') ?></span>
                     </label>
                     <label class="flex items-center">
                         <input type="radio" name="infrastructure_rating" value="C-Mala" <?= ($old['infrastructure_rating'] ?? '') === 'C-Mala' ? 'checked' : '' ?> class="mr-2">
-                        <span>C- Mala</span>
+                        <span><?= __('survey_form.poor') ?></span>
                     </label>
                 </div>
                 <?php if (isset($errors['infrastructure_rating'])): ?>
                     <p class="text-red-500 text-sm mb-2"><?= $errors['infrastructure_rating'] ?></p>
                 <?php endif; ?>
 
-                <label class="block text-gray-700 mb-2">Por favor amplíe su respuesta de ser necesario</label>
+                <label class="block text-gray-700 mb-2"><?= __('survey_form.expand') ?></label>
                 <textarea name="infrastructure_comments" rows="3" 
                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"><?= htmlspecialchars($old['infrastructure_comments'] ?? '') ?></textarea>
             </div>
 
             <!-- Fecha -->
             <div class="mb-8">
-                <label class="block text-gray-700 mb-2">Fecha <span class="text-red-500">*</span></label>
+                <label class="block text-gray-700 mb-2"><?= __('survey_form.date') ?> <span class="text-red-500">*</span></label>
                 <input type="date" name="survey_date" value="<?= htmlspecialchars($old['survey_date'] ?? date('Y-m-d')) ?>" 
                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                        required>
-                <p class="text-sm text-gray-500 mt-1">Ejemplo: <?= date('d \d\e F \d\e Y') ?></p>
+                <p class="text-sm text-gray-500 mt-1"><?= __('survey_form.example') ?> <?= htmlspecialchars(\Core\Language::getLocale() === 'es'
+                    ? date('j') . ' de ' . __('survey_form.months.' . date('n')) . ' de ' . date('Y')
+                    : __('survey_form.months.' . date('n')) . ' ' . date('j') . ', ' . date('Y')) ?></p>
                 <?php if (isset($errors['survey_date'])): ?>
                     <p class="text-red-500 text-sm mt-1"><?= $errors['survey_date'] ?></p>
                 <?php endif; ?>
@@ -223,7 +225,7 @@ unset($_SESSION['errors'], $_SESSION['old_input'], $_SESSION['success'], $_SESSI
             <!-- Submit Button -->
             <div class="text-center">
                 <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition duration-200 shadow-lg">
-                    <i class="fas fa-paper-plane mr-2"></i>ENVIAR
+                    <i class="fas fa-paper-plane mr-2"></i><?= __('survey_form.submit') ?>
                 </button>
             </div>
         </form>
@@ -239,7 +241,7 @@ document.getElementById('satisfactionForm').addEventListener('submit', function(
         const checked = document.querySelector(`input[name="${name}"]:checked`);
         if (!checked) {
             valid = false;
-            alert('Por favor, complete todas las calificaciones requeridas');
+            alert(<?= json_encode(__('survey_form.alert_missing'), JSON_UNESCAPED_UNICODE) ?>);
         }
     });
     

@@ -44,7 +44,7 @@
 
                 <div>
                     <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
-                        <?php echo __('form.phone'); ?>
+                        <?php echo __('auth.register.phone'); ?>
                     </label>
                     <input id="phone" 
                            name="phone" 

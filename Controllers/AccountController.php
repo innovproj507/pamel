@@ -161,7 +161,7 @@ class AccountController
     private function getRecommendedCourses()
     {
         $sql = "
-            SELECT id as ID, name as post_title, image
+            SELECT id as ID, name as post_title, image, slug
             FROM products
             WHERE status = 'active'
             ORDER BY RAND()

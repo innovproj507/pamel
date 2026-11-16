@@ -24,7 +24,7 @@ class SatisfactionSurveyController
 
         $view = new View();
         $view->render('public/views/satisfaction-survey', [
-            'title' => 'Formulario de Satisfacción',
+            'title' => __('survey_form.title'),
             'courses' => $courses,
             'csrf_token' => Security::generateCsrfToken()
         ], 'public/views/layout');

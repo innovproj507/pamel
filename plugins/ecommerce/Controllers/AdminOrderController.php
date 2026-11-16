@@ -24,7 +24,7 @@ class AdminOrderController extends Controller
         $orders = $this->orderModel->all();
 
         $this->view->render('plugins/ecommerce/views/admin/orders', [
-            'title' => 'Orders',
+            'title' => 'Pedidos',
             'orders' => $orders
         ], 'admin/views/layout');
     }
@@ -37,7 +37,7 @@ class AdminOrderController extends Controller
         $order = $this->orderModel->getWithItems($id);
 
         $this->view->render('plugins/ecommerce/views/admin/order-detail', [
-            'title' => 'Order #' . $id,
+            'title' => 'Pedido #' . $id,
             'order' => $order
         ], 'admin/views/layout');
     }

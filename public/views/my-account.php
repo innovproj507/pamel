@@ -11,7 +11,7 @@ $userEmail = $user['email'] ?? '';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Cuenta - E-Shop Pro</title>
+    <title><?= __('account.page_title') ?> - PAMEL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -62,44 +62,44 @@ $userEmail = $user['email'] ?? '';
         <aside class="w-64 bg-white shadow-md hidden md:flex md:flex-col">
             <div class="p-6 border-b">
                 <h1 class="text-xl font-bold text-blue-600 flex items-center">
-                    <i class="fas fa-shopping-bag mr-2"></i> E-Shop Pro
+                    <i class="fas fa-shopping-bag mr-2"></i> PAMEL
                 </h1>
-                <p class="text-sm text-gray-500 mt-1">Panel de Cliente</p>
+                <p class="text-sm text-gray-500 mt-1"><?= __('account.panel_title') ?></p>
             </div>
             
             <div class="p-4 flex-1">
-                <h2 class="text-xs uppercase text-gray-500 font-semibold tracking-wider mb-4">Menú Principal</h2>
+                <h2 class="text-xs uppercase text-gray-500 font-semibold tracking-wider mb-4"><?= __('account.main_menu') ?></h2>
                 <nav class="space-y-1">
                     <a href="/my-account?tab=dashboard" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 <?php echo $currentTab === 'dashboard' ? 'active' : ''; ?>">
-                        <i class="fas fa-desktop mr-3 text-gray-500"></i> <span>Escritorio</span>
+                        <i class="fas fa-desktop mr-3 text-gray-500"></i> <span><?= __('account.dashboard') ?></span>
                     </a>
                     <a href="/my-account?tab=orders" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 <?php echo $currentTab === 'orders' ? 'active' : ''; ?>">
-                        <i class="fas fa-shopping-cart mr-3 text-gray-500"></i> <span>Pedidos</span>
+                        <i class="fas fa-shopping-cart mr-3 text-gray-500"></i> <span><?= __('account.orders') ?></span>
                     </a>
                     <a href="/my-account?tab=downloads" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 <?php echo $currentTab === 'downloads' ? 'active' : ''; ?>">
-                        <i class="fas fa-download mr-3 text-gray-500"></i> <span>Descargas</span>
+                        <i class="fas fa-download mr-3 text-gray-500"></i> <span><?= __('account.downloads') ?></span>
                     </a>
                     <a href="/my-account?tab=addresses" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 <?php echo $currentTab === 'addresses' ? 'active' : ''; ?>">
-                        <i class="fas fa-address-card mr-3 text-gray-500"></i> <span>Dirección</span>
+                        <i class="fas fa-address-card mr-3 text-gray-500"></i> <span><?= __('account.address') ?></span>
                     </a>
                    <a href="#" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 <?php echo $currentTab === 'payment-methods' ? 'active' : ''; ?>" onclick="window.location.href='/my-account?tab=payment-methods'">
-                        <i class="fas fa-credit-card mr-3 text-gray-500"></i> <span>Métodos de pago</span>
+                        <i class="fas fa-credit-card mr-3 text-gray-500"></i> <span><?= __('account.payment_methods') ?></span>
                     </a>
                 </nav>
                 
-                <h2 class="text-xs uppercase text-gray-500 font-semibold tracking-wider mt-8 mb-4">Cuenta</h2>
+                <h2 class="text-xs uppercase text-gray-500 font-semibold tracking-wider mt-8 mb-4"><?= __('account.account') ?></h2>
                 <nav class="space-y-1">
                      <a href="/my-account?tab=account-details" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 <?php echo $currentTab === 'account-details' ? 'active' : ''; ?>">
-                        <i class="fas fa-user-circle mr-3 text-gray-500"></i> <span>Detalles de la cuenta</span>
+                        <i class="fas fa-user-circle mr-3 text-gray-500"></i> <span><?= __('account.account_details') ?></span>
                     </a>
                     <a href="/my-account?tab=my-courses" class="sidebar-link flex items-center p-3 rounded-lg text-gray-700 <?php echo $currentTab === 'my-courses' ? 'active' : ''; ?>">
-                        <i class="fas fa-graduation-cap mr-3 text-gray-500"></i> <span>Mis Cursos</span>
+                        <i class="fas fa-graduation-cap mr-3 text-gray-500"></i> <span><?= __('account.my_courses') ?></span>
                     </a>
                 </nav>
                 
                 <div class="mt-auto pt-8">
                     <a href="/logout" class="sidebar-link flex items-center p-3 rounded-lg text-red-600 hover:bg-red-50">
-                        <i class="fas fa-sign-out-alt mr-3"></i> <span>Salir</span>
+                        <i class="fas fa-sign-out-alt mr-3"></i> <span><?= __('account.logout') ?></span>
                     </a>
                 </div>
             </div>
@@ -127,15 +127,15 @@ $userEmail = $user['email'] ?? '';
                         <h2 class="text-lg font-semibold">
                             <?php 
                                 $titles = [
-                                    'dashboard' => 'Escritorio',
-                                    'orders' => 'Pedidos',
-                                    'downloads' => 'Descargas',
-                                    'addresses' => 'Dirección',
-                                    'payment-methods' => 'Métodos de pago',
-                                    'account-details' => 'Detalles de la cuenta',
-                                    'my-courses' => 'Mis Cursos'
+                                    'dashboard' => __('account.dashboard'),
+                                    'orders' => __('account.orders'),
+                                    'downloads' => __('account.downloads'),
+                                    'addresses' => __('account.address'),
+                                    'payment-methods' => __('account.payment_methods'),
+                                    'account-details' => __('account.account_details'),
+                                    'my-courses' => __('account.my_courses')
                                 ];
-                                echo $titles[$currentTab] ?? 'Panel de Cliente';
+                                echo $titles[$currentTab] ?? __('account.panel_title');
                             ?>
                         </h2>
                     </div>
@@ -156,62 +156,47 @@ $userEmail = $user['email'] ?? '';
                         $recentOrders = array_slice($orders ?? [], 0, 3);
                     ?>
                     
-                    <!-- DIAGNOSTIC BLOCK (REMOVE AFTER FIXING) -->
-                    <div class="bg-yellow-100 p-4 rounded-lg mb-6 text-sm text-yellow-800 border border-yellow-200">
-                        <p><strong>Diagnóstico:</strong></p>
-                        <ul class="list-disc ml-4 mt-1">
-                            <li>Email del usuario: <strong><?php echo htmlspecialchars($userEmail); ?></strong></li>
-                            <li>Total Pedidos Encontrados: <strong><?php echo count($orders ?? []); ?></strong></li>
-                            <li>Estados: <?php 
-                                if (!empty($orders)) {
-                                    echo implode(', ', array_map(function($o) { return $o['status'] . ' (' . $o['source'] . ')'; }, $orders));
-                                } else {
-                                    echo "Ninguno";
-                                }
-                            ?></li>
-                        </ul>
-                    </div>
-                    <!-- END DIAGNOSTIC -->
+<!-- END DIAGNOSTIC -->
                     
                     <!-- Resumen rápido -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div class="bg-white p-6 rounded-xl shadow-sm border card-hover transition transform hover:-translate-y-1 hover:shadow-md">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-gray-500 text-sm">Pedidos Pendientes</p>
+                                    <p class="text-gray-500 text-sm"><?= __('account.pending_orders') ?></p>
                                     <p class="text-2xl font-bold mt-1"><?php echo $pendingCount; ?></p>
                                 </div>
                                 <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
                                     <i class="fas fa-shopping-cart text-blue-600 text-xl"></i>
                                 </div>
                             </div>
-                            <a href="/my-account?tab=orders" class="text-blue-600 text-sm font-medium mt-4 inline-block hover:underline">Ver todos →</a>
+                            <a href="/my-account?tab=orders" class="text-blue-600 text-sm font-medium mt-4 inline-block hover:underline"><?= __('account.view_all_arrow') ?></a>
                         </div>
                         
                         <div class="bg-white p-6 rounded-xl shadow-sm border card-hover transition transform hover:-translate-y-1 hover:shadow-md">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-gray-500 text-sm">Saldo Disponible</p>
+                                    <p class="text-gray-500 text-sm"><?= __('account.available_balance') ?></p>
                                     <p class="text-2xl font-bold mt-1">$<?php echo $walletBalance; ?></p>
                                 </div>
                                 <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                                     <i class="fas fa-wallet text-green-600 text-xl"></i>
                                 </div>
                             </div>
-                            <a href="#" class="text-blue-600 text-sm font-medium mt-4 inline-block hover:underline opacity-50 cursor-not-allowed" title="Próximamente">Agregar fondos →</a>
+                            <a href="#" class="text-blue-600 text-sm font-medium mt-4 inline-block hover:underline opacity-50 cursor-not-allowed" title="<?= __('account.coming_soon') ?>"><?= __('account.add_funds') ?></a>
                         </div>
                         
                         <div class="bg-white p-6 rounded-xl shadow-sm border card-hover transition transform hover:-translate-y-1 hover:shadow-md">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <p class="text-gray-500 text-sm">Cursos en Progreso</p>
+                                    <p class="text-gray-500 text-sm"><?= __('account.courses_in_progress') ?></p>
                                     <p class="text-2xl font-bold mt-1"><?php echo $coursesCount; ?></p>
                                 </div>
                                 <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
                                     <i class="fas fa-graduation-cap text-purple-600 text-xl"></i>
                                 </div>
                             </div>
-                            <a href="/my-account?tab=my-courses" class="text-blue-600 text-sm font-medium mt-4 inline-block hover:underline">Continuar aprendiendo →</a>
+                            <a href="/my-account?tab=my-courses" class="text-blue-600 text-sm font-medium mt-4 inline-block hover:underline"><?= __('account.continue_learning') ?></a>
                         </div>
                     </div>
                     
@@ -219,20 +204,20 @@ $userEmail = $user['email'] ?? '';
                     <div class="bg-white rounded-xl shadow-sm border mb-8">
                         <div class="p-6 border-b flex justify-between items-center">
                             <div>
-                                <h3 class="text-lg font-semibold">Pedidos Recientes</h3>
-                                <p class="text-gray-500 text-sm">Tus últimos pedidos en la plataforma</p>
+                                <h3 class="text-lg font-semibold"><?= __('account.recent_orders') ?></h3>
+                                <p class="text-gray-500 text-sm"><?= __('account.recent_orders_sub') ?></p>
                             </div>
-                            <a href="/my-account?tab=orders" class="text-blue-600 text-sm font-medium hover:underline">Ver todos</a>
+                            <a href="/my-account?tab=orders" class="text-blue-600 text-sm font-medium hover:underline"><?= __('account.view_all') ?></a>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número de pedido</th>
-                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= __('account.order_number') ?></th>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= __('account.date') ?></th>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= __('account.status') ?></th>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= __('account.total') ?></th>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= __('account.actions') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200 text-sm">
@@ -263,7 +248,7 @@ $userEmail = $user['email'] ?? '';
                                             </tr>
                                         <?php endforeach; ?>
                                     <?php else: ?>
-                                        <tr><td colspan="5" class="py-6 text-center text-gray-500">No hay pedidos recientes.</td></tr>
+                                        <tr><td colspan="5" class="py-6 text-center text-gray-500"><?= __('account.no_recent_orders') ?></td></tr>
                                     <?php endif; ?>
                                 </tbody>
                             </table>
@@ -274,10 +259,10 @@ $userEmail = $user['email'] ?? '';
                     <div class="bg-white rounded-xl shadow-sm border mb-8">
                         <div class="p-6 border-b flex justify-between items-center">
                             <div>
-                                <h3 class="text-lg font-semibold">Cursos Recomendados</h3>
-                                <p class="text-gray-500 text-sm">Contenido educativo para mejorar tus habilidades</p>
+                                <h3 class="text-lg font-semibold"><?= __('account.recommended') ?></h3>
+                                <p class="text-gray-500 text-sm"><?= __('account.recommended_sub') ?></p>
                             </div>
-                            <a href="/courses" class="text-blue-600 text-sm font-medium hover:underline">Ver catálogo</a>
+                            <a href="/courses" class="text-blue-600 text-sm font-medium hover:underline"><?= __('account.view_catalog') ?></a>
                         </div>
                         <div class="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
                             <?php if (!empty($recommended_courses)): ?>
@@ -303,7 +288,7 @@ $userEmail = $user['email'] ?? '';
                                             <h4 class="font-bold text-gray-800 line-clamp-2 h-12 mb-2"><?php echo htmlspecialchars($course['post_title']); ?></h4>
 
                                             <div class="mt-auto pt-4 border-t border-gray-100 flex items-center justify-end">
-                                                <a href="/product?id=<?php echo $course['ID']; ?>" class="px-4 py-2 bg-gray-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition text-sm font-medium">Ver Curso</a>
+                                                <a href="/courses/<?php echo htmlspecialchars($course['slug'] ?? ''); ?>" class="px-4 py-2 bg-gray-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-lg transition text-sm font-medium"><?= __('account.view_course') ?></a>
                                             </div>
                                         </div>
                                     </div>
@@ -350,7 +335,7 @@ $userEmail = $user['email'] ?? '';
                                 <?php endforeach; ?>
                             </div>
                             <div class="flex justify-between items-center mt-4 pt-4 border-t">
-                                <span class="text-lg font-bold">Total</span>
+                                <span class="text-lg font-bold"><?= __('account.total') ?></span>
                                 <span class="text-2xl font-bold text-blue-600">
                                     <?php echo htmlspecialchars($viewing_order['currency'] ?? '$'); ?> 
                                     <?php echo number_format($viewing_order['total'] ?? 0, 2); ?>
@@ -362,7 +347,7 @@ $userEmail = $user['email'] ?? '';
                             <a href="/my-account?tab=orders" class="px-4 py-2 border rounded-lg hover:bg-gray-50 text-gray-600">Volver</a>
                             <?php if (in_array(strtolower($viewing_order['status']), ['pending', 'failed', 'on-hold'])): ?>
                                 <button onclick="openPaymentModal('<?php echo $viewing_order['id']; ?>', '<?php echo number_format($viewing_order['total'] ?? 0, 2); ?>')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
-                                    Pagar Ahora
+                                    <?= __('account.pay_now') ?>
                                 </button>
                             <?php endif; ?>
                         </div>
@@ -403,11 +388,11 @@ $userEmail = $user['email'] ?? '';
                                     <thead class="bg-gray-50 border-b">
                                         <tr>
                                             <th class="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Pedido</th>
-                                            <th class="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha</th>
+                                            <th class="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"><?= __('account.date') ?></th>
                                             <th class="py-4 px-6 text-left text-xs font-bold text-gray-500 uppercase tracking-wider w-1/3">Productos</th>
-                                            <th class="py-4 px-6 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Estado</th>
-                                            <th class="py-4 px-6 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Total</th>
-                                            <th class="py-4 px-6 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Acciones</th>
+                                            <th class="py-4 px-6 text-center text-xs font-bold text-gray-500 uppercase tracking-wider"><?= __('account.status') ?></th>
+                                            <th class="py-4 px-6 text-right text-xs font-bold text-gray-500 uppercase tracking-wider"><?= __('account.total') ?></th>
+                                            <th class="py-4 px-6 text-center text-xs font-bold text-gray-500 uppercase tracking-wider"><?= __('account.actions') ?></th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-gray-100 text-sm">
@@ -520,7 +505,7 @@ $userEmail = $user['email'] ?? '';
                             </div>
                             <div class="bg-white p-5 rounded-xl border shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p class="text-sm text-gray-500 font-medium">Pedidos Pendientes</p>
+                                    <p class="text-sm text-gray-500 font-medium"><?= __('account.pending_orders') ?></p>
                                     <p class="text-2xl font-bold text-gray-900 mt-1"><?php echo $pendingOrders; ?></p>
                                 </div>
                                 <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center text-yellow-600">
@@ -603,7 +588,7 @@ $userEmail = $user['email'] ?? '';
                                     <?php endif; ?>
                                     
                                      <button onclick='openAddressModal("billing", <?php echo json_encode($addresses["billing"] ?? []); ?>)' class="mt-6 w-full py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 font-medium transition flex items-center justify-center">
-                                        <i class="fas fa-edit mr-2"></i> Editar Dirección
+                                        <i class="fas fa-edit mr-2"></i> <?= __('account.edit_address') ?>
                                     </button>
                                 </div>
                             </div>
@@ -635,11 +620,11 @@ $userEmail = $user['email'] ?? '';
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2"><?= __('account.first_name') ?></label>
                                         <input type="text" name="first_name" value="<?php echo htmlspecialchars($user['first_name'] ?? ''); ?>" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                                     </div>
                                     <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-2">Apellidos</label>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2"><?= __('account.last_name') ?></label>
                                         <input type="text" name="last_name" value="<?php echo htmlspecialchars($user['last_name'] ?? ''); ?>" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition">
                                     </div>
                                 </div>
@@ -685,7 +670,7 @@ $userEmail = $user['email'] ?? '';
                 <?php elseif ($currentTab === 'my-courses'): ?>
                     <div class="animate-fade-in-up">
                         <div class="mb-8">
-                            <h3 class="text-2xl font-bold text-gray-800">Mis Cursos</h3>
+                            <h3 class="text-2xl font-bold text-gray-800"><?= __('account.my_courses') ?></h3>
                             <p class="text-gray-500">Accede al contenido de tus cursos adquiridos</p>
                         </div>
 
@@ -847,7 +832,7 @@ $userEmail = $user['email'] ?? '';
                                         <i class="fas fa-university text-green-600 text-2xl"></i>
                                     </div>
                                     <div>
-                                        <h5 class="font-semibold">Transferencia Bancaria</h5>
+                                        <h5 class="font-semibold"><?= __('account.bank_transfer') ?></h5>
                                         <p class="text-sm text-gray-600">Cuenta guardada</p>
                                     </div>
                                 </div>
@@ -886,11 +871,11 @@ $userEmail = $user['email'] ?? '';
                             <table class="w-full">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= __('account.date') ?></th>
                                         <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
                                         <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método</th>
                                         <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
+                                        <th class="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"><?= __('account.status') ?></th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-200">
@@ -915,15 +900,15 @@ $userEmail = $user['email'] ?? '';
 
                 <?php elseif ($currentTab === 'account-details'): ?>
                     <div class="bg-white rounded-xl shadow-sm border p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-6">Detalles de la cuenta</h3>
+                        <h3 class="text-xl font-bold text-gray-800 mb-6"><?= __('account.account_details') ?></h3>
                         <form class="space-y-6 max-w-2xl">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Nombre</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2"><?= __('account.first_name') ?></label>
                                     <input type="text" value="Carlos" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Apellidos</label>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2"><?= __('account.last_name') ?></label>
                                     <input type="text" value="Lopez" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 </div>
                             </div>
@@ -1023,7 +1008,7 @@ $userEmail = $user['email'] ?? '';
     <div id="addressModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50">
         <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden transform transition-all">
             <div class="bg-gray-50 p-6 border-b flex justify-between items-center">
-                <h3 class="text-xl font-bold text-gray-800" id="addressModalTitle">Editar Dirección</h3>
+                <h3 class="text-xl font-bold text-gray-800" id="addressModalTitle"><?= __('account.edit_address') ?></h3>
                 <button onclick="closeAddressModal()" class="text-gray-500 hover:text-gray-700 transition">
                     <i class="fas fa-times text-xl"></i>
                 </button>
@@ -1033,39 +1018,39 @@ $userEmail = $user['email'] ?? '';
                     <input type="hidden" id="addr_type">
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.first_name') ?></label>
                             <input type="text" id="addr_first_name" name="first_name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Apellidos</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.last_name') ?></label>
                             <input type="text" id="addr_last_name" name="last_name" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Dirección (Calle y número)</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.street') ?></label>
                         <input type="text" id="addr_address_1" name="address_1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Ciudad</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.city') ?></label>
                             <input type="text" id="addr_city" name="city" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Código Postal</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.postal_code') ?></label>
                             <input type="text" id="addr_postcode" name="postcode" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">País</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.country') ?></label>
                         <input type="text" id="addr_country" name="country" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="mb-6">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.phone') ?></label>
                         <input type="text" id="addr_phone" name="phone" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="flex justify-end space-x-3">
-                        <button type="button" onclick="closeAddressModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50 text-gray-600">Cancelar</button>
-                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium">Guardar Dirección</button>
+                        <button type="button" onclick="closeAddressModal()" class="px-4 py-2 border rounded-lg hover:bg-gray-50 text-gray-600"><?= __('account.cancel') ?></button>
+                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"><?= __('account.save_address') ?></button>
                     </div>
                 </form>
             </div>
@@ -1080,8 +1065,8 @@ $userEmail = $user['email'] ?? '';
             <!-- Modal Header -->
             <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-6 flex justify-between items-center text-white">
                 <div>
-                    <h3 class="text-xl font-bold">Pagar Pedido #<span id="modalOrderId">000</span></h3>
-                    <p class="text-sm opacity-90">Total a pagar: <span id="modalOrderTotal">$0.00</span></p>
+                    <h3 class="text-xl font-bold"><?= __('account.pay_order') ?><span id="modalOrderId">000</span></h3>
+                    <p class="text-sm opacity-90"><?= __('account.total_to_pay') ?> <span id="modalOrderTotal">$0.00</span></p>
                 </div>
                 <button onclick="closePaymentModal()" class="text-white hover:text-gray-200 transition">
                     <i class="fas fa-times text-xl"></i>
@@ -1091,13 +1076,13 @@ $userEmail = $user['email'] ?? '';
             <!-- Payment Methods Tabs -->
             <div class="flex border-b">
                 <button onclick="switchPaymentTab('card')" id="tab-card" class="flex-1 py-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 bg-blue-50 focus:outline-none transition">
-                    <i class="fas fa-credit-card mr-2"></i> Tarjeta
+                    <i class="fas fa-credit-card mr-2"></i> <?= __('account.card') ?>
                 </button>
                 <button onclick="switchPaymentTab('paypal')" id="tab-paypal" class="flex-1 py-3 text-sm font-semibold text-gray-500 hover:text-blue-600 focus:outline-none transition">
                     <i class="fab fa-paypal mr-2"></i> PayPal
                 </button>
                 <button onclick="switchPaymentTab('transfer')" id="tab-transfer" class="flex-1 py-3 text-sm font-semibold text-gray-500 hover:text-blue-600 focus:outline-none transition">
-                    <i class="fas fa-university mr-2"></i> Transf.
+                    <i class="fas fa-university mr-2"></i> <?= __('account.transfer_short') ?>
                 </button>
             </div>
             
@@ -1105,18 +1090,18 @@ $userEmail = $user['email'] ?? '';
                  <!-- Loader Overlay -->
                 <div id="paymentLoader" class="absolute inset-0 bg-white bg-opacity-90 hidden flex-col items-center justify-center z-10">
                     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-3"></div>
-                    <p class="text-blue-600 font-semibold animate-pulse">Procesando pago...</p>
+                    <p class="text-blue-600 font-semibold animate-pulse"><?= __('account.processing') ?></p>
                 </div>
 
                 <!-- Card Form -->
                 <div id="content-card">
                     <form id="cardPaymentForm" onsubmit="processCardPayment(event)">
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Titular de la tarjeta</label>
-                            <input type="text" id="cardHolder" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nombre completo" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.cardholder') ?></label>
+                            <input type="text" id="cardHolder" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="<?= __('account.full_name') ?>" required>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de tarjeta</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.card_number') ?></label>
                             <div class="relative">
                                 <input type="text" id="cardNumber" maxlength="19" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10" placeholder="0000 0000 0000 0000" required>
                                 <i class="fas fa-credit-card absolute left-3 top-3 text-gray-400"></i>
@@ -1124,7 +1109,7 @@ $userEmail = $user['email'] ?? '';
                         </div>
                         <div class="grid grid-cols-2 gap-4 mb-6">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Vencimiento</label>
+                                <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.expiry') ?></label>
                                 <input type="text" id="cardExpiry" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="MM/YY" required>
                             </div>
                             <div>
@@ -1133,7 +1118,7 @@ $userEmail = $user['email'] ?? '';
                             </div>
                         </div>
                         <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg transition transform hover:scale-[1.02]">
-                            Pagar Ahora
+                            <?= __('account.pay_now') ?>
                         </button>
                     </form>
                 </div>
@@ -1141,39 +1126,39 @@ $userEmail = $user['email'] ?? '';
                 <!-- PayPal Content -->
                 <div id="content-paypal" class="hidden text-center py-4">
                     <i class="fab fa-paypal text-6xl text-blue-600 mb-4 animate-bounce"></i>
-                    <p class="mb-6 text-gray-600">Serás redirigido a PayPal para completar tu pago de forma segura.</p>
+                    <p class="mb-6 text-gray-600"><?= __('account.paypal_redirect') ?></p>
                     <button onclick="processPayPalPayment()" class="w-full bg-[#0070ba] hover:bg-[#003087] text-white font-bold py-3 rounded-lg shadow-lg transition flex items-center justify-center">
-                        <i class="fab fa-paypal mr-2"></i> Pagar con PayPal
+                        <i class="fab fa-paypal mr-2"></i> <?= __('account.pay_with_paypal') ?>
                     </button>
                 </div>
 
                 <!-- Transfer Content -->
                 <div id="content-transfer" class="hidden">
                     <div class="bg-gray-50 p-4 rounded-lg border mb-4 text-sm text-center">
-                        <p class="font-bold text-gray-800 mb-2 border-b pb-2">Datos Bancarios para Transferencia / ACH</p>
+                        <p class="font-bold text-gray-800 mb-2 border-b pb-2"><?= __('account.bank_details') ?></p>
                         <div class="text-left inline-block space-y-1">
-                            <p><span class="font-semibold text-gray-600 w-24 inline-block">Banco:</span> <span class="font-bold text-gray-900">BANCO GENERAL, S.A.</span></p>
-                            <p><span class="font-semibold text-gray-600 w-24 inline-block">Beneficiario:</span> <span class="font-bold text-gray-900">PAMEL SA</span></p>
-                            <p><span class="font-semibold text-gray-600 w-24 inline-block">Cuenta:</span> <span class="font-mono font-bold text-lg text-blue-800">04-51-98-483249-4</span></p>
-                            <p><span class="font-semibold text-gray-600 w-24 inline-block">Tipo:</span> <span class="text-gray-900">Ahorro</span></p>
-                            <p><span class="font-semibold text-gray-600 w-24 inline-block">Correo:</span> <span class="text-gray-900">info@pamel.edu.pa</span></p>
+                            <p><span class="font-semibold text-gray-600 w-24 inline-block"><?= __('account.bank') ?></span> <span class="font-bold text-gray-900">BANCO GENERAL, S.A.</span></p>
+                            <p><span class="font-semibold text-gray-600 w-24 inline-block"><?= __('account.beneficiary') ?></span> <span class="font-bold text-gray-900">PAMEL SA</span></p>
+                            <p><span class="font-semibold text-gray-600 w-24 inline-block"><?= __('account.account_no') ?></span> <span class="font-mono font-bold text-lg text-blue-800">04-51-98-483249-4</span></p>
+                            <p><span class="font-semibold text-gray-600 w-24 inline-block"><?= __('account.type') ?></span> <span class="text-gray-900"><?= __('account.savings') ?></span></p>
+                            <p><span class="font-semibold text-gray-600 w-24 inline-block"><?= __('account.email') ?></span> <span class="text-gray-900">info@pamel.edu.pa</span></p>
                         </div>
                     </div>
                     <form id="transferForm" onsubmit="processTransferReport(event)">
                         <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Número de Referencia</label>
-                            <input type="text" id="transferRef" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Ej: 8492033" required>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.reference') ?></label>
+                            <input type="text" id="transferRef" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="<?= __('account.ref_example') ?>" required>
                         </div>
                         <div class="mb-5">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Comprobante de Pago <span class="text-gray-400">(opcional)</span></label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><?= __('account.payment_receipt') ?> <span class="text-gray-400"><?= __('account.optional') ?></span></label>
                             <label for="transferReceipt" class="flex flex-col items-center justify-center w-full h-28 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition group">
                                 <i class="fas fa-cloud-upload-alt text-3xl text-gray-300 group-hover:text-blue-400 mb-1 transition"></i>
-                                <span class="text-sm text-gray-500 group-hover:text-blue-500" id="receiptFileName">Haz clic para subir imagen o PDF</span>
+                                <span class="text-sm text-gray-500 group-hover:text-blue-500" id="receiptFileName"><?= __('account.click_to_upload') ?></span>
                             </label>
                             <input type="file" id="transferReceipt" accept="image/*,.pdf" class="hidden" onchange="updateReceiptName(this)">
                         </div>
                         <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-lg shadow-lg transition">
-                            <i class="fas fa-paper-plane mr-2"></i> Reportar Transferencia
+                            <i class="fas fa-paper-plane mr-2"></i> <?= __('account.report_transfer') ?>
                         </button>
                     </form>
                 </div>
@@ -1269,7 +1254,7 @@ $userEmail = $user['email'] ?? '';
 
         function updateReceiptName(input) {
             const label = document.getElementById('receiptFileName');
-            label.textContent = input.files[0] ? input.files[0].name : 'Haz clic para subir imagen o PDF';
+            label.textContent = input.files[0] ? input.files[0].name : '<?= __('account.click_to_upload') ?>';
         }
 
         async function processTransferReport(e) {
@@ -1307,7 +1292,7 @@ $userEmail = $user['email'] ?? '';
         function openAddressModal(type, data) {
             document.getElementById('addressModal').classList.remove('hidden');
             document.getElementById('addressModal').classList.add('flex');
-            document.getElementById('addressModalTitle').textContent = type === 'billing' ? 'Editar Dirección de Facturación' : 'Editar Dirección de Envío';
+            document.getElementById('addressModalTitle').textContent = type === 'billing' ? <?= json_encode(__('account.edit_billing_address')) ?> : <?= json_encode(__('account.edit_shipping_address')) ?>;
             document.getElementById('addr_type').value = type;
 
             const fields = ['first_name', 'last_name', 'address_1', 'city', 'postcode', 'country', 'phone'];

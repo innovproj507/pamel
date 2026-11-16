@@ -3,19 +3,19 @@
         <a href="/manager/orders" class="text-gray-600 hover:text-gray-900 font-medium">← Back to Orders</a>
     </div>
 
-    <h1 class="text-3xl font-bold text-gray-900 mb-6">Order #<?php echo $order['id']; ?></h1>
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">Pedido #<?php echo $order['id']; ?></h1>
 
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Order Details -->
         <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Order Information</h2>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Información del pedido</h2>
             <dl class="space-y-3">
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Order ID</dt>
+                    <dt class="text-sm font-medium text-gray-500">N.º de pedido</dt>
                     <dd class="mt-1 text-sm text-gray-900">#<?php echo $order['id']; ?></dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Status</dt>
+                    <dt class="text-sm font-medium text-gray-500">Estado</dt>
                     <dd class="mt-1">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
                             <?php echo ucfirst($order['status']); ?>
@@ -23,11 +23,11 @@
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Date</dt>
+                    <dt class="text-sm font-medium text-gray-500">Fecha</dt>
                     <dd class="mt-1 text-sm text-gray-900"><?php echo date('F d, Y H:i', strtotime($order['created_at'])); ?></dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Total Amount</dt>
+                    <dt class="text-sm font-medium text-gray-500">Importe total</dt>
                     <dd class="mt-1 text-lg font-bold text-primary">$<?php echo number_format($order['total_amount'], 2); ?></dd>
                 </div>
             </dl>
@@ -35,22 +35,22 @@
 
         <!-- Customer Details -->
         <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Customer Information</h2>
+            <h2 class="text-lg font-medium text-gray-900 mb-4">Datos del cliente</h2>
             <dl class="space-y-3">
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Name</dt>
+                    <dt class="text-sm font-medium text-gray-500">Nombre</dt>
                     <dd class="mt-1 text-sm text-gray-900"><?php echo htmlspecialchars($order['customer_name'] ?? 'N/A'); ?></dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Email</dt>
+                    <dt class="text-sm font-medium text-gray-500">Correo</dt>
                     <dd class="mt-1 text-sm text-gray-900"><?php echo htmlspecialchars($order['customer_email'] ?? 'N/A'); ?></dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Phone</dt>
+                    <dt class="text-sm font-medium text-gray-500">Teléfono</dt>
                     <dd class="mt-1 text-sm text-gray-900"><?php echo htmlspecialchars($order['customer_phone'] ?: 'N/A'); ?></dd>
                 </div>
                 <div>
-                    <dt class="text-sm font-medium text-gray-500">Shipping Address</dt>
+                    <dt class="text-sm font-medium text-gray-500">Dirección de envío</dt>
                     <dd class="mt-1 text-sm text-gray-900"><?php echo nl2br(htmlspecialchars($order['shipping_address'] ?: 'N/A')); ?></dd>
                 </div>
             </dl>
@@ -59,13 +59,13 @@
 
     <!-- Order Items -->
     <div class="mt-6 bg-white shadow rounded-lg p-6">
-        <h2 class="text-lg font-medium text-gray-900 mb-4">Order Items</h2>
+        <h2 class="text-lg font-medium text-gray-900 mb-4">Artículos del pedido</h2>
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Producto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cantidad</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Precio</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                 </tr>
             </thead>
