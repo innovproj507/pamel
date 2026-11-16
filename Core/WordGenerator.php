@@ -905,12 +905,13 @@ class WordGenerator
         if ($filasOf->length > 1) {
             $celdaInstructor = $xp->query('./w:tc', $filasOf->item(1))->item(0);
             $marca = !empty($e['verified_at']) ? '☒' : '☐';
-            self::escribirEnCelda($dom, $xp, $celdaInstructor, $marca . ' ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', true, 14);
-            self::escribirEnCelda($dom, $xp, $celdaInstructor, "THIS EXAM HAS BEEN VERIFIED AND HAS THE INSTRUCTOR'S APPROVAL.", false, 14);
+            self::escribirEnCelda($dom, $xp, $celdaInstructor, $marca . ' ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', true, 13);
+            self::escribirEnCelda($dom, $xp, $celdaInstructor, "THIS EXAM HAS BEEN VERIFIED AND HAS THE INSTRUCTOR'S APPROVAL.", false, 13);
             if (!empty($e['verified_at'])) {
                 $quien = trim((string) ($e['verified_by_name'] ?? ''));
-                self::escribirEnCelda($dom, $xp, $celdaInstructor, ($quien !== '' ? $quien . ' · ' : '') . date('d/m/Y', strtotime((string) $e['verified_at'])), true, 16);
+                self::escribirEnCelda($dom, $xp, $celdaInstructor, ($quien !== '' ? $quien . ' · ' : '') . date('d/m/Y', strtotime((string) $e['verified_at'])), true, 14);
             }
+            self::compactarCelda($dom, $xp, $celdaInstructor);
         }
         if ($filasOf->length > 1) {
             $celdaFecha = $xp->query('./w:tc', $filasOf->item(1))->item(2);
@@ -962,6 +963,34 @@ class WordGenerator
             $jc = $dom->createElementNS($w, 'w:jc');
             $jc->setAttributeNS($w, 'w:val', 'center');
             $pPr->appendChild($jc);
+        }
+    }
+
+    /**
+     * Junta los párrafos de una celda: sin separación entre ellos (la etiqueta conserva
+     * un respiro mínimo), para que lo añadido quede pegado a la etiqueta y no deje huecos.
+     */
+    private static function compactarCelda(\DOMDocument $dom, \DOMXPath $xp, ?\DOMNode $tc): void
+    {
+        if (!$tc) {
+            return;
+        }
+        $w = self::NS_W;
+        $parrafos = $xp->query('./w:p', $tc);
+        foreach ($parrafos as $i => $p) {
+            $pPr = $xp->query('./w:pPr', $p)->item(0);
+            if (!$pPr) {
+                $pPr = $dom->createElementNS($w, 'w:pPr');
+                $p->insertBefore($pPr, $p->firstChild);
+            }
+            foreach (iterator_to_array($xp->query('./w:spacing', $pPr)) as $viejo) { $pPr->removeChild($viejo); }
+            $sp = $dom->createElementNS($w, 'w:spacing');
+            $sp->setAttributeNS($w, 'w:before', '0');
+            $sp->setAttributeNS($w, 'w:after', $i === 0 ? '40' : '0');
+            $sp->setAttributeNS($w, 'w:line', '240');
+            $sp->setAttributeNS($w, 'w:lineRule', 'auto');
+            // spacing va antes de jc/ind en pPr; se coloca al principio (tras keepNext/keepLines, que no hay)
+            $pPr->insertBefore($sp, $pPr->firstChild);
         }
     }
 
