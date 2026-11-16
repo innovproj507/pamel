@@ -900,8 +900,13 @@ class WordGenerator
         // genera solo, con lo que respondió el estudiante, y no consta que nadie lo haya revisado.
         if ($filasOf->length > 1) {
             $celdaInstructor = $xp->query('./w:tc', $filasOf->item(1))->item(0);
-            self::escribirEnCelda($dom, $xp, $celdaInstructor, '☐ ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', true, 14);
+            $marca = !empty($e['verified_at']) ? '☒' : '☐';
+            self::escribirEnCelda($dom, $xp, $celdaInstructor, $marca . ' ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', true, 14);
             self::escribirEnCelda($dom, $xp, $celdaInstructor, "THIS EXAM HAS BEEN VERIFIED AND HAS THE INSTRUCTOR'S APPROVAL.", false, 14);
+            if (!empty($e['verified_at'])) {
+                $quien = trim((string) ($e['verified_by_name'] ?? ''));
+                self::escribirEnCelda($dom, $xp, $celdaInstructor, ($quien !== '' ? $quien . ' · ' : '') . date('d/m/Y', strtotime((string) $e['verified_at'])), true, 16);
+            }
         }
         if ($filasOf->length > 1) {
             $celdaFecha = $xp->query('./w:tc', $filasOf->item(1))->item(2);

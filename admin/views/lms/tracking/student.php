@@ -113,12 +113,12 @@ $estados = [
         <table class="w-full min-w-[760px] table-fixed text-[13px]">
             <thead class="bg-gray-50">
                 <tr class="text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                    <th class="px-3 py-2 w-[30%]">Evaluación</th>
-                    <th class="px-3 py-2 w-[26%]">Curso</th>
+                    <th class="px-3 py-2 w-[26%]">Evaluación</th>
+                    <th class="px-3 py-2 w-[24%]">Curso</th>
                     <th class="px-3 py-2 w-[13%]">Fecha</th>
                     <th class="px-3 py-2 w-[13%] text-center">Nota</th>
                     <th class="px-3 py-2 w-[10%] text-center">Resultado</th>
-                    <th class="px-3 py-2 w-[8%] text-right">Acta</th>
+                    <th class="px-3 py-2 w-[14%] text-right">Acta</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100">
@@ -148,7 +148,23 @@ $estados = [
                             <i class="fas <?= $e['passed'] ? 'fa-check' : 'fa-xmark' ?> text-xs"></i>
                         </span>
                     </td>
-                    <td class="px-3 py-2 text-right">
+                    <td class="px-3 py-2 text-right whitespace-nowrap">
+                        <form method="POST" action="/manager/lms/actas/<?= (int) $e['id'] ?>/verificar" class="inline"
+                              onsubmit="return confirm('<?= $e['verified_at'] ? 'Retirar la conformidad del instructor' : 'Confirmar que el examen fue verificado y cuenta con la conformidad del instructor' ?>?')">
+                            <?= \Core\Security::getCsrfField() ?>
+                            <?php if ($e['verified_at']): ?>
+                            <input type="hidden" name="accion" value="quitar">
+                            <button type="submit" class="w-7 h-7 inline-flex items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 hover:bg-rose-50 hover:text-rose-600 transition"
+                                    title="Verificado por <?= htmlspecialchars((string) $e['verified_by_name']) ?> el <?= date('d/m/Y', strtotime($e['verified_at'])) ?>. Clic para retirar">
+                                <i class="fas fa-circle-check text-xs"></i>
+                            </button>
+                            <?php else: ?>
+                            <button type="submit" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-300 hover:bg-emerald-50 hover:text-emerald-600 transition"
+                                    title="Marcar como verificado por el instructor">
+                                <i class="far fa-circle-check text-xs"></i>
+                            </button>
+                            <?php endif; ?>
+                        </form>
                         <a href="/manager/lms/actas/<?= (int) $e['id'] ?>"
                            class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition"
                            title="Descargar el examen en Word">

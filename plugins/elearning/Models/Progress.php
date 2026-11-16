@@ -328,19 +328,33 @@ class Progress extends Model
     {
         return $this->db->fetchAll(
             "SELECT a.id, a.score, a.passed, a.started_at, a.completed_at,
+                    a.verified_at, vu.name AS verified_by_name,
                     q.title AS examen, q.pass_percentage,
                     c.title AS curso, c.id AS course_id,
                     (SELECT COUNT(*) FROM lms_quiz_answers WHERE attempt_id = a.id) AS respuestas
                FROM lms_quiz_attempts a
                JOIN lms_quizzes q  ON q.id = a.quiz_id
                JOIN lms_courses c  ON c.id = q.course_id
+          LEFT JOIN users vu      ON vu.id = a.verified_by
               WHERE a.student_id = ?
               ORDER BY a.id DESC",
             [$studentId]
         );
     }
 
-    /** Un intento con todo lo necesario para el acta. */
+    /** Marca (o quita) la conformidad del instructor sobre un examen. */
+    public function verificar(int $attemptId, int $userId, bool $verificado = true): bool
+    {
+        return (bool) $this->db->update(
+            'lms_quiz_attempts',
+            $verificado
+                ? ['verified_by' => $userId, 'verified_at' => date('Y-m-d H:i:s')]
+                : ['verified_by' => null, 'verified_at' => null],
+            'id = :intento',
+            ['intento' => $attemptId]
+        );
+    }
+
     /**
      * Un intento listo para imprimirse en el formato de examen teórico:
      * quién es el candidato, y cada pregunta presentada con todas sus
@@ -355,6 +369,12 @@ class Progress extends Model
         $a = $this->intentoCompleto($attemptId);
         if (!$a) {
             return null;
+        }
+
+        $a['verified_by_name'] = null;
+        if (!empty($a['verified_by'])) {
+            $v = $this->db->fetchOne('SELECT name FROM users WHERE id = ?', [(int) $a['verified_by']]);
+            $a['verified_by_name'] = $v['name'] ?? null;
         }
 
         // Nombre y apellido por separado: la tabla de usuarios guarda uno solo.

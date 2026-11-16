@@ -150,6 +150,7 @@ return function($router) {
     $router->get('/manager/lms/seguimiento', 'Admin\Controllers\AdminTrackingController@index', 'admin.lms.seguimiento');
     $router->get('/manager/lms/seguimiento/estudiante/:id', 'Admin\Controllers\AdminTrackingController@student', 'admin.lms.seguimiento.estudiante');
     $router->get('/manager/lms/actas/:id', 'Admin\Controllers\AdminTrackingController@downloadAttempt', 'admin.lms.actas');
+    $router->post('/manager/lms/actas/:id/verificar', 'Admin\Controllers\AdminTrackingController@verifyAttempt', 'admin.lms.actas.verificar');
 
     $router->get('/manager/lms/students', 'Plugins\Elearning\Controllers\AdminEnrollmentController@index', 'admin.lms.students');
     $router->get('/manager/lms/students/create', 'Plugins\Elearning\Controllers\AdminEnrollmentController@create', 'admin.lms.students.create');

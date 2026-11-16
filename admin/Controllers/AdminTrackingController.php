@@ -151,6 +151,26 @@ class AdminTrackingController extends Controller
         exit;
     }
 
+    /** El instructor da su conformidad a un examen (o la retira). */
+    public function verifyAttempt($id): void
+    {
+        Auth::getInstance()->requireCan('lms.courses.manage', '/manager/login');
+        $this->requireCsrf();
+
+        $id = (int) $id;
+        $intento = $this->progreso->intentoCompleto($id);
+        if (!$intento) {
+            $this->flash('error', 'El examen no existe.');
+            $this->redirect('/manager/lms/seguimiento');
+        }
+
+        $quitar = ($_POST['accion'] ?? '') === 'quitar';
+        $usuario = Auth::getInstance()->user();
+        $this->progreso->verificar($id, (int) $usuario['id'], !$quitar);
+        $this->flash('success', $quitar ? 'Se retiró la conformidad del instructor.' : 'Examen verificado: el Word saldrá con la conformidad del instructor.');
+        $this->redirect('/manager/lms/seguimiento/estudiante/' . (int) $intento['student_id']);
+    }
+
     /** Firma de un enlace de descarga, para el portal del estudiante. */
     public static function firmaActa(int $attemptId): string
     {
