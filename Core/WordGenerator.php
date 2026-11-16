@@ -836,8 +836,8 @@ class WordGenerator
         self::centrarVerticalmente($dom, $xp, $celda(3, 0));
         self::centrarVerticalmente($dom, $xp, $celda(3, 1));
         // En lugar de firma: el examen se presentó en línea y la identidad la acredita el acceso personal
-        self::escribirEnCelda($dom, $xp, $celda(4, 1), 'Evaluación en línea. La identidad del candidato fue verificada mediante su acceso personal a la plataforma PAMEL.', false, 15);
-        self::escribirEnCelda($dom, $xp, $celda(4, 1), "Online assessment. The candidate's identity was verified through their personal access to the PAMEL platform.", false, 15);
+        self::escribirEnCelda($dom, $xp, $celda(4, 1), 'La identidad del candidato fue verificada mediante su acceso personal a la plataforma PAMEL.', false, 15);
+        self::escribirEnCelda($dom, $xp, $celda(4, 1), "The candidate's identity was verified through their personal access to the PAMEL platform.", false, 15);
         self::centrarVerticalmente($dom, $xp, $celda(4, 1));
 
         // 3) Bloque de preguntas: se sustituye todo lo que hay entre "PART A" y el recuadro de oficina
