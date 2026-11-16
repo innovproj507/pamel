@@ -387,10 +387,25 @@ class Quiz extends Model
         $totalPoints  = 0;
         $earnedPoints = 0;
 
+        // Algunas preguntas importadas traen más de una opción marcada como
+        // correcta (88 en la base). Con un solo "correct_option_id" quien
+        // elegía otra de las correctas salía equivocado: vale cualquiera.
+        $correctas = [];
+        $idsPregunta = array_map(static fn($q) => (int) $q['id'], $questions);
+        if ($idsPregunta) {
+            $filas = $this->db->fetchAll(
+                "SELECT question_id, id FROM lms_question_options
+                 WHERE is_correct = 1 AND question_id IN (" . implode(',', $idsPregunta) . ")"
+            );
+            foreach ($filas as $f) {
+                $correctas[(int) $f['question_id']][(int) $f['id']] = true;
+            }
+        }
+
         foreach ($questions as $q) {
             $totalPoints += (float)$q['points'];
             $selectedId   = (int) ($answers[$q['id']] ?? 0);
-            $isCorrect    = $selectedId === (int) $q['correct_option_id'];
+            $isCorrect    = $selectedId > 0 && isset($correctas[(int) $q['id']][$selectedId]);
 
             if ($isCorrect) $earnedPoints += (float)$q['points'];
 

@@ -153,6 +153,12 @@ class QuizzesApiController extends Controller
             $this->apiResponse(['status' => 'error', 'message' => 'Quiz no encontrado'], 404);
         }
 
+        // Un examen sin preguntas daba 0 de 0 y se llevaba un intento del alumno.
+        $conPreguntas = $this->db->fetchOne("SELECT COUNT(*) AS n FROM lms_questions WHERE quiz_id = ?", [(int) $id]);
+        if ((int) ($conPreguntas['n'] ?? 0) === 0) {
+            $this->apiResponse(['status' => 'error', 'message' => 'Este examen aún no tiene preguntas'], 409);
+        }
+
         // El tope de intentos se decide aquí, no en el portal: el portal es
         // un cliente más de esta API y cualquiera podría llamarla directamente.
         $estado = $this->quizModel->estadoIntentos($userId, (int) $id);

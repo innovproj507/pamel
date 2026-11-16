@@ -160,6 +160,23 @@ class Course extends Model
             $lessonQuizzes[$lq['lesson_id']] = $lq;
         }
 
+        // Cuántas preguntas tiene cada quiz suelto: el portal oculta a los
+        // alumnos los que están vacíos y no los cuenta al colocar un quiz
+        // cada tres módulos.
+        if ($quizzes) {
+            $ids    = implode(',', array_map(static fn($q) => (int) $q['id'], $quizzes));
+            $conteo = [];
+            foreach ($this->db->fetchAll(
+                "SELECT quiz_id, COUNT(*) AS n FROM lms_questions WHERE quiz_id IN ({$ids}) GROUP BY quiz_id"
+            ) as $fila) {
+                $conteo[(int) $fila['quiz_id']] = (int) $fila['n'];
+            }
+            foreach ($quizzes as &$q) {
+                $q['question_count'] = $conteo[(int) $q['id']] ?? 0;
+            }
+            unset($q);
+        }
+
         return ['lessons' => $lessons, 'quizzes' => $quizzes, 'lesson_quizzes' => $lessonQuizzes];
     }
 
