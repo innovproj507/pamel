@@ -19,15 +19,15 @@ return function($router) {
 
     // Products
     $router->get('/manager/products', 'Plugins\Ecommerce\Controllers\AdminProductController@index', 'admin.products');
-    $router->get('/manager/products/create', 'Plugins\Ecommerce\Controllers\AdminProductController@create', 'admin.products.create');
-    $router->post('/manager/products/store', 'Plugins\Ecommerce\Controllers\AdminProductController@store', 'admin.products.store');
-    $router->get('/manager/products/:id/edit', 'Plugins\Ecommerce\Controllers\AdminProductController@edit', 'admin.products.edit');
-    $router->post('/manager/products/:id/update', 'Plugins\Ecommerce\Controllers\AdminProductController@update', 'admin.products.update');
+    $router->get('/manager/products/create', 'Plugins\Ecommerce\Controllers\AdminCourseSheetController@create', 'admin.products.create');
+    $router->post('/manager/products/store', 'Plugins\Ecommerce\Controllers\AdminCourseSheetController@store', 'admin.products.store');
+    $router->get('/manager/products/:id/edit', 'Plugins\Ecommerce\Controllers\AdminCourseSheetController@edit', 'admin.products.edit');
+    $router->post('/manager/products/:id/update', 'Plugins\Ecommerce\Controllers\AdminCourseSheetController@update', 'admin.products.update');
     $router->post('/manager/products/:id/delete', 'Plugins\Ecommerce\Controllers\AdminProductController@delete', 'admin.products.delete');
     $router->post('/manager/products/sync-courses', 'Plugins\Ecommerce\Controllers\AdminProductController@syncCourses', 'admin.products.sync');
 
     // Categories
-    $router->get('/manager/categories', 'Plugins\Ecommerce\Controllers\AdminCategoryController@index', 'admin.categories');
+    $router->get('/manager/categories','Plugins\Ecommerce\Controllers\AdminCategoryController@index', 'admin.categories');
     $router->get('/manager/categories/create', 'Plugins\Ecommerce\Controllers\AdminCategoryController@create', 'admin.categories.create');
     $router->post('/manager/categories/store', 'Plugins\Ecommerce\Controllers\AdminCategoryController@store', 'admin.categories.store');
     $router->get('/manager/categories/:id/edit', 'Plugins\Ecommerce\Controllers\AdminCategoryController@edit', 'admin.categories.edit');

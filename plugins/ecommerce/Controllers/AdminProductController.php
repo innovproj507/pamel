@@ -59,135 +59,6 @@ class AdminProductController extends Controller
         ], 'admin/views/layout');
     }
 
-    public function create()
-    {
-        $auth = Auth::getInstance();
-        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
-
-        $this->view->render('plugins/ecommerce/views/admin/product-form', [
-            'title' => 'Create Product',
-            'product' => null
-        ], 'admin/views/layout');
-    }
-
-    public function store()
-    {
-        $auth = Auth::getInstance();
-        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->requireCsrf();
-            $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->generateSlug($_POST['name']);
-
-            $originalSlug = $slug;
-            $counter = 1;
-            while ($this->productModel->findBySlug($slug)) {
-                $slug = $originalSlug . '-' . $counter;
-                $counter++;
-            }
-
-            $imagePath = $this->handleImageUpload($_POST['image_url'] ?? '', $_POST['current_image'] ?? '');
-
-            $data = [
-                'name'               => $_POST['name'],
-                'slug'               => $slug,
-                'description'        => $_POST['description'],
-                'price'              => $_POST['price'],
-                'renewal_price'      => $_POST['renewal_price'] ?? 0,
-                'stock'              => $_POST['stock'],
-                'category_id'        => !empty($_POST['category_id']) ? $_POST['category_id'] : null,
-                'branch_id'          => !empty($_POST['branch_id']) ? $_POST['branch_id'] : null,
-                'modality_id'        => !empty($_POST['modality_id']) ? (int) $_POST['modality_id'] : null,
-                'imo_model_course_no'=> !empty($_POST['imo_model_course_no']) ? $_POST['imo_model_course_no'] : null,
-                'course_code'        => !empty($_POST['course_code']) ? $_POST['course_code'] : null,
-                'duration_hours'     => !empty($_POST['duration_hours']) ? floatval($_POST['duration_hours']) : 0,
-                'image'              => $imagePath,
-                'status'             => $_POST['status'],
-            ];
-
-            $newId = $this->productModel->create($data);
-            if ($newId) {
-                $this->autoCreateLmsCourse(
-                    (int)$newId,
-                    $data['name'],
-                    $data['description'] ?? '',
-                    (float)($data['price'] ?? 0),
-                    $data['course_code'] ?? null,
-                    !empty($data['branch_id']) ? (int)$data['branch_id'] : null
-                );
-                $this->redirect('/manager/products');
-            } else {
-                error_log("Product create failed for: " . ($_POST['name'] ?? ''));
-                $this->redirect('/manager/products/create');
-            }
-        } else {
-            $this->redirect('/manager/products/create');
-        }
-    }
-
-    public function edit($id)
-    {
-        $auth = Auth::getInstance();
-        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
-
-        $product = $this->productModel->find($id);
-
-        $this->view->render('plugins/ecommerce/views/admin/product-form', [
-            'title' => 'Edit Product',
-            'product' => $product
-        ], 'admin/views/layout');
-    }
-
-    public function update($id)
-    {
-        $auth = Auth::getInstance();
-        \Core\Auth::getInstance()->requireCan('shop.manage', '/manager/login');
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->requireCsrf();
-            $slug = !empty($_POST['slug']) ? $_POST['slug'] : $this->generateSlug($_POST['name']);
-            $imagePath = $this->handleImageUpload($_POST['image_url'] ?? '', $_POST['current_image'] ?? '');
-            $branchId = !empty($_POST['branch_id']) ? intval($_POST['branch_id']) : null;
-
-            $productUpdated = $this->productModel->update($id, [
-                'name' => $_POST['name'],
-                'slug' => $slug,
-                'description' => $_POST['description'],
-                'price' => $_POST['price'],
-                'renewal_price' => $_POST['renewal_price'] ?? 0,
-                'stock' => $_POST['stock'],
-                'category_id' => $_POST['category_id'] ?? null,
-                'branch_id' => $branchId,
-                'modality_id' => !empty($_POST['modality_id']) ? (int) $_POST['modality_id'] : null,
-                'imo_model_course_no' => $_POST['imo_model_course_no'] ?? null,
-                'course_code' => $_POST['course_code'] ?? null,
-                'duration_hours' => !empty($_POST['duration_hours']) ? floatval($_POST['duration_hours']) : 0,
-                'image' => $imagePath,
-                'status' => $_POST['status']
-            ]);
-
-            // Keep the linked LMS course's price field in sync (no-op if unlinked)
-            if ($productUpdated) {
-                $this->db->update('lms_courses', ['price' => $_POST['price']], 'product_id = :pid', ['pid' => (int) $id]);
-            }
-
-            // If no LMS course linked yet, auto-create one
-            $existing = $this->db->fetchOne("SELECT id FROM lms_courses WHERE product_id = ?", [(int)$id]);
-            if (!$existing) {
-                $this->autoCreateLmsCourse(
-                    (int)$id,
-                    $_POST['name'],
-                    $_POST['description'] ?? '',
-                    (float)($_POST['price'] ?? 0),
-                    !empty($_POST['course_code']) ? $_POST['course_code'] : null,
-                    $branchId
-                );
-            }
-
-            $this->redirect('/manager/products');
-        }
-    }
-
     public function delete($id)
     {
         $auth = Auth::getInstance();
@@ -215,7 +86,8 @@ class AdminProductController extends Controller
         return $map[$productBranchId] ?? null;
     }
 
-    private function autoCreateLmsCourse(int $productId, string $name, string $description, float $price, ?string $courseCode = null, ?int $productBranchId = null): void
+    // Pública: la usa también la ficha única de curso al crear una oferta.
+    public function autoCreateLmsCourse(int $productId, string $name, string $description, float $price, ?string $courseCode = null, ?int $productBranchId = null): void
     {
         $existing = $this->db->fetchOne("SELECT id FROM lms_courses WHERE product_id = ?", [$productId]);
         if ($existing) {
@@ -303,7 +175,8 @@ class AdminProductController extends Controller
         return trim($slug, '-');
     }
     
-    private function handleImageUpload($imageUrl = '', $currentImage = '')
+    // Pública por la misma razón que autoCreateLmsCourse().
+    public function handleImageUpload($imageUrl = '', $currentImage = '')
     {
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
