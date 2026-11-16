@@ -836,6 +836,10 @@ class WordGenerator
         self::centrarVerticalmente($dom, $xp, $celda(3, 0));
         self::centrarVerticalmente($dom, $xp, $celda(3, 1));
         // En lugar de firma: el examen se presentó en línea y la identidad la acredita el acceso personal
+        // El párrafo vacío que trae la casilla dejaba un hueco encima del texto
+        foreach (iterator_to_array($xp->query('./w:p', $celda(4, 1))) as $vacio) {
+            if (trim($vacio->textContent) === '') { $vacio->parentNode->removeChild($vacio); }
+        }
         self::agregarParrafo($dom, $celda(4, 1), [['La identidad del candidato fue verificada mediante su acceso personal a la plataforma PAMEL.', ['sz' => 15]]]);
         self::agregarParrafo($dom, $celda(4, 1), [["The candidate's identity was verified through their personal access to the PAMEL platform.", ['sz' => 15, 'i' => true]]]);
         self::centrarVerticalmente($dom, $xp, $celda(4, 1));
