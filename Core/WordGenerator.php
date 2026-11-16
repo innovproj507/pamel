@@ -836,9 +836,12 @@ class WordGenerator
         self::centrarVerticalmente($dom, $xp, $celda(3, 0));
         self::centrarVerticalmente($dom, $xp, $celda(3, 1));
         // En lugar de firma: el examen se presentó en línea y la identidad la acredita el acceso personal
-        self::escribirEnCelda($dom, $xp, $celda(4, 1), 'La identidad del candidato fue verificada mediante su acceso personal a la plataforma PAMEL.', false, 15);
-        self::escribirEnCelda($dom, $xp, $celda(4, 1), "The candidate's identity was verified through their personal access to the PAMEL platform.", false, 15);
+        self::agregarParrafo($dom, $celda(4, 1), [['La identidad del candidato fue verificada mediante su acceso personal a la plataforma PAMEL.', ['sz' => 15]]]);
+        self::agregarParrafo($dom, $celda(4, 1), [["The candidate's identity was verified through their personal access to the PAMEL platform.", ['sz' => 15, 'i' => true]]]);
         self::centrarVerticalmente($dom, $xp, $celda(4, 1));
+
+        // Todo lo que el formato dice en inglés, en cursiva
+        self::inglesEnCursiva($dom, $xp);
 
         // 3) Bloque de preguntas: se sustituye todo lo que hay entre "PART A" y el recuadro de oficina
         $partA = null;
@@ -904,14 +907,23 @@ class WordGenerator
         // genera solo, con lo que respondió el estudiante, y no consta que nadie lo haya revisado.
         if ($filasOf->length > 1) {
             $celdaInstructor = $xp->query('./w:tc', $filasOf->item(1))->item(0);
-            $marca = !empty($e['verified_at']) ? '☒' : '☐';
-            self::escribirEnCelda($dom, $xp, $celdaInstructor, $marca . ' ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', true, 13);
-            self::escribirEnCelda($dom, $xp, $celdaInstructor, "THIS EXAM HAS BEEN VERIFIED AND HAS THE INSTRUCTOR'S APPROVAL.", false, 13);
-            if (!empty($e['verified_at'])) {
-                $quien = trim((string) ($e['verified_by_name'] ?? ''));
-                self::escribirEnCelda($dom, $xp, $celdaInstructor, ($quien !== '' ? $quien . ' · ' : '') . date('d/m/Y', strtotime((string) $e['verified_at'])), true, 14);
-            }
+            $verificado = !empty($e['verified_at']);
+            $quien = trim((string) ($e['verified_by_name'] ?? ''));
+            $diaVerif = $verificado ? date('d/m/Y', strtotime((string) $e['verified_at'])) : '';
+
             self::compactarCelda($dom, $xp, $celdaInstructor);
+            self::agregarParrafo($dom, $celdaInstructor, [
+                [$verificado ? '☒' : '☐', ['sz' => 17, 'font' => 'MS Gothic']],
+                [' ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', ['sz' => 13, 'b' => true]],
+            ]);
+            self::agregarParrafo($dom, $celdaInstructor, [["THIS EXAM HAS BEEN VERIFIED AND HAS THE INSTRUCTOR'S APPROVAL.", ['sz' => 13, 'i' => true]]]);
+            // Línea de firma, con el nombre del instructor debajo cuando ya lo verificó
+            self::agregarParrafo($dom, $celdaInstructor, [[$quien, ['sz' => 18, 'b' => true]]], ['antes' => 520, 'linea' => true]);
+            self::agregarParrafo($dom, $celdaInstructor, [
+                ['Instructor · Fecha / ', ['sz' => 15]],
+                ['Date', ['sz' => 15, 'i' => true]],
+                [': ' . $diaVerif, ['sz' => 15]],
+            ]);
         }
         if ($filasOf->length > 1) {
             $celdaFecha = $xp->query('./w:tc', $filasOf->item(1))->item(2);
@@ -963,6 +975,169 @@ class WordGenerator
             $jc = $dom->createElementNS($w, 'w:jc');
             $jc->setAttributeNS($w, 'w:val', 'center');
             $pPr->appendChild($jc);
+        }
+    }
+
+    /**
+     * Añade un párrafo al final de una celda.
+     *
+     * @param array $runs [[texto, ['b'=>bool,'i'=>bool,'sz'=>medios puntos,'font'=>nombre]], …]
+     * @param array $op   'antes' (twips de separación previa), 'linea' (borde superior: línea de firma)
+     */
+    private static function agregarParrafo(\DOMDocument $dom, ?\DOMNode $tc, array $runs, array $op = []): void
+    {
+        if (!$tc) {
+            return;
+        }
+        $w = self::NS_W;
+        $esc = static fn(string $t) => htmlspecialchars($t, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+        $x = '<w:p xmlns:w="' . $w . '"><w:pPr>'
+           . (!empty($op['linea']) ? '<w:pBdr><w:top w:val="single" w:sz="6" w:space="1" w:color="000000"/></w:pBdr>' : '')
+           . '<w:spacing w:before="' . (int) ($op['antes'] ?? 0) . '" w:after="0" w:line="240" w:lineRule="auto"/></w:pPr>';
+        foreach ($runs as [$texto, $f]) {
+            $font = $f['font'] ?? 'Arial';
+            $sz = (int) ($f['sz'] ?? 18);
+            $x .= '<w:r><w:rPr><w:rFonts w:ascii="' . $font . '" w:hAnsi="' . $font . '" w:eastAsia="' . $font . '" w:cs="' . $font . '"/>'
+                . (!empty($f['b']) ? '<w:b/><w:bCs/>' : '') . (!empty($f['i']) ? '<w:i/><w:iCs/>' : '')
+                . '<w:sz w:val="' . $sz . '"/><w:szCs w:val="' . $sz . '"/></w:rPr>'
+                . '<w:t xml:space="preserve">' . $esc((string) $texto) . '</w:t></w:r>';
+        }
+        $x .= '</w:p>';
+        $frag = $dom->createDocumentFragment();
+        if ($frag->appendXML($x)) {
+            $tc->appendChild($frag);
+        }
+    }
+
+    /** Pone o quita la cursiva de un run, respetando el orden de los elementos de w:rPr. */
+    private static function cursivaEnRun(\DOMDocument $dom, \DOMXPath $xp, \DOMElement $r, bool $cursiva): void
+    {
+        $w = self::NS_W;
+        $rPr = $xp->query('./w:rPr', $r)->item(0);
+        if (!$rPr) {
+            $rPr = $dom->createElementNS($w, 'w:rPr');
+            $r->insertBefore($rPr, $r->firstChild);
+        }
+        foreach (iterator_to_array($xp->query('./w:i | ./w:iCs', $rPr)) as $v) { $rPr->removeChild($v); }
+        if (!$cursiva) {
+            return;
+        }
+        $antes = null;
+        foreach ($rPr->childNodes as $c) {
+            if (!in_array($c->localName, ['rStyle', 'rFonts', 'b', 'bCs'], true)) { $antes = $c; break; }
+        }
+        foreach (['w:i', 'w:iCs'] as $n) {
+            $el = $dom->createElementNS($w, $n);
+            $antes ? $rPr->insertBefore($el, $antes) : $rPr->appendChild($el);
+        }
+    }
+
+    /**
+     * En un párrafo «inglés / español» pone en cursiva lo anterior a la primera barra
+     * (o lo posterior, si va «español / inglés»), partiendo el run donde está la barra.
+     */
+    private static function cursivaSegunBarra(\DOMDocument $dom, \DOMXPath $xp, \DOMElement $p, bool $inglesAntes): void
+    {
+        $xmlNs = 'http://www.w3.org/XML/1998/namespace';
+        $pasada = false;
+        foreach (iterator_to_array($xp->query('./w:r', $p)) as $r) {
+            $t = $xp->query('./w:t', $r)->item(0);
+            $texto = $t ? $t->textContent : '';
+            if (!$pasada && $t && ($pos = strpos($texto, '/')) !== false) {
+                $pasada = true;
+                $izq = substr($texto, 0, $pos);
+                $der = substr($texto, $pos);               // la barra va con la parte derecha
+                if (trim($izq) !== '') {
+                    $copia = $r->cloneNode(true);
+                    $tc = $xp->query('./w:t', $copia)->item(0);
+                    $tc->nodeValue = $izq;
+                    $tc->setAttributeNS($xmlNs, 'xml:space', 'preserve');
+                    $p->insertBefore($copia, $r);
+                    self::cursivaEnRun($dom, $xp, $copia, $inglesAntes);
+                    $t->nodeValue = $der;
+                    $t->setAttributeNS($xmlNs, 'xml:space', 'preserve');
+                }
+                // la barra misma no se pone en cursiva
+                self::cursivaEnRun($dom, $xp, $r, false);
+                continue;
+            }
+            if ($t && trim($texto) !== '') {
+                self::cursivaEnRun($dom, $xp, $r, $pasada ? !$inglesAntes : $inglesAntes);
+            }
+        }
+    }
+
+    /** Pone en cursiva todo el texto inglés de la plantilla del examen. */
+    private static function inglesEnCursiva(\DOMDocument $dom, \DOMXPath $xp): void
+    {
+        // «inglés / español»
+        $inglesPrimero = ['GIVEN NAME', 'SURNAME', 'FINAL GRADE', 'PLACE OF COURSE', 'DATE /', 'SIGNATURE OF THE CANDIDATE',
+                          'The Evaluation test', 'The participant', 'In order to pass'];
+        // «español / inglés»
+        $espanolPrimero = ['☐ Aprobado', '☐ No aprobado', 'Aprobado', 'No aprobado'];
+
+        foreach (iterator_to_array($xp->query('//w:p')) as $p) {
+            $txt = trim(preg_replace('/\s+/u', ' ', $p->textContent));
+            foreach ($inglesPrimero as $ini) {
+                if (stripos($txt, $ini) === 0) { self::cursivaSegunBarra($dom, $xp, $p, true); continue 2; }
+            }
+            if (stripos($txt, 'INSTRUCTIONS') === 0) {
+                foreach ($xp->query('./w:r', $p) as $r) {
+                    $t = trim($r->textContent);
+                    if ($t === '') { continue; }
+                    self::cursivaEnRun($dom, $xp, $r, stripos($t, 'INSTRUCTIONS') === 0);
+                }
+                continue;
+            }
+            foreach ($espanolPrimero as $ini) {
+                if (mb_stripos($txt, $ini) === 0 && strpos($txt, '/') !== false && mb_strlen($txt) < 60) {
+                    self::cursivaSegunBarra($dom, $xp, $p, false);
+                    continue 2;
+                }
+            }
+            if (stripos($txt, 'Note / Nota:') === 0) { self::reescribirNota($dom, $xp, $p, $txt); }
+        }
+    }
+
+    /** La nota del pie alterna inglés y español: se rehace con el inglés en cursiva. */
+    private static function reescribirNota(\DOMDocument $dom, \DOMXPath $xp, \DOMElement $p, string $txt): void
+    {
+        $partes = preg_split('/\s+\/\s+/u', $txt);
+        // «Note», «Nota: EN1», «ES1 EN2», «ES2»
+        if (count($partes) !== 4 || !preg_match('/^(.*\.)\s+(If .*)$/su', $partes[2], $m)) {
+            return;                                       // la plantilla cambió: se deja como está
+        }
+        $en1 = preg_replace('/^Nota:\s*/u', '', $partes[1]);
+        $trozos = [
+            ['Note', true, true], [' / ', true, false], ['Nota: ', true, false],
+            [$en1, false, true], [' / ', false, false], [$m[1] . ' ', false, false],
+            [$m[2], false, true], [' / ', false, false], [$partes[3], false, false],
+        ];
+        $base = $xp->query('./w:r/w:rPr', $p);
+        $rPrBase = $base->length ? $base->item($base->length - 1) : null;
+        foreach (iterator_to_array($xp->query('./w:r', $p)) as $r) { $p->removeChild($r); }
+
+        foreach ($trozos as [$texto, $negrita, $cursiva]) {
+            $r = $dom->createElementNS(self::NS_W, 'w:r');
+            if ($rPrBase) {
+                $rPr = $rPrBase->cloneNode(true);
+                foreach (iterator_to_array($xp->query('./w:b | ./w:bCs | ./w:i | ./w:iCs', $rPr)) as $v) { $rPr->removeChild($v); }
+                $r->appendChild($rPr);
+            }
+            $t = $dom->createElementNS(self::NS_W, 'w:t', htmlspecialchars($texto, ENT_XML1, 'UTF-8'));
+            $t->setAttributeNS('http://www.w3.org/XML/1998/namespace', 'xml:space', 'preserve');
+            $r->appendChild($t);
+            $p->appendChild($r);
+            if ($negrita) {
+                $rPr = $xp->query('./w:rPr', $r)->item(0);
+                if (!$rPr) {
+                    $rPr = $dom->createElementNS(self::NS_W, 'w:rPr');
+                    $r->insertBefore($rPr, $r->firstChild);
+                }
+                $rPr->insertBefore($dom->createElementNS(self::NS_W, 'w:bCs'), $rPr->firstChild);
+                $rPr->insertBefore($dom->createElementNS(self::NS_W, 'w:b'), $rPr->firstChild);
+            }
+            if ($cursiva) { self::cursivaEnRun($dom, $xp, $r, true); }
         }
     }
 
