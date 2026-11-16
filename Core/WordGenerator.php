@@ -827,9 +827,14 @@ class WordGenerator
         $fecha = !empty($e['completed_at']) ? date('d/m/Y', strtotime((string) $e['completed_at'])) : date('d/m/Y');
         self::escribirEnCelda($dom, $xp, $celda(1, 0), (string) ($e['given_name'] ?? ''));
         self::escribirEnCelda($dom, $xp, $celda(1, 1), (string) ($e['surname'] ?? ''));
-        self::escribirEnCelda($dom, $xp, $celda(0, 3), number_format((float) ($e['score'] ?? 0), 2) . ' %', true, 28);
+        // La nota va en el recuadro grande (celda combinada bajo «FINAL GRADE»), centrada
+        self::escribirEnCelda($dom, $xp, $celda(1, 3), number_format((float) ($e['score'] ?? 0), 2) . ' %', true, 40, true);
+        self::centrarVerticalmente($dom, $xp, $celda(1, 3));
+        // Lugar y fecha, centrados verticalmente en su casilla
         self::escribirEnCelda($dom, $xp, $celda(3, 0), 'E-learning (PAMEL)');
         self::escribirEnCelda($dom, $xp, $celda(3, 1), $fecha);
+        self::centrarVerticalmente($dom, $xp, $celda(3, 0));
+        self::centrarVerticalmente($dom, $xp, $celda(3, 1));
 
         // 3) Bloque de preguntas: se sustituye todo lo que hay entre "PART A" y el recuadro de oficina
         $partA = null;
@@ -905,7 +910,7 @@ class WordGenerator
     }
 
     /** Escribe un texto en una celda del formato: un párrafo nuevo con la fuente del documento. */
-    private static function escribirEnCelda(\DOMDocument $dom, \DOMXPath $xp, ?\DOMNode $tc, string $texto, bool $negrita = false, int $medioPunto = 20): void
+    private static function escribirEnCelda(\DOMDocument $dom, \DOMXPath $xp, ?\DOMNode $tc, string $texto, bool $negrita = false, int $medioPunto = 20, bool $centrado = false): void
     {
         if (!$tc || $texto === '') {
             return;
@@ -924,11 +929,42 @@ class WordGenerator
 
         if ($destino) {
             $destino->appendChild($frag);
+            $p = $destino;
         } else {
             $p = $dom->createElementNS($w, 'w:p');
             $p->appendChild($frag);
             $tc->appendChild($p);
         }
+
+        if ($centrado) {
+            $pPr = $xp->query('./w:pPr', $p)->item(0);
+            if (!$pPr) {
+                $pPr = $dom->createElementNS($w, 'w:pPr');
+                $p->insertBefore($pPr, $p->firstChild);
+            }
+            foreach (iterator_to_array($xp->query('./w:jc', $pPr)) as $viejo) { $pPr->removeChild($viejo); }
+            $jc = $dom->createElementNS($w, 'w:jc');
+            $jc->setAttributeNS($w, 'w:val', 'center');
+            $pPr->appendChild($jc);
+        }
+    }
+
+    /** Centra verticalmente el contenido de una celda del formato. */
+    private static function centrarVerticalmente(\DOMDocument $dom, \DOMXPath $xp, ?\DOMNode $tc): void
+    {
+        if (!$tc) {
+            return;
+        }
+        $w = self::NS_W;
+        $tcPr = $xp->query('./w:tcPr', $tc)->item(0);
+        if (!$tcPr) {
+            $tcPr = $dom->createElementNS($w, 'w:tcPr');
+            $tc->insertBefore($tcPr, $tc->firstChild);
+        }
+        foreach (iterator_to_array($xp->query('./w:vAlign', $tcPr)) as $viejo) { $tcPr->removeChild($viejo); }
+        $va = $dom->createElementNS($w, 'w:vAlign');
+        $va->setAttributeNS($w, 'w:val', 'center');
+        $tcPr->appendChild($va);
     }
 
     /**
