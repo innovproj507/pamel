@@ -80,6 +80,13 @@ return function ($router) {
     $router->post('/api/v1/topics/:id/delete',       'Plugins\Elearning\Controllers\ForumsApiController@deleteTopic', 'api.v1.topics.delete');
     $router->post('/api/v1/posts/:id/delete',        'Plugins\Elearning\Controllers\ForumsApiController@deletePost',  'api.v1.posts.delete');
 
+    // ── Chat interno (alumno ↔ instructor/administración) ──────────
+    $router->get('/api/v1/chat/unread',                       'Plugins\Elearning\Controllers\ChatApiController@unread', 'api.v1.chat.unread');
+    $router->get('/api/v1/chat/conversations',                'Plugins\Elearning\Controllers\ChatApiController@index',  'api.v1.chat.index');
+    $router->post('/api/v1/chat/conversations',               'Plugins\Elearning\Controllers\ChatApiController@store',  'api.v1.chat.store');
+    $router->get('/api/v1/chat/conversations/:id',            'Plugins\Elearning\Controllers\ChatApiController@show',   'api.v1.chat.show');
+    $router->post('/api/v1/chat/conversations/:id/messages',  'Plugins\Elearning\Controllers\ChatApiController@reply',  'api.v1.chat.reply');
+
     // ── Users ─────────────────────────────────────────────────────────────────
     $router->get('/api/v1/users/count',      'Controllers\UsersApiController@count', 'api.v1.users.count');
     $router->get('/api/v1/users/:id',        'Controllers\UsersApiController@show',  'api.v1.users.show');
