@@ -2,14 +2,23 @@
 $statusColors = [
     'pending'  => 'bg-yellow-100 text-yellow-800 border-yellow-200',
     'reviewed' => 'bg-blue-100 text-blue-800 border-blue-200',
+    'pending_requirement' => 'bg-orange-100 text-orange-800 border-orange-200',
     'approved' => 'bg-green-100 text-green-800 border-green-200',
     'rejected' => 'bg-red-100 text-red-800 border-red-200',
 ];
 $statusIcons = [
     'pending'  => 'fa-clock',
     'reviewed' => 'fa-eye',
+    'pending_requirement' => 'fa-file-circle-exclamation',
     'approved' => 'fa-check-circle',
     'rejected' => 'fa-times-circle',
+];
+$statusLabels = [
+    'pending'  => 'Pendiente',
+    'reviewed' => 'En revisión',
+    'pending_requirement' => 'Pendiente de requisito',
+    'approved' => 'Aprobada',
+    'rejected' => 'No aprobada',
 ];
 $status      = $request['status'] ?? 'pending';
 $colorClass  = $statusColors[$status] ?? 'bg-gray-100 text-gray-800 border-gray-200';
@@ -21,7 +30,7 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
     <!-- Back link -->
     <div class="mb-6">
         <a href="/manager/admission-requests" class="text-cyan-600 hover:text-cyan-800 font-medium">
-            <i class="fas fa-arrow-left mr-2"></i>Back to Admission Requests
+            <i class="fas fa-arrow-left mr-2"></i>Volver a solicitudes de admisión
         </a>
     </div>
 
@@ -33,16 +42,16 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                 <div>
                     <h1 class="text-2xl font-bold text-white flex items-center">
                         <i class="fas fa-user-graduate mr-3"></i>
-                        Admission Request #<?= $request['id'] ?>
+                        Solicitud de admisión #<?= $request['id'] ?>
                     </h1>
                     <p class="text-blue-100 mt-1">
-                        Submitted on <?= date('F j, Y', strtotime($request['created_at'])) ?>
-                        at <?= date('H:i', strtotime($request['created_at'])) ?>
+                        Enviada el <?= date('d/m/Y', strtotime($request['created_at'])) ?>
+                        a las <?= date('H:i', strtotime($request['created_at'])) ?>
                     </p>
                 </div>
                 <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border <?= $colorClass ?>">
                     <i class="fas <?= $iconClass ?> mr-2"></i>
-                    <?= ucfirst($status) ?>
+                    <?= htmlspecialchars($statusLabels[$status] ?? ucfirst($status)) ?>
                 </span>
             </div>
         </div>
@@ -52,35 +61,35 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
             <!-- Applicant Information -->
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-user text-cyan-600 mr-2"></i>Applicant Information
+                    <i class="fas fa-user text-cyan-600 mr-2"></i>Datos del solicitante
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-xl p-5">
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Given Name</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nombre</label>
                         <p class="text-gray-900 mt-1 font-medium"><?= htmlspecialchars($request['given_name']) ?></p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Surname</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Apellido</label>
                         <p class="text-gray-900 mt-1 font-medium"><?= htmlspecialchars($request['surname']) ?></p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Passport / ID</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Pasaporte / Cédula</label>
                         <p class="text-gray-900 mt-1"><?= htmlspecialchars($request['passport_id']) ?></p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nationality</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nacionalidad</label>
                         <p class="text-gray-900 mt-1"><?= htmlspecialchars($request['nationality']) ?></p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Date of Birth</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Fecha de nacimiento</label>
                         <p class="text-gray-900 mt-1"><?= htmlspecialchars($request['date_of_birth']) ?></p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Country of Birth</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">País de nacimiento</label>
                         <p class="text-gray-900 mt-1"><?= htmlspecialchars((string) $request['country_of_birth']) ?: '<span class="text-gray-300">—</span>' ?></p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Education Level</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nivel educativo</label>
                         <p class="text-gray-900 mt-1"><?= htmlspecialchars((string) ($request['education_level'] ?? '')) ?: '<span class="text-gray-300">—</span>' ?></p>
                     </div>
                 </div>
@@ -89,11 +98,11 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
             <!-- Contact Information -->
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-address-card text-cyan-600 mr-2"></i>Contact Information
+                    <i class="fas fa-address-card text-cyan-600 mr-2"></i>Datos de contacto
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-xl p-5">
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Correo</label>
                         <p class="mt-1">
                             <a href="mailto:<?= htmlspecialchars($request['email']) ?>" class="text-cyan-600 hover:underline font-medium">
                                 <?= htmlspecialchars($request['email']) ?>
@@ -101,11 +110,11 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                         </p>
                     </div>
                     <div>
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Phone</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Teléfono</label>
                         <p class="text-gray-900 mt-1"><?= htmlspecialchars($request['phone']) ?></p>
                     </div>
                     <div class="md:col-span-2">
-                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Address</label>
+                        <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Dirección</label>
                         <p class="text-gray-900 mt-1"><?= htmlspecialchars($request['address']) ?></p>
                     </div>
                 </div>
@@ -124,7 +133,7 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
                     <i class="fas fa-graduation-cap text-cyan-600 mr-2"></i>
-                    <?= count($_cursos) === 1 ? 'Requested Course' : 'Requested Courses' ?>
+                    <?= count($_cursos) === 1 ? 'Curso solicitado' : 'Cursos solicitados' ?>
                     <?php if (count($_cursos) > 1): ?>
                     <span class="ml-2 text-xs font-black text-cyan-600 bg-cyan-50 border border-cyan-200 px-2 py-0.5 rounded-full">
                         <?= count($_cursos) ?>
@@ -149,7 +158,7 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                 <div class="bg-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-50 border border-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-200 rounded-xl p-5">
                     <p class="text-<?= (int)$request['consent_accepted'] === 1 ? 'green' : 'red' ?>-700 font-semibold text-sm">
                         <i class="fas fa-<?= (int)$request['consent_accepted'] === 1 ? 'check-circle' : 'times-circle' ?> mr-2"></i>
-                        Terms and Conditions Consent: <?= (int)$request['consent_accepted'] === 1 ? 'Accepted' : 'Not Accepted' ?>
+                        Consentimiento de términos y condiciones: <?= (int)$request['consent_accepted'] === 1 ? 'Aceptado' : 'No aceptado' ?>
                     </p>
                 </div>
             </div>
@@ -185,7 +194,7 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
             <?php if (!empty($request['id_file']) || !empty($request['health_certificate_file'])): ?>
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-paperclip text-cyan-600 mr-2"></i>Attached Documents
+                    <i class="fas fa-paperclip text-cyan-600 mr-2"></i>Documentos adjuntos
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <?php if (!empty($request['id_file'])): ?>
@@ -195,8 +204,8 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                             <i class="fas fa-id-card text-xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-gray-900">ID / Passport</p>
-                            <p class="text-xs text-gray-500">Click to view document</p>
+                            <p class="text-sm font-bold text-gray-900">Cédula / Pasaporte</p>
+                            <p class="text-xs text-gray-500">Clic para ver el documento</p>
                         </div>
                         <i class="fas fa-external-link-alt ml-auto text-gray-400 group-hover:text-cyan-600"></i>
                     </a>
@@ -209,8 +218,8 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                             <i class="fas fa-file-medical text-xl"></i>
                         </div>
                         <div>
-                            <p class="text-sm font-bold text-gray-900">Health Certificate</p>
-                            <p class="text-xs text-gray-500">Click to view document</p>
+                            <p class="text-sm font-bold text-gray-900">Certificado médico</p>
+                            <p class="text-xs text-gray-500">Clic para ver el documento</p>
                         </div>
                         <i class="fas fa-external-link-alt ml-auto text-gray-400 group-hover:text-green-600"></i>
                     </a>
@@ -222,19 +231,20 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
             <!-- Update Status Panel -->
             <div class="mb-8">
                 <h2 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-                    <i class="fas fa-exchange-alt text-cyan-600 mr-2"></i>Update Status
+                    <i class="fas fa-exchange-alt text-cyan-600 mr-2"></i>Actualizar estado
                 </h2>
                 <div class="bg-gray-50 border border-gray-200 rounded-xl p-6">
 
                     <!-- Quick action buttons -->
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Quick Actions</p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Acciones rápidas</p>
                     <div class="flex flex-wrap gap-2 mb-5">
                         <?php
                         $quickActions = [
-                            'pending'  => ['label' => 'Pending',  'icon' => 'fa-clock',        'btn' => 'bg-yellow-500 hover:bg-yellow-600'],
-                            'reviewed' => ['label' => 'Reviewed', 'icon' => 'fa-eye',           'btn' => 'bg-blue-500 hover:bg-blue-600'],
-                            'approved' => ['label' => 'Approved', 'icon' => 'fa-check-circle',  'btn' => 'bg-green-500 hover:bg-green-600'],
-                            'rejected' => ['label' => 'Rejected', 'icon' => 'fa-times-circle',  'btn' => 'bg-red-500 hover:bg-red-600'],
+                            'pending'  => ['label' => 'Pendiente',  'icon' => 'fa-clock',        'btn' => 'bg-yellow-500 hover:bg-yellow-600'],
+                            'reviewed' => ['label' => 'En revisión', 'icon' => 'fa-eye',          'btn' => 'bg-blue-500 hover:bg-blue-600'],
+                            'pending_requirement' => ['label' => 'Pendiente de requisito', 'icon' => 'fa-file-circle-exclamation', 'btn' => 'bg-orange-500 hover:bg-orange-600'],
+                            'approved' => ['label' => 'Aprobada', 'icon' => 'fa-check-circle',  'btn' => 'bg-green-500 hover:bg-green-600'],
+                            'rejected' => ['label' => 'No aprobada', 'icon' => 'fa-times-circle',  'btn' => 'bg-red-500 hover:bg-red-600'],
                         ];
                         foreach ($quickActions as $key => $action):
                             $active = $status === $key ? 'ring-2 ring-offset-2 ring-gray-400 opacity-60 cursor-default' : 'cursor-pointer';
@@ -250,7 +260,7 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                     </div>
 
                     <!-- Notes textarea -->
-                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Notes <span class="font-normal normal-case">(optional)</span></p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Notas <span class="font-normal normal-case">(optional)</span></p>
                     <textarea id="statusNotes" rows="3"
                               placeholder="Add internal notes about this request..."
                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:border-cyan-500 focus:ring-2 focus:ring-cyan-200 focus:outline-none resize-none transition text-sm"><?= htmlspecialchars($request['notes'] ?? '') ?></textarea>
@@ -268,7 +278,7 @@ $iconClass   = $statusIcons[$status]  ?? 'fa-circle';
                 </a>
                 <a href="/manager/admission-requests/<?= $request['id'] ?>/download-word"
                    class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold transition">
-                    <i class="fas fa-file-word mr-2"></i>Download Word
+                    <i class="fas fa-file-word mr-2"></i>Descargar Word
                 </a>
                 <button onclick="window.print()"
                         class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 py-2 rounded-lg font-semibold transition">

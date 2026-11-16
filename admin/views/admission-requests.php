@@ -7,7 +7,7 @@
  * los enlaces de los recuadros de estado.
  */
 $requests       = $requests       ?? [];
-$statusCounts   = $statusCounts   ?? ['pending' => 0, 'reviewed' => 0, 'approved' => 0, 'rejected' => 0];
+$statusCounts   = $statusCounts   ?? ['pending' => 0, 'reviewed' => 0, 'pending_requirement' => 0, 'approved' => 0, 'rejected' => 0];
 $currentStatus  = $currentStatus  ?? '';
 $currentSearch  = $currentSearch  ?? '';
 $totalCount     = (int) ($totalCount  ?? 0);
@@ -21,18 +21,20 @@ $hayFiltros = $currentSearch !== '' || $currentStatus !== '';
 // Estado -> etiqueta en español, pastilla e icono.
 $estados = [
     'pending'  => ['Pendiente', 'p-ambar', 'clock'],
-    'reviewed' => ['Revisada',  'p-azul',  'eye'],
+    'reviewed' => ['En revisión', 'p-azul',  'eye'],
+    'pending_requirement' => ['Pendiente de requisito', 'p-ambar', 'file-warning'],
     'approved' => ['Aprobada',  'p-verde', 'circle-check'],
-    'rejected' => ['Rechazada', 'p-rojo',  'circle-x'],
+    'rejected' => ['No aprobada', 'p-rojo',  'circle-x'],
 ];
 
 // Recuadros: además de contar, filtran por estado.
 $recuadros = [
     ['Todas',      array_sum($statusCounts),   ''],
     ['Pendientes', $statusCounts['pending'],   'pending'],
-    ['Revisadas',  $statusCounts['reviewed'],  'reviewed'],
+    ['En revisión', $statusCounts['reviewed'],  'reviewed'],
+    ['Pend. requisito', $statusCounts['pending_requirement'], 'pending_requirement'],
     ['Aprobadas',  $statusCounts['approved'],  'approved'],
-    ['Rechazadas', $statusCounts['rejected'],  'rejected'],
+    ['No aprobadas', $statusCounts['rejected'],  'rejected'],
 ];
 
 /** URL de una página conservando filtros y filas por pantalla. */
@@ -354,9 +356,10 @@ _dd.className = 'hidden fixed z-[9999] w-44 bg-white rounded-xl shadow-2xl py-1'
 _dd.style.border = '1px solid #e8edf6';
 _dd.innerHTML = `
     <button data-s="pending"  class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-amber-50">Pendiente</button>
-    <button data-s="reviewed" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-blue-50">Revisada</button>
+    <button data-s="reviewed" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-blue-50">En revisión</button>
+    <button data-s="pending_requirement" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-amber-50">Pendiente de requisito</button>
     <button data-s="approved" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-emerald-50">Aprobada</button>
-    <button data-s="rejected" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-rose-50">Rechazada</button>
+    <button data-s="rejected" class="w-full text-left px-4 py-2 text-[12.5px] font-semibold text-slate-600 hover:bg-rose-50">No aprobada</button>
 `;
 document.body.appendChild(_dd);
 let _ddId = null;
@@ -437,12 +440,14 @@ function viewRequest(id) {
             const pastillas = {
                 pending:  'p-ambar',
                 reviewed: 'p-azul',
+                pending_requirement: 'p-ambar',
                 approved: 'p-verde',
                 rejected: 'p-rojo'
             };
             const nombres = {
-                pending: 'Pendiente', reviewed: 'Revisada',
-                approved: 'Aprobada', rejected: 'Rechazada'
+                pending: 'Pendiente', reviewed: 'En revisión',
+                pending_requirement: 'Pendiente de requisito',
+                approved: 'Aprobada', rejected: 'No aprobada'
             };
             const aceptado = parseInt(d.consent_accepted) === 1;
 

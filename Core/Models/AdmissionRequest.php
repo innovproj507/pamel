@@ -299,6 +299,7 @@ class AdmissionRequest extends Model
         $counts = [
             'pending' => 0,
             'reviewed' => 0,
+            'pending_requirement' => 0,
             'approved' => 0,
             'rejected' => 0
         ];

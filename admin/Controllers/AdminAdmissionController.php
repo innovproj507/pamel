@@ -56,7 +56,7 @@ class AdminAdmissionController extends Controller
 
         // Render view
         $this->view->render('admin/views/admission-requests', [
-            'title' => 'Admission Requests',
+            'title' => 'Solicitudes de admisión',
             'requests' => $requests,
             'currentPage' => $page,
             'totalPages' => $totalPages,
@@ -95,7 +95,7 @@ class AdminAdmissionController extends Controller
             // Una solicitud puede llevar varios cursos, cada uno con su
             // modalidad; la columna `course` sólo guarda el resumen.
             'requestCourses'   => $this->admissionRequest->getCourses((int) $id),
-            'title'   => 'Admission Request #' . $id,
+            'title'   => 'Solicitud de admisión #' . $id,
             'request' => $request,
         ], 'admin/views/layout');
     }
@@ -320,7 +320,7 @@ class AdminAdmissionController extends Controller
                 throw new \Exception('Invalid request ID');
             }
 
-            $validStatuses = ['pending', 'reviewed', 'approved', 'rejected'];
+            $validStatuses = ['pending', 'reviewed', 'pending_requirement', 'approved', 'rejected'];
             if (!in_array($status, $validStatuses)) {
                 throw new \Exception('Invalid status');
             }
