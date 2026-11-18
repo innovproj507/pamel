@@ -412,7 +412,7 @@ class Progress extends Model
         $a['preguntas'] = [];
         foreach ($filas as $f) {
             $opciones = $this->db->fetchAll(
-                "SELECT id, option_text FROM lms_question_options
+                "SELECT id, option_text, is_correct FROM lms_question_options
                   WHERE question_id = ? ORDER BY order_num ASC, id ASC",
                 [(int) $f['question_id']]
             );
@@ -420,7 +420,7 @@ class Progress extends Model
                 'texto'    => (string) $f['question'],
                 'elegida'  => $f['selected_option_id'] !== null ? (int) $f['selected_option_id'] : null,
                 'opciones' => array_map(
-                    static fn($o) => ['id' => (int) $o['id'], 'texto' => (string) $o['option_text']],
+                    static fn($o) => ['id' => (int) $o['id'], 'texto' => (string) $o['option_text'], 'correcta' => (int) $o['is_correct'] === 1],
                     $opciones
                 ),
             ];

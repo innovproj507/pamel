@@ -878,8 +878,11 @@ class WordGenerator
             foreach (($q['opciones'] ?? []) as $i => $o) {
                 $elegida = $q['elegida'] !== null && (int) $o['id'] === (int) $q['elegida'];
                 $letra = chr(ord('a') + ($i % 26)) . '- ';
+                // La opción marcada va en negrita y sombreada en un tono pastel: verde si era la
+                // correcta, rojo si no. El texto sigue en negro para que se lea también impreso.
+                $tono = !empty($o['correcta']) ? 'C6EFCE' : 'F8CBCB';
                 $rpr = '<w:rPr>' . $fuente . ($elegida ? '<w:b/><w:bCs/>' : '') . '<w:sz w:val="24"/><w:szCs w:val="24"/>'
-                     . ($elegida ? '<w:highlight w:val="yellow"/>' : '') . '</w:rPr>';
+                     . ($elegida ? '<w:shd w:val="clear" w:color="auto" w:fill="' . $tono . '"/>' : '') . '</w:rPr>';
                 $bloques .= '<w:p xmlns:w="' . $w . '"><w:pPr><w:keepLines/>' . ($i < count($q['opciones']) - 1 ? '<w:keepNext/>' : '')
                     . '<w:spacing w:after="0" w:line="240" w:lineRule="auto"/><w:ind w:left="720" w:hanging="360"/></w:pPr>'
                     . '<w:r>' . $rpr . '<w:t xml:space="preserve">' . $letra . $xmlEsc($limpio((string) $o['texto'])) . '</w:t></w:r></w:p>';
