@@ -11,6 +11,8 @@ $cwToken = \Core\Security::generateCsrfToken();
 <style>
 #cw-btn{position:fixed;right:22px;bottom:22px;z-index:60;width:56px;height:56px;border-radius:50%;background:#2563eb;color:#fff;border:0;cursor:pointer;box-shadow:0 8px 24px rgba(37,99,235,.4);display:flex;align-items:center;justify-content:center}
 #cw-btn:hover{background:#1d4ed8}
+@keyframes cwparpadeo{0%,100%{background:#2563eb;box-shadow:0 0 0 0 rgba(239,68,68,.6)}50%{background:#ef4444;box-shadow:0 0 0 14px rgba(239,68,68,0)}}
+#cw-btn.cw-parpadea{animation:cwparpadeo 1s ease-in-out infinite}
 #cw-badge{position:absolute;top:-4px;right:-4px;min-width:22px;height:22px;padding:0 5px;border-radius:99px;background:#ef4444;color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
 #cw-badge.oculto{display:none}
 #cw-panel{position:fixed;right:22px;bottom:92px;z-index:60;width:380px;max-width:calc(100vw - 24px);height:540px;max-height:calc(100vh - 112px);display:none;flex-direction:column;background:#fff;border-radius:16px;box-shadow:0 14px 44px rgba(10,22,40,.3);overflow:hidden}
@@ -81,12 +83,19 @@ $cwToken = \Core\Security::generateCsrfToken();
     function bajar() { body.scrollTop = body.scrollHeight; }
     function pararSondeo() { if (sondeo) { clearInterval(sondeo); sondeo = null; } }
 
+    // La burbuja parpadea mientras haya mensajes sin leer y el panel esté cerrado
+    function parpadeo() {
+        const pendientes = !badge.classList.contains('oculto');
+        btn.classList.toggle('cw-parpadea', pendientes && !panel.classList.contains('abierto'));
+    }
+
     async function contar() {
         if (document.hidden) return;
         try {
             const n = parseInt((await get('/manager/chat/no-leidos')).count, 10) || 0;
             badge.textContent = n > 99 ? '99+' : String(n);
             badge.classList.toggle('oculto', n === 0);
+            parpadeo();
             document.title = document.title.replace(/^\(\d+\)\s/, '');
             if (n > 0) document.title = '(' + n + ') ' + document.title;
         } catch (e) {}
@@ -155,11 +164,12 @@ $cwToken = \Core\Security::generateCsrfToken();
     texto.addEventListener('input', () => { texto.style.height = 'auto'; texto.style.height = Math.min(texto.scrollHeight, 90) + 'px'; });
 
     atras.onclick = mostrarLista;
-    $('cw-cerrar').onclick = () => { panel.classList.remove('abierto'); pararSondeo(); };
+    $('cw-cerrar').onclick = () => { panel.classList.remove('abierto'); pararSondeo(); parpadeo(); };
     btn.onclick = () => {
         toast.classList.remove('visible');
         if (panel.classList.toggle('abierto')) { (vista === 'hilo' && convId) ? abrir(convId) : mostrarLista(); }
         else pararSondeo();
+        parpadeo();
     };
 
     // ── Aviso emergente: quién escribió y qué ──
