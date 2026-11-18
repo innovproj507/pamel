@@ -812,5 +812,6 @@ foreach ([
     });
 })();
 </script>
+<?php include __DIR__ . '/partials/chat-widget.php'; ?>
 </body>
 </html>

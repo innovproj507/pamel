@@ -14,6 +14,13 @@ return function($router) {
     $router->post('/manager/login', 'Admin\Controllers\AuthController@login', 'admin.login.post');
     $router->get('/manager/logout', 'Admin\Controllers\AuthController@logout', 'admin.logout');
 
+    // Chat del manager (burbuja): JSON. Las rutas fijas van antes que las de :id.
+    $router->get('/manager/chat/widget', 'Admin\Controllers\AdminChatController@widget', 'admin.chat.widget');
+    $router->get('/manager/chat/ticket', 'Admin\Controllers\AdminChatController@ticket', 'admin.chat.ticket');
+    $router->get('/manager/chat/no-leidos', 'Admin\Controllers\AdminChatController@sinLeer', 'admin.chat.unread');
+    $router->get('/manager/chat/:id/hilo', 'Admin\Controllers\AdminChatController@hilo', 'admin.chat.hilo');
+    $router->post('/manager/chat/:id/enviar', 'Admin\Controllers\AdminChatController@enviar', 'admin.chat.enviar');
+
     // Plugins
     $router->get('/manager/plugins', 'Admin\Controllers\PluginController@index', 'admin.plugins');
 

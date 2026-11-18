@@ -41,6 +41,12 @@ class Chat extends Model
         )));
     }
 
+    /** ¿Puede este usuario ver conversaciones del chat? (alumnado, personal autorizado, instructores). */
+    public function puedeAtender(int $userId): bool
+    {
+        return $this->visibilidad($userId, $this->rolDe($userId)) !== null;
+    }
+
     /** Rol del usuario, o null si no existe. */
     public function rolDe(int $userId): ?string
     {
