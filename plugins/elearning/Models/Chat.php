@@ -176,6 +176,32 @@ class Chat extends Model
     }
 
     /**
+     * A quién avisar de un mensaje nuevo: el alumno de la conversación, el instructor del
+     * curso y la administración (admin y dirección académica), sin el remitente.
+     *
+     * @return array<int,array{id:int,name:string,email:string,role:string}>
+     */
+    public function destinatarios(int $conversacionId, int $remitenteId): array
+    {
+        $filas = $this->db->fetchAll(
+            "SELECT DISTINCT u.id, u.name, u.email, u.role
+               FROM users u
+              WHERE u.id <> ?
+                AND (
+                      u.id = (SELECT student_id FROM chat_conversations WHERE id = ?)
+                   OR u.id = (SELECT c.teacher_id FROM chat_conversations cc
+                                JOIN lms_courses c ON c.id = cc.course_id WHERE cc.id = ?)
+                   OR u.role IN ('admin', 'academic_director')
+                )",
+            [$remitenteId, $conversacionId, $conversacionId]
+        );
+        return array_map(static fn($f) => [
+            'id' => (int) $f['id'], 'name' => (string) $f['name'],
+            'email' => (string) $f['email'], 'role' => (string) $f['role'],
+        ], $filas);
+    }
+
+    /**
      * Mensajes de una conversación, de más antiguo a más reciente.
      * Con $despuesDe solo los posteriores a ese id (sondeo). Marca como leído
      * lo que el usuario acaba de recibir.

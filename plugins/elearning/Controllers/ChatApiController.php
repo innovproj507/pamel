@@ -58,7 +58,10 @@ class ChatApiController extends Controller
         if (isset($r['error'])) {
             $this->apiResponse(['status' => 'error', 'message' => $r['error']], 422);
         }
-        $this->apiResponse(['status' => 'success', 'data' => ['id' => $r['id']]], 201);
+        $this->apiResponse(['status' => 'success', 'data' => [
+            'id'            => $r['id'],
+            'destinatarios' => $this->chat->destinatarios((int) $r['id'], $userId),
+        ]], 201);
     }
 
     public function show($id): void
@@ -94,7 +97,10 @@ class ChatApiController extends Controller
         if (isset($r['error'])) {
             $this->apiResponse(['status' => 'error', 'message' => $r['error']], (int) ($r['codigo'] ?? 422));
         }
-        $this->apiResponse(['status' => 'success', 'data' => ['id' => $r['id']]], 201);
+        $this->apiResponse(['status' => 'success', 'data' => [
+            'id'            => $r['id'],
+            'destinatarios' => $this->chat->destinatarios((int) $id, $userId),
+        ]], 201);
     }
 
     // ─── Internos ────────────────────────────────────────────────────
