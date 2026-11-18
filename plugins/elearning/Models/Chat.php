@@ -26,6 +26,21 @@ class Chat extends Model
 
     private const ROLES_TODO = ['admin', 'academic_director'];
 
+    /**
+     * Correos de la administración que atienden el chat (variable CHAT_STAFF_EMAILS del .env,
+     * separados por comas). Vacío = todos los administradores y la dirección académica.
+     *
+     * @return string[]
+     */
+    private function correosDelChat(): array
+    {
+        $crudo = (string) (\Core\Env::get('CHAT_STAFF_EMAILS', '') ?: '');
+        return array_values(array_filter(array_map(
+            static fn($c) => strtolower(trim($c)),
+            explode(',', $crudo)
+        )));
+    }
+
     /** Rol del usuario, o null si no existe. */
     public function rolDe(int $userId): ?string
     {
@@ -50,6 +65,14 @@ class Chat extends Model
             return ['c.student_id = ?', [$userId]];
         }
         if (in_array($rol, self::ROLES_TODO, true)) {
+            // Con CHAT_STAFF_EMAILS, solo esas cuentas atienden el chat
+            $permitidos = $this->correosDelChat();
+            if ($permitidos) {
+                $u = $this->db->fetchOne('SELECT email FROM users WHERE id = ? LIMIT 1', [$userId]);
+                if (!$u || !in_array(strtolower(trim((string) $u['email'])), $permitidos, true)) {
+                    return null;
+                }
+            }
             return ['1 = 1', []];
         }
         if ($rol === 'teacher') {
@@ -183,6 +206,10 @@ class Chat extends Model
      */
     public function destinatarios(int $conversacionId, int $remitenteId): array
     {
+        $permitidos = $this->correosDelChat();
+        $soloEstos = $permitidos
+            ? ' AND LOWER(TRIM(u.email)) IN (' . implode(',', array_fill(0, count($permitidos), '?')) . ')'
+            : '';
         $filas = $this->db->fetchAll(
             "SELECT DISTINCT u.id, u.name, u.email, u.role
                FROM users u
@@ -191,9 +218,9 @@ class Chat extends Model
                       u.id = (SELECT student_id FROM chat_conversations WHERE id = ?)
                    OR u.id = (SELECT c.teacher_id FROM chat_conversations cc
                                 JOIN lms_courses c ON c.id = cc.course_id WHERE cc.id = ?)
-                   OR u.role IN ('admin', 'academic_director')
+                   OR (u.role IN ('admin', 'academic_director'){$soloEstos})
                 )",
-            [$remitenteId, $conversacionId, $conversacionId]
+            array_merge([$remitenteId, $conversacionId, $conversacionId], $permitidos)
         );
         return array_map(static fn($f) => [
             'id' => (int) $f['id'], 'name' => (string) $f['name'],
