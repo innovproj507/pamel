@@ -912,8 +912,6 @@ class WordGenerator
         if ($filasOf->length > 1) {
             $celdaInstructor = $xp->query('./w:tc', $filasOf->item(1))->item(0);
             $verificado = !empty($e['verified_at']);
-            $quien = trim((string) ($e['verified_by_name'] ?? ''));
-            $diaVerif = $verificado ? date('d/m/Y', strtotime((string) $e['verified_at'])) : '';
 
             self::compactarCelda($dom, $xp, $celdaInstructor);
             self::agregarParrafo($dom, $celdaInstructor, [
@@ -921,13 +919,6 @@ class WordGenerator
                 [' ESTE EXAMEN HA SIDO VERIFICADO Y CUENTA CON LA CONFORMIDAD DEL INSTRUCTOR.', ['sz' => 13, 'b' => true]],
             ]);
             self::agregarParrafo($dom, $celdaInstructor, [["THIS EXAM HAS BEEN VERIFIED AND HAS THE INSTRUCTOR'S APPROVAL.", ['sz' => 13, 'i' => true]]]);
-            // Línea de firma, con el nombre del instructor debajo cuando ya lo verificó
-            self::agregarParrafo($dom, $celdaInstructor, [[$quien, ['sz' => 18, 'b' => true]]], ['antes' => 520, 'linea' => true]);
-            self::agregarParrafo($dom, $celdaInstructor, [
-                ['Instructor · Fecha / ', ['sz' => 15]],
-                ['Date', ['sz' => 15, 'i' => true]],
-                [': ' . $diaVerif, ['sz' => 15]],
-            ]);
         }
         if ($filasOf->length > 1) {
             $celdaFecha = $xp->query('./w:tc', $filasOf->item(1))->item(2);
